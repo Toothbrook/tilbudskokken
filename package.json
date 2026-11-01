@@ -1,0 +1,1 @@
+{"type":"module","private":true,"scripts":{"build":"node scripts/build-week.mjs","build:fixture":"node scripts/build-week.mjs --offers fixtures/offers-uge45-2026.json"}}

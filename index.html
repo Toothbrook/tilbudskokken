@@ -1,0 +1,341 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Tilbudskøkken</title>
+<meta name="description" content="Weekly meal plan with calories, built from this week's REMA 1000 offers. Updates every Sunday.">
+<meta name="theme-color" content="#eef1f5" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0e1421" media="(prefers-color-scheme: dark)">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect x='6' y='10' width='52' height='44' rx='6' fill='%23ffd43b' transform='rotate(-6 32 32)'/%3E%3Ctext x='32' y='42' font-family='Arial' font-weight='700' font-size='24' text-anchor='middle' fill='%23d23a2c'%3Ekr%3C/text%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Public+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: one phone-first column; sale-sticker yellow marks every offer item, the shopping list prints as a till receipt */
+:root{
+  --paper:#eef1f5; --card:#ffffff; --ink:#15203a; --muted:#5b6579; --line:#d9dfe8;
+  --tag:#ffd43b; --tag-ink:#15203a; --sale:#d23a2c; --soft:#e3e8f0; --b1:#e09a2f; --b2:#3f8fd6;
+  --display:"Bricolage Grotesque",ui-sans-serif,system-ui,sans-serif;
+  --body:"Public Sans",ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;
+  color-scheme:light;
+}
+@media (prefers-color-scheme:dark){:root{
+  --paper:#0e1421; --card:#161f32; --ink:#e7ebf3; --muted:#98a3b7; --line:#273249;
+  --tag:#f6c834; --tag-ink:#15203a; --sale:#ff6f61; --soft:#1e2940; --b1:#f0b04a; --b2:#5ea6e8; color-scheme:dark}}
+
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--body);font-size:15px;line-height:1.5;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));
+  padding-block:calc(20px + env(safe-area-inset-top,0px)) calc(48px + env(safe-area-inset-bottom,0px))}
+[hidden]{display:none!important}
+.wrap{max-width:720px;margin:0 auto;display:flex;flex-direction:column;gap:20px}
+h1,h2,h3{font-family:var(--display);text-wrap:balance;margin:0;line-height:1.1}
+button,input,select{font:inherit;color:inherit}
+a{color:inherit}
+:focus-visible{outline:2px solid var(--sale);outline-offset:2px}
+.num{font-variant-numeric:tabular-nums}
+
+header{display:flex;flex-direction:column;gap:8px}
+.week{display:inline-flex;align-items:center;gap:8px;font-family:var(--mono);font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);flex-wrap:wrap}
+.week b{background:var(--tag);color:var(--tag-ink);padding:2px 7px;border-radius:3px;font-weight:600}
+h1{font-size:clamp(30px,8vw,44px);font-weight:800;letter-spacing:-.02em}
+h1 em{font-style:normal;color:var(--sale)}
+.lede{color:var(--muted);margin:0;max-width:60ch}
+.banner{background:var(--tag);color:var(--tag-ink);padding:10px 14px;border-radius:10px;font-size:14px;font-weight:500}
+
+.day{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px;display:flex;flex-direction:column;gap:14px}
+.day-head{display:flex;justify-content:space-between;align-items:baseline;gap:12px;flex-wrap:wrap}
+.day-head h2{font-size:20px}
+.target{display:flex;align-items:center;gap:6px;font-size:13px;color:var(--muted)}
+.target input{width:78px;padding:5px 8px;border:1px solid var(--line);border-radius:8px;background:var(--paper);text-align:right}
+.picks{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.picks label{display:flex;flex-direction:column;gap:4px;font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);min-width:0}
+.picks select{width:100%;padding:8px;border:1px solid var(--line);border-radius:8px;background:var(--paper);font-size:13px;text-transform:none;letter-spacing:0;color:var(--ink)}
+@media (max-width:520px){.picks{grid-template-columns:1fr}}
+.bar{height:14px;border-radius:7px;background:var(--soft);display:flex;overflow:hidden}
+.bar span{height:100%;transition:width .3s}
+.bar .b1{background:var(--b1)}.bar .b2{background:var(--b2)}.bar .b3{background:var(--sale)}
+.totals{display:flex;gap:18px;flex-wrap:wrap;align-items:baseline}
+.totals .big{font-family:var(--display);font-size:30px;font-weight:800}
+.totals small{color:var(--muted);font-size:13px}
+.legend{display:flex;gap:12px;flex-wrap:wrap;font-size:12px;color:var(--muted)}
+.legend i{display:inline-block;width:9px;height:9px;border-radius:2px;margin-right:4px;vertical-align:middle}
+
+.tabs{display:flex;gap:6px;position:sticky;top:0;z-index:5;background:var(--paper);padding-block:calc(8px + env(safe-area-inset-top,0px)) 8px;margin-top:calc(-1 * env(safe-area-inset-top,0px));overflow-x:auto;scrollbar-width:none}
+.tab{border:1px solid var(--line);background:var(--card);padding:8px 14px;border-radius:999px;cursor:pointer;font-weight:600;font-size:14px;white-space:nowrap;display:flex;gap:6px;align-items:center}
+.tab[aria-selected="true"]{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+.tab .count{font-family:var(--mono);font-size:11px;opacity:.7}
+
+.list{display:flex;flex-direction:column;gap:12px}
+.meal{background:var(--card);border:1px solid var(--line);border-radius:14px;overflow:hidden}
+.meal-top{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:12px;padding:16px;cursor:pointer;align-items:start;width:100%;text-align:left;background:none;border:0}
+.meal-top h3{font-size:19px;font-weight:600}
+.dk{font-size:13px;color:var(--muted);margin-top:2px}
+.chips{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}
+.chip{font-size:11.5px;padding:3px 8px;border-radius:999px;background:var(--soft);color:var(--muted);font-weight:600}
+.chip.hot{background:var(--tag);color:var(--tag-ink)}
+.kcal{text-align:right;display:flex;flex-direction:column;align-items:flex-end}
+.kcal b{font-family:var(--display);font-size:26px;font-weight:800;line-height:1}
+.kcal span{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+.kcal .pr{margin-top:6px;font-size:13px;color:var(--ink);text-transform:none;letter-spacing:0;font-weight:600}
+.meal-body{border-top:1px dashed var(--line);padding:16px;display:flex;flex-direction:column;gap:16px}
+.row{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+.stepper{display:flex;align-items:center;border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.stepper button{width:36px;height:34px;border:0;background:var(--soft);cursor:pointer;font-size:18px;font-weight:600}
+.stepper output{min-width:92px;text-align:center;font-size:14px;font-weight:600}
+.btn{border:1px solid var(--ink);background:transparent;padding:7px 14px;border-radius:10px;font-weight:600;cursor:pointer;font-size:14px}
+.btn[aria-pressed="true"]{background:var(--ink);color:var(--paper)}
+.ings{list-style:none;margin:0;padding:0;display:flex;flex-direction:column}
+.ings li{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px;padding:7px 0;border-bottom:1px solid var(--line);font-size:14px;align-items:center}
+.ings li:last-child{border-bottom:0}
+.ings .prod{display:block;font-size:12px;color:var(--muted)}
+.ings .amt{color:var(--muted);font-size:13px;text-align:right;white-space:nowrap}
+.sticker{display:inline-block;background:var(--tag);color:var(--sale);font-family:var(--mono);font-weight:600;font-size:11px;padding:1px 6px;border-radius:3px;margin-left:6px;transform:rotate(-2deg);white-space:nowrap}
+.basis{display:inline-block;font-size:11px;color:var(--muted);margin-left:6px;border:1px solid var(--line);padding:0 5px;border-radius:3px}
+.steps{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:6px;font-size:14px;max-width:62ch}
+.macro{display:flex;gap:16px;flex-wrap:wrap;font-size:13px;color:var(--muted)}
+.macro b{color:var(--ink)}
+.tip{font-size:13px;background:var(--soft);padding:10px 12px;border-radius:10px;margin:0}
+.sub{font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:700;margin:0 0 4px}
+
+.receipt{background:var(--card);border:1px solid var(--line);border-top:4px dotted var(--line);border-bottom:4px dotted var(--line);border-radius:4px;font-family:var(--mono);font-size:13.5px;padding:22px 18px;max-width:440px;width:100%;margin:0 auto}
+.receipt h2{font-family:var(--mono);font-size:15px;text-align:center;letter-spacing:.1em}
+.receipt .c{text-align:center;color:var(--muted);font-size:12px;margin:2px 0}
+.receipt .l{text-align:left}
+.dash{border-top:1px dashed var(--muted);margin:12px 0;opacity:.6}
+.line{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px;padding:3px 0}
+.line .q{color:var(--muted);font-size:12px;display:block}
+.line.total{font-weight:600;font-size:16px}
+.check{display:flex;gap:8px;align-items:flex-start;cursor:pointer}
+.check input{margin-top:4px;accent-color:var(--sale)}
+.check input:checked + span{text-decoration:line-through;opacity:.5}
+.empty{text-align:center;color:var(--muted);padding:20px 0;font-family:var(--body)}
+.actions{display:flex;gap:8px;justify-content:center;flex-wrap:wrap}
+
+.offers{display:flex;flex-direction:column;gap:18px}
+.ocat h3{font-size:15px;font-family:var(--body);font-weight:700;margin-bottom:6px}
+.orow{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px;padding:8px 0;border-bottom:1px solid var(--line);font-size:14px;align-items:center}
+.orow small{display:block;color:var(--muted);font-size:12px}
+.orow .p{text-align:right;font-variant-numeric:tabular-nums}
+.orow .p b{font-family:var(--mono)}
+.orow .p small{white-space:nowrap}
+.inplan{font-size:10.5px;background:var(--ink);color:var(--paper);padding:1px 6px;border-radius:3px;margin-left:6px;font-weight:600;vertical-align:1px}
+
+.loading{color:var(--muted);text-align:center;padding:40px 0}
+footer{font-size:12.5px;color:var(--muted);max-width:62ch;display:flex;flex-direction:column;gap:6px}
+footer p{margin:0}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="week" id="weekline"><b>REMA 1000</b> Loading this week's offers…</div>
+    <h1>Eat the <em>tilbud</em>.</h1>
+    <p class="lede">Dinners, breakfasts and lunches picked from this week's REMA 1000 offers, with calories and protein per portion. Choose your portions and the receipt adds up what to buy. A new plan arrives every Sunday morning.</p>
+    <div class="banner" id="stale" hidden></div>
+  </header>
+
+  <section class="day" aria-labelledby="dayh">
+    <div class="day-head">
+      <h2 id="dayh">Build a day</h2>
+      <label class="target" for="target">Daily target <input id="target" type="number" inputmode="numeric" min="1000" max="5000" step="50" value="2200"> kcal</label>
+    </div>
+    <div class="picks">
+      <label for="pickB">Breakfast<select id="pickB"></select></label>
+      <label for="pickL">Lunch<select id="pickL"></select></label>
+      <label for="pickD">Dinner<select id="pickD"></select></label>
+    </div>
+    <div class="bar" aria-hidden="true"><span class="b1"></span><span class="b2"></span><span class="b3"></span></div>
+    <div class="totals">
+      <div><span class="big num" id="dayK">–</span> <small>kcal</small></div>
+      <div><span class="big num" id="dayP">–</span> <small>g protein</small></div>
+      <div><small id="dayLeft"></small></div>
+    </div>
+    <div class="legend"><span><i style="background:var(--b1)"></i>Breakfast</span><span><i style="background:var(--b2)"></i>Lunch</span><span><i style="background:var(--sale)"></i>Dinner</span></div>
+  </section>
+
+  <nav class="tabs" role="tablist" aria-label="Sections">
+    <button class="tab" role="tab" data-tab="dinner">Dinners <span class="count" data-count="dinner"></span></button>
+    <button class="tab" role="tab" data-tab="breakfast">Breakfast <span class="count" data-count="breakfast"></span></button>
+    <button class="tab" role="tab" data-tab="lunch">Lunch <span class="count" data-count="lunch"></span></button>
+    <button class="tab" role="tab" data-tab="shop">Shopping list <span class="count" data-count="shop"></span></button>
+    <button class="tab" role="tab" data-tab="offers">All offers <span class="count" data-count="offers"></span></button>
+  </nav>
+
+  <main id="view"><p class="loading">Loading this week's plan…</p></main>
+
+  <footer>
+    <p>Offer prices are read from REMA 1000's weekly avis every Sunday. Some items aren't stocked in every store, and prices can change, so check the shelf label. Calories are estimates from typical nutrition values, so check the pack if you track closely.</p>
+    <p>Items marked <span class="basis">basis</span> are pantry staples not on offer this week. <span id="updated"></span></p>
+  </footer>
+</div>
+
+<script>
+const $ = s => document.querySelector(s);
+const view = $('#view');
+const MONTHS = ['januar','februar','marts','april','maj','juni','juli','august','september','oktober','november','december'];
+const CAT = {'kod-fisk-fjerkrae':'Meat, fish & poultry','kol':'Chilled','frugt-gront':'Fruit & veg','mejeri':'Dairy','ost-mv':'Cheese','brod-bavinchi':'Bread','frost':'Frozen','kolonial':'Pantry','*':'Other'};
+let DATA, ING, MEALS, KEY;
+let state = { tab:'dinner', open:{}, portions:{}, chosen:{}, got:{}, pick:{}, target:2200 };
+
+const kr = v => v.toFixed(2).replace('.', ',');
+const fmtDate = (a, b) => {
+  const [y1,m1,d1] = a.split('-').map(Number), [y2,m2,d2] = b.split('-').map(Number);
+  return m1 === m2 ? `${d1}.–${d2}. ${MONTHS[m2-1]} ${y2}` : `${d1}. ${MONTHS[m1-1].slice(0,3)} – ${d2}. ${MONTHS[m2-1].slice(0,3)} ${y2}`;
+};
+function save(){ try{ localStorage.setItem(KEY, JSON.stringify({portions:state.portions,chosen:state.chosen,got:state.got,pick:state.pick})); localStorage.setItem('ugeplan:prefs', JSON.stringify({target:state.target,tab:state.tab})); }catch(e){} }
+function load(){
+  try{ const p = JSON.parse(localStorage.getItem('ugeplan:prefs')||'null'); if(p){ state.target = p.target||2200; if(p.tab) state.tab = p.tab; } }catch(e){}
+  try{ const s = JSON.parse(localStorage.getItem(KEY)||'null'); if(s) Object.assign(state, s); }catch(e){}
+}
+
+const per = m => {
+  let k=0,p=0,cost=0;
+  m.ing.forEach(([key,g]) => { const i=ING[key]; k+=i.kcal*g/100; p+=i.p*g/100; if(i.sale) cost+=i.sale.price*g/i.sale.pack; });
+  return { kcal:Math.round(k/m.base), p:Math.round(p/m.base), cost:cost/m.base, onSale:m.ing.filter(([k])=>ING[k].sale).length };
+};
+function amount(key, g){
+  const i = ING[key];
+  if (i.each){ const r = Math.round(g/i.each*2)/2; return `${String(r).replace('.',',')} ${i.unit} <span style="opacity:.7">(${Math.round(g)} g)</span>`; }
+  if (i.spoon && g <= 45){ const sp = Math.max(.5, Math.round(g/i.spoon*2)/2); return `${String(sp).replace('.',',')} spsk`; }
+  const u = i.unitLabel || 'g';
+  if (g >= 1000) return `${String(+(g/1000).toFixed(2)).replace('.',',')} ${u==='g'?'kg':'l'}`;
+  return `${Math.round(g)} ${u}`;
+}
+
+function mealCard(m){
+  const s = per(m), n = state.portions[m.id], f = n/m.base, open = !!state.open[m.id];
+  const ings = m.ing.map(([key,g]) => { const i = ING[key];
+    const badge = i.sale ? `<span class="sticker">${kr(i.sale.price)} kr · ${i.sale.label}</span>` : `<span class="basis">basis</span>`;
+    const prod = i.sale ? `<span class="prod">${i.sale.product}${i.sale.desc ? ', '+i.sale.desc.toLowerCase() : ''}</span>` : '';
+    return `<li><span>${i.n}${badge}${prod}</span><span class="amt num">${amount(key, g*f)}</span></li>`; }).join('');
+  return `<article class="meal">
+    <button class="meal-top" data-toggle="${m.id}" aria-expanded="${open}" aria-controls="b-${m.id}">
+      <div><h3>${m.name}</h3><div class="dk">${m.dk}</div>
+        <div class="chips"><span class="chip hot">${s.onSale} on offer</span>${m.tags.map(t=>`<span class="chip">${t}</span>`).join('')}<span class="chip">${m.time}</span></div></div>
+      <div class="kcal"><b class="num">${s.kcal}</b><span>kcal / portion</span><span class="pr num">${s.p} g protein</span></div>
+    </button>
+    <div class="meal-body" id="b-${m.id}" ${open?'':'hidden'}>
+      <div class="row">
+        <div class="stepper"><button data-step="${m.id}" data-d="-1" aria-label="Fewer portions">−</button><output class="num">${n} portion${n>1?'s':''}</output><button data-step="${m.id}" data-d="1" aria-label="More portions">+</button></div>
+        <button class="btn" data-add="${m.id}" aria-pressed="${!!state.chosen[m.id]}">${state.chosen[m.id] ? '✓ On shopping list' : 'Add to shopping list'}</button>
+      </div>
+      <div class="macro"><span>Offer items ≈ <b class="num">${kr(s.cost)} kr</b> per portion</span><span>Recipe base: ${m.base} portion${m.base>1?'s':''}</span></div>
+      <div><p class="sub">Ingredients for ${n}</p><ul class="ings">${ings}</ul></div>
+      <div><p class="sub">Method</p><ol class="steps">${m.steps.map(x=>`<li>${x}</li>`).join('')}</ol></div>
+      ${m.tip ? `<p class="tip">${m.tip}</p>` : ''}
+    </div></article>`;
+}
+
+function shopping(){
+  const sale = {}, basis = {};
+  MEALS.filter(m => state.chosen[m.id]).forEach(m => { const f = state.portions[m.id]/m.base;
+    m.ing.forEach(([key,g]) => { const t = ING[key].sale ? sale : basis; t[key] = (t[key]||0) + g*f; }); });
+  let total = 0;
+  const lines = Object.entries(sale).map(([key,g]) => { const i = ING[key], s = i.sale;
+    const packs = Math.max(1, Math.ceil(g/s.pack - 0.12)), price = packs*s.price; total += price;
+    return { key, name:s.product, q:`${packs} × ${s.label} à ${kr(s.price)} · need ${amount(key,g).replace(/<[^>]+>/g,'')}`, short:`${packs} × ${s.label}`, price }; });
+  return { lines, total, basis:Object.keys(basis).map(k => ING[k].n) };
+}
+
+function shopView(){
+  const { lines, total, basis } = shopping();
+  if (!lines.length) return `<div class="receipt"><p class="empty">Nothing on the list yet. Open a meal and tap “Add to shopping list”.</p></div>`;
+  const chosen = MEALS.filter(m => state.chosen[m.id]);
+  return `<div class="receipt" id="receipt">
+    <h2>REMA 1000 · UGE ${DATA.week}</h2><p class="c">Offers ${DATA.validFrom.split('-').reverse().join('.')} – ${DATA.validTo.split('-').reverse().join('.')}</p>
+    <div class="dash"></div>
+    ${lines.map(l => `<div class="line"><label class="check" for="g-${l.key}"><input type="checkbox" id="g-${l.key}" data-got="${l.key}" ${state.got[l.key]?'checked':''}><span>${l.name}<span class="q">${l.q}</span></span></label><span class="num">${kr(l.price)}</span></div>`).join('')}
+    <div class="dash"></div>
+    <div class="line total"><span>TOTAL ON OFFER</span><span class="num">${kr(total)}</span></div>
+    <div class="dash"></div>
+    ${basis.length ? `<p class="c l">From the pantry:</p><p style="margin:4px 0 0;font-size:12.5px">${basis.join(' · ')}</p><div class="dash"></div>` : ''}
+    <p class="c l">Covers ${chosen.map(m => `${m.name} ×${state.portions[m.id]}`).join(', ')}</p>
+    <div class="dash"></div>
+    <div class="actions"><button class="btn" id="copy">Copy list</button><button class="btn" id="reset">Clear ticks</button></div>
+    <p class="c" id="copyMsg" aria-live="polite"></p>
+  </div>`;
+}
+
+function offersView(){
+  const groups = {};
+  DATA.offers.forEach(o => (groups[o.cat] ||= []).push(o));
+  return `<div class="offers">${Object.entries(groups).map(([cat, list]) => `<section class="ocat"><h3>${CAT[cat]||cat}</h3>${list.map(o => `
+    <div class="orow"><span>${o.url ? `<a href="${o.url}" target="_blank" rel="noopener">${o.name}</a>` : o.name}${o.inPlan ? '<span class="inplan">IN PLAN</span>' : ''}<small>${[o.size, o.desc].filter(Boolean).join(' · ')}</small></span>
+    <span class="p"><b>${kr(o.price)}</b><small>${kr(o.unitPrice)}/${o.per}</small></span></div>`).join('')}</section>`).join('')}</div>`;
+}
+
+function render(){
+  document.querySelectorAll('.tab').forEach(t => t.setAttribute('aria-selected', t.dataset.tab === state.tab));
+  document.querySelectorAll('[data-count]').forEach(el => { const t = el.dataset.count;
+    el.textContent = t === 'shop' ? MEALS.filter(m => state.chosen[m.id]).length : t === 'offers' ? DATA.offers.length : MEALS.filter(m => m.type === t).length; });
+  view.innerHTML = state.tab === 'shop' ? shopView() : state.tab === 'offers' ? offersView()
+    : `<div class="list">${MEALS.filter(m => m.type === state.tab).map(mealCard).join('')}</div>`;
+  renderDay();
+}
+
+function fillSelect(id, type, val){
+  $('#'+id).innerHTML = MEALS.filter(m => m.type === type).map(m => `<option value="${m.id}" ${m.id===val?'selected':''}>${m.name} · ${per(m).kcal}</option>`).join('')
+    + `<option value="" ${val===''?'selected':''}>Skip</option>`;
+}
+function renderDay(){
+  const t = Math.max(1000, +state.target || 2200);
+  const ms = ['B','L','D'].map(k => MEALS.find(m => m.id === state.pick[k]));
+  const ks = ms.map(m => m ? per(m).kcal : 0), ps = ms.map(m => m ? per(m).p : 0);
+  const sum = ks.reduce((a,b) => a+b, 0), max = Math.max(t, sum);
+  document.querySelectorAll('.bar span').forEach((el,i) => el.style.width = (ks[i]/max*100) + '%');
+  $('#dayK').textContent = sum; $('#dayP').textContent = ps.reduce((a,b) => a+b, 0);
+  const left = t - sum;
+  $('#dayLeft').textContent = left >= 0 ? `${left} kcal left for snacks` : `${-left} kcal over target`;
+}
+
+function init(){
+  KEY = `ugeplan:${DATA.year}-${DATA.week}`;
+  const first = t => (MEALS.find(m => m.type === t) || {}).id || '';
+  state.pick = { B:first('breakfast'), L:first('lunch'), D:first('dinner') };
+  MEALS.forEach(m => { state.portions[m.id] = m.portions || m.base; state.chosen[m.id] = true; });
+  load();
+  MEALS.forEach(m => { if (!state.portions[m.id]) state.portions[m.id] = m.portions || m.base; });
+
+  $('#weekline').innerHTML = `<b>Uge ${DATA.week}</b> REMA 1000 · ${fmtDate(DATA.validFrom, DATA.validTo)}`;
+  document.title = `Tilbudskøkken · uge ${DATA.week}`;
+  const today = new Date().toISOString().slice(0,10);
+  if (today > DATA.validTo) { const st = $('#stale'); st.hidden = false;
+    st.textContent = `These are week ${DATA.week}'s offers, which ended ${DATA.validTo.split('-').reverse().join('.')}. The new plan normally lands Sunday morning.`; }
+  $('#updated').textContent = `Plan generated ${new Date(DATA.generatedAt).toLocaleString('da-DK', {dateStyle:'medium', timeStyle:'short'})}.`;
+
+  fillSelect('pickB','breakfast',state.pick.B); fillSelect('pickL','lunch',state.pick.L); fillSelect('pickD','dinner',state.pick.D);
+  const tg = $('#target'); tg.value = state.target;
+  tg.addEventListener('input', () => { state.target = +tg.value; save(); renderDay(); });
+  [['pickB','B'],['pickL','L'],['pickD','D']].forEach(([id,k]) => $('#'+id).addEventListener('change', e => { state.pick[k] = e.target.value; save(); renderDay(); }));
+  const firstOpen = MEALS.find(m => m.type === state.tab); if (firstOpen) state.open[firstOpen.id] = true;
+  render();
+}
+
+document.querySelector('.tabs').addEventListener('click', e => { const b = e.target.closest('.tab'); if (!b || !DATA) return; state.tab = b.dataset.tab; save(); render(); });
+view.addEventListener('click', e => {
+  const t = e.target.closest('[data-toggle]'); if (t){ const id = t.dataset.toggle; state.open[id] = !state.open[id]; render(); return; }
+  const s = e.target.closest('[data-step]'); if (s){ const id = s.dataset.step; state.portions[id] = Math.min(20, Math.max(1, state.portions[id] + +s.dataset.d)); save(); render(); return; }
+  const a = e.target.closest('[data-add]'); if (a){ const id = a.dataset.add; state.chosen[id] = !state.chosen[id]; save(); render(); return; }
+  if (e.target.id === 'reset'){ state.got = {}; save(); render(); return; }
+  if (e.target.id === 'copy'){
+    const { lines, total, basis } = shopping();
+    const txt = `REMA 1000 uge ${DATA.week}\n` + lines.map(l => `☐ ${l.name} – ${l.short}`).join('\n') + `\nTotal on offer: ${kr(total)} kr` + (basis.length ? `\n\nPantry: ${basis.join(', ')}` : '');
+    const msg = $('#copyMsg');
+    const fallback = () => { msg.textContent = 'Copy is blocked here. Select the list and copy it manually.'; const r = document.createRange(); r.selectNodeContents($('#receipt')); const sel = getSelection(); sel.removeAllRanges(); sel.addRange(r); };
+    try { navigator.clipboard.writeText(txt).then(() => msg.textContent = 'Copied to clipboard', fallback); } catch(err){ fallback(); }
+  }
+});
+view.addEventListener('change', e => { const g = e.target.dataset.got; if (g){ state.got[g] = e.target.checked; save(); } });
+
+fetch('data/week.json', { cache:'no-cache' })
+  .then(r => { if (!r.ok) throw new Error(r.status); return r.json(); })
+  .then(d => { DATA = d; ING = d.ing; MEALS = d.meals; init(); })
+  .catch(() => { view.innerHTML = `<p class="loading">Couldn't load this week's plan. Refresh the page to try again.</p>`; });
+</script>
+</body>
+</html>
