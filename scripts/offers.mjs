@@ -1,7 +1,10 @@
 // Fetches this week's REMA 1000 offers ("avisvarer") and normalises them.
-// Primary source: shop.rema1000.dk/avisvarer/<category>. Fallback: the public Tjek (eTilbudsavis) API.
+// Primary source: REMA's product API (the same one shop.rema1000.dk uses), filtered on the
+// "Avisvare" label. Fallbacks: the server-rendered avisvarer pages, then the public Tjek API.
 
 const BASE = 'https://shop.rema1000.dk';
+const API = 'https://api.digital.rema1000.dk/api';
+const AVISVARE_LABEL = 9001;
 export const FOOD_CATS = ['kod-fisk-fjerkrae', 'frugt-gront', 'mejeri', 'ost-mv', 'brod-bavinchi', 'kol', 'frost', 'kolonial'];
 const HEADERS = {
   'user-agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36',
@@ -113,6 +116,64 @@ export function parseWeek(html, now = new Date()) {
   return found.find(w => w.validFrom <= today && today <= w.validTo)
     || found.filter(w => w.validFrom <= today).sort((a, b) => b.validFrom.localeCompare(a.validFrom))[0]
     || computedWeek(now);
+}
+
+
+// ---- REMA product API ----------------------------------------------------------
+function parseSize(str) {
+  const sm = (str || '').match(/(\d+(?:[.,]\d+)?)\s*(GR|KG|ML|CL|LTR|STK|L)\.?(?![A-ZÆØÅa-zæøå])/i);
+  if (!sm) return null;
+  const n = parseFloat(sm[1].replace(',', '.')), u = sm[2].toUpperCase();
+  return u === 'GR' ? [n, 'g'] : u === 'KG' ? [n * 1000, 'g'] : u === 'ML' ? [n, 'ml'] : u === 'CL' ? [n * 10, 'ml']
+    : (u === 'LTR' || u === 'L') ? [n * 1000, 'ml'] : [n, 'stk'];
+}
+export function fromApi(p) {
+  const prices = Array.isArray(p.prices) ? p.prices : [];
+  const pr = prices.find(x => x.is_advertised) || prices.find(x => x.is_campaign);
+  if (!pr || !pr.price) return null;
+  const [sizePart, ...rest] = String(p.underline || '').split('/');
+  const per = ({ kg: 'kg', l: 'ltr', ltr: 'ltr', stk: 'stk' })[String(pr.compare_unit || '').toLowerCase()] || 'stk';
+  let size = parseSize(sizePart) || parseSize(p.name);
+  if (!size) size = per === 'stk' ? [1, 'stk']
+    : [Math.round(pr.price / (pr.compare_unit_price || pr.price) * 1000), per === 'kg' ? 'g' : 'ml'];
+  const [qty, unit] = size;
+  const day = s => (s ? String(s).slice(0, 10) : '');
+  return { id: String(p.id), name: String(p.name || '').trim(), desc: rest.join('/').trim(), qty: Math.round(qty * 100) / 100, unit,
+    price: +pr.price, unitPrice: +(pr.compare_unit_price || 0) || Math.round(pr.price / perQty(qty, unit, per) * 100) / 100, per,
+    cat: p.department?.slug || '', sub: p.category?.slug || '', url: `${BASE}/varer/${p.id}`,
+    from: day(pr.starting_at), to: day(pr.ending_at) };
+}
+
+export async function scrapeApi(log = console.log, now = new Date()) {
+  const H = { ...HEADERS, accept: 'application/json', origin: BASE, referer: `${BASE}/` };
+  const raw = [];
+  let perPage = 100;
+  for (let page = 1; page <= 40; page++) {
+    const url = `${API}/search/products?filter%5Blabels%5D=${AVISVARE_LABEL}&per_page=${perPage}&page=${page}&sort=department`;
+    const r = await fetch(url, { headers: H });
+    if (!r.ok && page === 1 && perPage !== 24 && r.status >= 400 && r.status < 500) { perPage = 24; page = 0; continue; }
+    if (!r.ok) throw new Error(`API HTTP ${r.status}`);
+    const j = await r.json();
+    const data = Array.isArray(j.data) ? j.data : [];
+    raw.push(...data);
+    const pg = j.meta?.pagination || j.meta || {};
+    log(`  API page ${page}/${pg.last_page ?? '?'}: ${data.length} products`);
+    if (!data.length || (pg.last_page && page >= pg.last_page)) break;
+    await sleep(250);
+  }
+  const all = raw.map(fromApi).filter(Boolean);
+  const today = iso(now), tomorrow = iso(new Date(now.getTime() + 864e5));
+  const live = all.filter(o => (!o.from || o.from <= tomorrow) && (!o.to || o.to >= today));
+  // The week's main avis is the most common start date among live offers.
+  const count = {};
+  live.forEach(o => { if (o.from) count[`${o.from}|${o.to}`] = (count[`${o.from}|${o.to}`] || 0) + 1; });
+  const top = Object.entries(count).sort((a, b) => b[1] - a[1])[0];
+  let week = computedWeek(now);
+  if (top) { const [from, to] = top[0].split('|'); const mon = new Date(Date.parse(from) + 864e5);
+    week = { ...isoWeek(mon), validFrom: from, validTo: to || week.validTo }; }
+  const cats = {}; live.forEach(o => cats[o.cat] = (cats[o.cat] || 0) + 1);
+  log(`  API: ${raw.length} products, ${live.length} live offers; departments ${JSON.stringify(cats)}`);
+  return { offers: live.filter(o => FOOD_CATS.includes(o.cat)), week, source: 'REMA 1000 product API' };
 }
 
 // ---- scrapers ---------------------------------------------------------------

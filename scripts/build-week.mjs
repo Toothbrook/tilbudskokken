@@ -8,7 +8,7 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import { INGREDIENTS, RECIPES } from './recipes.mjs';
-import { scrapeRema, scrapeTjek, parseProduct, computedWeek } from './offers.mjs';
+import { scrapeApi, scrapeRema, scrapeTjek, parseProduct, computedWeek } from './offers.mjs';
 
 const args = process.argv.slice(2);
 const arg = f => { const i = args.indexOf(f); return i >= 0 ? args[i + 1] : null; };
@@ -24,10 +24,18 @@ if (arg('--offers')) {
   offers = fx.products ? fx.products.map(p => parseProduct(p.href, p.text)).filter(Boolean) : fx.offers;
   week = fx.week || computedWeek(); source = fx.source || 'shop.rema1000.dk';
 } else {
+  offers = [];
   try {
-    ({ offers, week, source } = await scrapeRema());
-    console.log(`REMA shop: ${offers.length} food offers`);
-  } catch (e) { console.warn(`REMA shop failed: ${e.message}`); offers = []; }
+    ({ offers, week, source } = await scrapeApi());
+    console.log(`REMA API: ${offers.length} food offers`);
+  } catch (e) { console.warn(`REMA API failed: ${e.message}`); offers = []; }
+  if (offers.length < 15) {
+    try {
+      const r = await scrapeRema();
+      console.log(`REMA shop pages: ${r.offers.length} food offers`);
+      if (r.offers.length > offers.length) ({ offers, week, source } = r);
+    } catch (e) { console.warn(`REMA shop pages failed: ${e.message}`); }
+  }
   if (offers.length < 15) {
     try { const t = await scrapeTjek(); if (t.offers.length > offers.length) ({ offers, week, source } = t); }
     catch (e) { console.warn(`Tjek fallback failed: ${e.message}`); }

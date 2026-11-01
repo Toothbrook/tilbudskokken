@@ -6,7 +6,7 @@ on:
     - cron: '17 9 * * 1'   # Monday retry, in case Sunday's offers weren't online yet
   workflow_dispatch:        # "Run workflow" button in the Actions tab
   push:
-    branches: [main]        # redeploy when you change the page or recipes
+    branches: [main]        # redeploy when you change the page or recipes; put [rebuild] in the commit message to also refetch offers
 
 permissions:
   contents: write
@@ -32,7 +32,7 @@ jobs:
 
       - name: Fetch offers and pick meals
         id: plan
-        if: github.event_name != 'push' || hashFiles('data/week.json') == ''
+        if: github.event_name != 'push' || hashFiles('data/week.json') == '' || contains(github.event.head_commit.message, '[rebuild]')
         continue-on-error: true
         run: node scripts/build-week.mjs --save-offers data/offers-raw.json
 
