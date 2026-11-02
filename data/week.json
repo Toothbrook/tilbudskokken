@@ -4,7 +4,7 @@
  "validFrom": "2026-11-01",
  "validTo": "2026-11-07",
  "source": "REMA 1000 product API",
- "generatedAt": "2026-11-01T17:47:12.862Z",
+ "generatedAt": "2026-11-02T19:27:35.860Z",
  "ing": {
   "kyllingebryst": {
    "n": "Kyllingebryst",
@@ -1369,17 +1369,6 @@
    "inPlan": true
   },
   {
-   "name": "Rød peber",
-   "desc": "Holland kl. 1",
-   "size": "1 stk",
-   "price": 6,
-   "unitPrice": 6,
-   "per": "stk",
-   "cat": "frugt-gront",
-   "url": "https://shop.rema1000.dk/varer/306353",
-   "inPlan": false
-  },
-  {
    "name": "Skrælle kartofler",
    "desc": "Danmark kl. 1",
    "size": "2 kg",
@@ -1898,17 +1887,6 @@
   },
   {
    "name": "Kirsebærsauce",
-   "desc": "Klassisk",
-   "size": "530 g",
-   "price": 20,
-   "unitPrice": 37.74,
-   "per": "kg",
-   "cat": "kolonial",
-   "url": "https://shop.rema1000.dk/varer/100021",
-   "inPlan": false
-  },
-  {
-   "name": "Kirsebærsauce",
    "desc": "Vendelbo",
    "size": "500 g",
    "price": 9,
@@ -1916,6 +1894,17 @@
    "per": "kg",
    "cat": "kolonial",
    "url": "https://shop.rema1000.dk/varer/106455",
+   "inPlan": false
+  },
+  {
+   "name": "Kirsebærsauce",
+   "desc": "Klassisk",
+   "size": "530 g",
+   "price": 20,
+   "unitPrice": 37.74,
+   "per": "kg",
+   "cat": "kolonial",
+   "url": "https://shop.rema1000.dk/varer/100021",
    "inPlan": false
   },
   {
