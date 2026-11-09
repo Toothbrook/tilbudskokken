@@ -4,7 +4,7 @@
  "validFrom": "2026-11-08",
  "validTo": "2026-11-14",
  "source": "REMA 1000 product API",
- "generatedAt": "2026-11-08T11:58:59.317Z",
+ "generatedAt": "2026-11-09T19:45:53.955Z",
  "ing": {
   "kyllingelaar": {
    "n": "Kyllingelår",
@@ -1137,6 +1137,17 @@
    "inPlan": false
   },
   {
+   "name": "Tulip bacon i skiver",
+   "desc": "2x100 gr.",
+   "size": "200 g",
+   "price": 15,
+   "unitPrice": 75,
+   "per": "kg",
+   "cat": "kol",
+   "url": "https://shop.rema1000.dk/varer/411349",
+   "inPlan": false
+  },
+  {
    "name": "Blåbær",
    "desc": "Land/kl.: se varen",
    "size": "125 g",
@@ -1157,17 +1168,6 @@
    "cat": "frugt-gront",
    "url": "https://shop.rema1000.dk/varer/306520",
    "inPlan": true
-  },
-  {
-   "name": "Kaki frugt",
-   "desc": "Spanien  kl. 1",
-   "size": "1 stk",
-   "price": 3,
-   "unitPrice": 3,
-   "per": "stk",
-   "cat": "frugt-gront",
-   "url": "https://shop.rema1000.dk/varer/305564",
-   "inPlan": false
   },
   {
    "name": "Kaki frugt",
@@ -1546,9 +1546,9 @@
   {
    "name": "Biksemad",
    "desc": "Steff houlberg",
-   "size": "500 g",
+   "size": "450 g",
    "price": 25,
-   "unitPrice": 50,
+   "unitPrice": 55.56,
    "per": "kg",
    "cat": "frost",
    "url": "https://shop.rema1000.dk/varer/45032",

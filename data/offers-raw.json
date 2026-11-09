@@ -218,21 +218,6 @@
    "to": "2026-11-14"
   },
   {
-   "id": "305564",
-   "name": "KAKI FRUGT",
-   "desc": "SPANIEN  KL. 1",
-   "qty": 1,
-   "unit": "stk",
-   "price": 3,
-   "unitPrice": 3,
-   "per": "stk",
-   "cat": "frugt-gront",
-   "sub": "melon-baer-vindruer-eksotisk-frugt",
-   "url": "https://shop.rema1000.dk/varer/305564",
-   "from": "2026-11-08",
-   "to": "2026-11-14"
-  },
-  {
    "id": "305566",
    "name": "KAKI FRUGT",
    "desc": "SPANIEN  KL. 1",
@@ -681,6 +666,21 @@
    "url": "https://shop.rema1000.dk/varer/411266",
    "from": "2026-11-08",
    "to": "2026-11-14"
+  },
+  {
+   "id": "411349",
+   "name": "TULIP BACON I SKIVER",
+   "desc": "2X100 GR.",
+   "qty": 200,
+   "unit": "g",
+   "price": 15,
+   "unitPrice": 75,
+   "per": "kg",
+   "cat": "kol",
+   "sub": "bacon-toppings",
+   "url": "https://shop.rema1000.dk/varer/411349",
+   "from": "2026-11-08",
+   "to": "2027-02-06"
   },
   {
    "id": "411508",
@@ -1181,10 +1181,10 @@
    "id": "45032",
    "name": "BIKSEMAD",
    "desc": "STEFF HOULBERG",
-   "qty": 500,
+   "qty": 450,
    "unit": "g",
    "price": 25,
-   "unitPrice": 50,
+   "unitPrice": 55.56,
    "per": "kg",
    "cat": "frost",
    "sub": "faerdigretter",
