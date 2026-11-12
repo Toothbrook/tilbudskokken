@@ -59,6 +59,20 @@ h1 em{font-style:normal;color:var(--sale)}
 .stepper input::-webkit-outer-spin-button,.stepper input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
 .stepper .unit{font-size:12px;color:var(--muted);padding-right:8px}
 .warn{display:inline-block;font-size:10.5px;font-weight:700;color:var(--sale);border:1px solid currentColor;padding:0 5px;border-radius:3px;margin-left:6px;white-space:nowrap}
+.ctl.who{flex-basis:100%}
+.members{display:flex;flex-direction:column;gap:6px}
+.mrow{display:flex;gap:6px;align-items:center}
+.mrow .stepper button{width:34px;height:36px}
+.mrow .stepper input{width:58px}
+.mrow .stepper .unit{padding-right:4px}
+.mname{width:9.5em;min-width:0;flex:1 1 5em;max-width:12em;padding:8px 10px;border:1px solid var(--line);border-radius:10px;background:var(--paper);font-size:14.5px;font-weight:600}
+.mdel{border:0;background:none;color:var(--muted);font-size:20px;line-height:1;padding:4px 8px;cursor:pointer;border-radius:8px}
+.mdel:hover{background:var(--soft);color:var(--ink)}
+.whoactions{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:2px}
+.addp{border:1px dashed var(--line);background:none;border-radius:10px;padding:7px 12px;font-weight:600;font-size:13.5px;cursor:pointer;color:var(--ink)}
+.addp:disabled{opacity:.4;cursor:default}
+.whok{font-family:var(--mono);font-size:11px;color:var(--muted);margin-top:4px}
+.serve{font-size:13.5px;margin:0}
 .switch{display:inline-flex;align-items:center;gap:8px;border:1px solid var(--line);background:var(--paper);border-radius:999px;padding:4px 12px 4px 4px;cursor:pointer;font-weight:700;font-size:13.5px;color:var(--muted);width:max-content}
 .switch .knob{width:30px;height:30px;border-radius:50%;background:var(--soft);transition:background .15s}
 .switch[aria-checked="true"]{background:var(--ink);border-color:var(--ink);color:var(--paper)}
@@ -184,14 +198,10 @@ footer p{margin:0}
 
   <section class="house" aria-label="Your household">
     <div class="controls">
-      <div class="ctl"><span id="peopleLbl">How many are you?</span>
-        <div class="stepper" role="group" aria-labelledby="peopleLbl">
-          <button id="pMinus" aria-label="Fewer people">−</button><output id="people" class="num" aria-live="polite">2 people</output><button id="pPlus" aria-label="More people">+</button>
-        </div></div>
-      <div class="ctl"><label id="kcalLbl" for="kcal">Calories per person per day</label>
-        <div class="stepper" role="group" aria-labelledby="kcalLbl">
-          <button id="kMinus" aria-label="100 kcal less">−</button><input id="kcal" class="num" type="number" inputmode="numeric" min="1200" max="4000" step="50" value="2000"><span class="unit">kcal</span><button id="kPlus" aria-label="100 kcal more">+</button>
-        </div></div>
+      <div class="ctl who"><span id="whoLbl">Who's eating, and how much?</span>
+        <div id="members" class="members" role="group" aria-labelledby="whoLbl"></div>
+        <div class="whoactions"><button class="addp" id="addPerson">+ Add person</button>
+        <small class="hint">Calories per day for each person. Portions and the shopping list follow.</small></div></div>
       <div class="ctl"><span id="cheapLbl">Cheapest week</span>
         <button class="switch" id="cheap" role="switch" aria-checked="true" aria-labelledby="cheapLbl"><span class="knob"></span><span class="txt">On</span></button>
         <small class="hint" id="cheapHint">Off picks more vegetables, protein and fish, at a higher price.</small></div>
@@ -235,21 +245,31 @@ const BASICS = ['salt', 'sortpeber', 'olie'];
 const DOT = { breakfast:'var(--b1)', lunch:'var(--b2)', dinner:'var(--sale)' };
 const CAT = {'kod-fisk-fjerkrae':'Meat, fish & poultry','kol':'Chilled','frugt-gront':'Fruit & veg','mejeri':'Dairy','ost-mv':'Cheese','brod-bavinchi':'Bread','frost':'Frozen','kolonial':'Groceries','*':'Other'};
 let DATA, ING, MEALS = {}, KEY, SHOP, PLANNER, PLAN, PLAN_KEY = '';
-let state = { tab:'week', open:{}, got:{}, have:{}, cheap:true, treatW:[false,false,false,false,false,false,false], people:2, kcal:2000, types:{ breakfast:true, lunch:true, dinner:true } };
+let state = { tab:'week', open:{}, got:{}, have:{}, cheap:true, treatW:[false,false,false,false,false,false,false], members:[{ name:'', kcal:2000 }, { name:'', kcal:2000 }], types:{ breakfast:true, lunch:true, dinner:true } };
 
 const kr = v => v.toFixed(2).replace('.', ',');
 const plural = n => `${n} ${n === 1 ? 'person' : 'people'}`;
+const clampK = v => Math.min(4500, Math.max(800, Math.round(v / 50) * 50 || 2000));
+// Everyone's own calorie target. The planner cooks for the household's total (people × average);
+// each person's serving is then their share of every dish.
+const PEOPLE = () => state.members.length;
+const AVG = () => state.members.reduce((s, m) => s + m.kcal, 0) / state.members.length;
+const nameOf = i => state.members[i].name.trim() || `Person ${i + 1}`;
+const sameK = () => state.members.every(m => m.kcal === state.members[0].kcal);
+const num = v => Math.round(v).toLocaleString('da-DK');
 const fmtDate = (a, b) => {
   const [, m1, d1] = a.split('-').map(Number), [y2, m2, d2] = b.split('-').map(Number);
   return m1 === m2 ? `${d1}.–${d2}. ${MONTHS[m2-1]} ${y2}` : `${d1}. ${MONTHS[m1-1].slice(0,3)} – ${d2}. ${MONTHS[m2-1].slice(0,3)} ${y2}`;
 };
 function save(){
-  try{ localStorage.setItem('ugeplan:prefs', JSON.stringify({ people:state.people, kcal:state.kcal, treatW:state.treatW, cheap:state.cheap, types:state.types, tab:state.tab, have:state.have }));
+  try{ localStorage.setItem('ugeplan:prefs', JSON.stringify({ members:state.members, treatW:state.treatW, cheap:state.cheap, types:state.types, tab:state.tab, have:state.have }));
        localStorage.setItem(KEY, JSON.stringify(state.got)); }catch(e){}
 }
 function load(){
   try{ const p = JSON.parse(localStorage.getItem('ugeplan:prefs')||'null');
-    if (p){ if (p.people) state.people = p.people; if (p.types) state.types = { ...state.types, ...p.types }; if (p.tab) state.tab = p.tab; if (p.have) state.have = p.have; if (p.kcal) state.kcal = p.kcal; if (typeof p.cheap === 'boolean') state.cheap = p.cheap; if (Array.isArray(p.treatW) && p.treatW.length === 7) state.treatW = p.treatW; } }catch(e){}
+    if (p){ if (Array.isArray(p.members) && p.members.length) state.members = p.members.slice(0, 10).map(m => ({ name: String(m.name || '').slice(0, 24), kcal: clampK(+m.kcal) }));
+      else if (p.people) state.members = Array.from({ length: Math.min(10, p.people) }, () => ({ name: '', kcal: clampK(+p.kcal || 2000) }));
+      if (p.types) state.types = { ...state.types, ...p.types }; if (p.tab) state.tab = p.tab; if (p.have) state.have = p.have; if (typeof p.cheap === 'boolean') state.cheap = p.cheap; if (Array.isArray(p.treatW) && p.treatW.length === 7) state.treatW = p.treatW; } }catch(e){}
   try{ state.got = JSON.parse(localStorage.getItem(KEY)||'{}') || {}; }catch(e){ state.got = {}; }
 }
 
@@ -259,8 +279,8 @@ const startW = () => new Date(DATA.validFrom + 'T12:00:00Z').getUTCDay();
 const dayDate = d => new Date(Date.parse(DATA.validFrom + 'T12:00:00Z') + d * 864e5);
 const treatPattern = () => Array.from({ length: 7 }, (_, d) => !!state.treatW[(startW() + d) % 7]);
 function plan(){
-  const key = `${state.people}|${state.kcal}|${state.cheap}|${treatPattern().join()}`;
-  if (key !== PLAN_KEY) { PLAN = PLANNER.plan(state.people, treatPattern(), state.kcal, { cheap: state.cheap }); PLAN_KEY = key; }
+  const key = `${PEOPLE()}|${Math.round(AVG())}|${state.cheap}|${treatPattern().join()}`;
+  if (key !== PLAN_KEY) { PLAN = PLANNER.plan(PEOPLE(), treatPattern(), Math.round(AVG()), { cheap: state.cheap }); PLAN_KEY = key; }
   return PLAN;
 }
 const ingOf = id => plan().pick[id].map((k, i) => [k, MEALS[id].ing[i][1]]);
@@ -319,10 +339,11 @@ function weekView(){
   return `<p class="weekhint">Tap <b>Healthy</b> on a day to make it a treat day with comfort-food classics instead. ${treats ? `${treats} treat day${treats > 1 ? 's' : ''} this week.` : ''}</p>
   <div class="days">${plan().days.map((d, i) => {
     const dt = dayDate(i), kcal = keys.reduce((s, t) => s + per(d[SLOT[t]]).kcal, 0), w = dt.getUTCDay();
-    return `<div class="day${d.treat ? ' treat' : ''}"><div class="date">${DAYS[w]}<small>${dt.getUTCDate()}. ${MONTHS[dt.getUTCMonth()].slice(0,3)}</small><span class="k num">${kcal} kcal</span>
+    return `<div class="day${d.treat ? ' treat' : ''}"><div class="date">${DAYS[w]}<small>${dt.getUTCDate()}. ${MONTHS[dt.getUTCMonth()].slice(0,3)}</small>${sameK() ? `<span class="k num">${num(kcal)} kcal</span>` : ''}
       <button class="kind" data-treat="${w}" aria-pressed="${d.treat}" aria-label="${DAYS[w]}: ${d.treat ? 'treat day, tap to make it healthy' : 'healthy day, tap to make it a treat day'}">${d.treat ? 'Treat' : 'Healthy'}</button></div>
       <div class="slots">${keys.map(t => { const id = d[SLOT[t]]; return `<div class="slot"><span><i style="background:${DOT[t]}"></i>${TYPES[t]}</span>
-        <div><button class="go" data-go="${id}">${MEALS[id].name}</button>${t === 'dinner' && d.left ? '<span class="left">leftovers</span>' : ''}</div></div>`; }).join('')}</div></div>`;
+        <div><button class="go" data-go="${id}">${MEALS[id].name}</button>${t === 'dinner' && d.left ? '<span class="left">leftovers</span>' : ''}</div></div>`; }).join('')}
+        ${sameK() ? '' : `<div class="whok num">${state.members.map((m, j) => `${nameOf(j)} ${num(kcal * m.kcal / AVG())}`).join(' · ')} kcal</div>`}</div></div>`;
   }).join('')}</div>`;
 }
 
@@ -330,8 +351,8 @@ function mealCard(m){
   const n = plan().cook[m.id], f = n/m.base*SCALE, open = !!state.open[m.id], s = per(m.id), days = daysOf(m.id);
   const word = m.type === 'breakfast' ? 'mornings' : m.type === 'lunch' ? 'days' : (days > 1 ? 'evenings' : 'evening');
   const when = m.type === 'dinner'
-    ? (days > 1 ? `Cook ${n} portions: dinner for ${plural(state.people)}, then leftovers the next evening.` : `Cook ${n} portion${n>1?'s':''}: dinner for ${plural(state.people)}.`)
-    : `${n} portions over the week: ${days} ${word} for ${plural(state.people)}.${m.base > 1 ? ' Cook it all at once and keep it in the fridge.' : ' Make it fresh each day.'}`;
+    ? (days > 1 ? `Cook ${n} portions: dinner for ${plural(PEOPLE())}, then leftovers the next evening.` : `Cook ${n} portion${n>1?'s':''}: dinner for ${plural(PEOPLE())}.`)
+    : `${n} portions over the week: ${days} ${word} for ${plural(PEOPLE())}.${m.base > 1 ? ' Cook it all at once and keep it in the fridge.' : ' Make it fresh each day.'}`;
   const ings = ingOf(m.id).map(([key,g]) => { const i = ING[key], o = (SHOP.byKey[key] || cover(key, g*f)).o;
     const prod = o.est ? '' : `<span class="prod">${o.product}${o.desc ? ', '+o.desc.toLowerCase() : ''}</span>`;
     return `<li><span>${i.n}${state.have[key] ? '<span class="athome">at home</span>' : tag(o)}${warn(o)}${prod}</span><span class="amt num">${amount(key, g*f)}</span></li>`; }).join('');
@@ -343,6 +364,7 @@ function mealCard(m){
     </button>
     <div class="meal-body" id="b-${m.id}" ${open?'':'hidden'}>
       <p class="cookfor">${when}</p>
+      ${PEOPLE() > 1 && !sameK() ? `<p class="serve">Each serving: ${state.members.map((mm, j) => `<b>${nameOf(j)}</b> ≈ ${num(s.kcal * mm.kcal / AVG())} kcal (${Math.round(mm.kcal / AVG() / PEOPLE() * 100)}% of the dish)`).join(', ')}.</p>` : ''}
       <div class="macro"><span>≈ <b class="num">${kr(s.cost)} kr</b> per portion, counting only what the meal uses</span></div>
       <div><p class="sub">Ingredients for ${n} portion${n>1?'s':''}</p><ul class="ings">${ings}</ul></div>
       <div><p class="sub">Method</p><ol class="steps">${m.steps.map(x=>`<li>${x}</li>`).join('')}</ol></div>
@@ -359,7 +381,7 @@ function shopView(){
   const which = Object.keys(TYPES).filter(t => state.types[t]).map(t => TYPES[t].toLowerCase()).join(', ');
   return `<div class="receipt" id="receipt">
     <h2>REMA 1000 · UGE ${DATA.week}</h2>
-    <p class="c">${plural(state.people)} · 7 days · ${which}</p>
+    <p class="c">${plural(PEOPLE())} · 7 days · ${which}</p>
     <p class="c">Offers ${DATA.validFrom.split('-').reverse().join('.')} – ${DATA.validTo.split('-').reverse().join('.')}</p>
     <div class="dash"></div>
     ${on.length ? `<p class="sect">ON OFFER</p>${on.map(row).join('')}` : ''}
@@ -444,20 +466,32 @@ function offersView(){
 }
 
 function kcalNote(){
-  const got = plan().kcal;
-  if (Math.abs(got - state.kcal) > 60) return `Portions are as ${SCALE > 1 ? 'big' : 'small'} as this plan sensibly goes: about ${got.toLocaleString('da-DK')} kcal per person per day.`;
-  return `Portions sized for about ${state.kcal.toLocaleString('da-DK')} kcal per person per day on average; some days a little more, some less.`;
+  const got = plan().kcal, avg = AVG();
+  if (Math.abs(got - avg) > 60) return `Portions are as ${SCALE > 1 ? 'big' : 'small'} as this plan sensibly goes: about ${num(got)} kcal per person per day on average.`;
+  if (sameK()) return `Portions sized for about ${num(avg)} kcal per person per day on average; some days a little more, some less.`;
+  return `Portions sized for ${state.members.map((m, j) => `${nameOf(j)} ${num(m.kcal)}`).join(', ')} kcal a day on average; some days a little more, some less.`;
+}
+let MEMBERS_SIG = '';
+function renderMembers(){
+  const sig = JSON.stringify(state.members.map(m => m.kcal)) ;
+  if (sig === MEMBERS_SIG && $('#members').children.length === PEOPLE()) return;
+  const focused = document.activeElement && document.activeElement.id;
+  MEMBERS_SIG = sig;
+  $('#members').innerHTML = state.members.map((m, i) => `<div class="mrow">
+    <input class="mname" id="mn-${i}" data-name="${i}" maxlength="24" placeholder="Person ${i + 1}" value="${m.name.replace(/"/g, '&quot;').replace(/</g, '&lt;')}" aria-label="Name of person ${i + 1}">
+    <div class="stepper"><button data-kd="${i}" data-d="-100" aria-label="100 kcal less for person ${i + 1}">−</button><input id="mk-${i}" class="num" type="number" inputmode="numeric" min="800" max="4500" step="50" data-kcal="${i}" value="${m.kcal}" aria-label="Calories per day for person ${i + 1}"><span class="unit">kcal</span><button data-kd="${i}" data-d="100" aria-label="100 kcal more for person ${i + 1}">+</button></div>
+    ${PEOPLE() > 1 ? `<button class="mdel" data-del="${i}" aria-label="Remove person ${i + 1}">×</button>` : ''}</div>`).join('');
+  $('#addPerson').disabled = PEOPLE() >= 10;
+  if (focused && document.getElementById(focused)) document.getElementById(focused).focus();
 }
 function renderHouse(){
-  if (document.activeElement !== $('#kcal')) $('#kcal').value = state.kcal;
-  $('#people').textContent = plural(state.people);
+  renderMembers();
   $('#cheap').setAttribute('aria-checked', state.cheap); $('#cheap .txt').textContent = state.cheap ? 'On' : 'Off';
   $('#cheapHint').textContent = state.cheap ? 'Off picks more vegetables, protein and fish, at a higher price.' : 'Picking for vegetables, protein and fish. Turn on for the lowest price.';
-  $('#pMinus').disabled = state.people <= 1; $('#pPlus').disabled = state.people >= 10;
   document.querySelectorAll('.tg').forEach(b => b.setAttribute('aria-pressed', !!state.types[b.dataset.type]));
   const s = SHOP, all = Object.values(state.types).every(Boolean);
   $('#totals').innerHTML = s.portions && !s.lines.length ? `<small>You have everything for this week already.</small>` : s.portions ? `<span><b class="num">${kr(s.total)} kr</b> <small>for the week</small></span>
-    <span><b class="num">${kr(s.total/state.people/7)} kr</b> <small>per person per day</small></span>
+    <span><b class="num">${kr(s.total/PEOPLE()/7)} kr</b> <small>per person per day</small></span>
     <span><b class="num">${s.portions}</b> <small>portions</small></span>
     <span class="note">${kcalNote()} ${s.home.length ? `Leaving out ${s.home.length} thing${s.home.length > 1 ? 's' : ''} you have at home (${kr(s.saved)} kr).` : 'Everything on the list, salt and oil included.'} ${kr(s.offer)} kr of it is on offer.${all ? '' : ' Only the meals you picked are counted.'}${DATA.shelfPrices === 'estimated' ? ' Normal prices are estimates this week.' : ''}</span>`
     : `<small>Pick at least one of breakfast, lunch or dinner.</small>`;
@@ -478,12 +512,10 @@ function render(){
 
 function init(){
   KEY = `ugeplan:${DATA.year}-${DATA.week}:got`;
-  state.people = DATA.defaultPeople || 2;
   DATA.recipes.forEach(m => MEALS[m.id] = m);
   ING = DATA.ing;
   PLANNER = createPlanner({ recipes: DATA.recipes, ing: ING, seed: DATA.seed });
   load();
-  state.people = Math.min(10, Math.max(1, state.people));
   $('#weekline').innerHTML = `<b>Uge ${DATA.week}</b> REMA 1000 · ${fmtDate(DATA.validFrom, DATA.validTo)}`;
   document.title = `Tilbudskøkken · uge ${DATA.week}`;
   const today = new Date().toISOString().slice(0,10);
@@ -494,13 +526,21 @@ function init(){
   render();
 }
 
-const setKcal = v => { state.kcal = Math.min(4000, Math.max(1200, Math.round(v / 50) * 50 || 2000)); save(); render(); };
-$('#kMinus').addEventListener('click', () => DATA && setKcal(state.kcal - 100));
-$('#kPlus').addEventListener('click', () => DATA && setKcal(state.kcal + 100));
-$('#kcal').addEventListener('change', e => DATA && setKcal(+e.target.value));
+const members = $('#members');
+members.addEventListener('click', e => {
+  if (!DATA) return;
+  const kd = e.target.closest('[data-kd]');
+  if (kd){ const i = +kd.dataset.kd; state.members[i].kcal = clampK(state.members[i].kcal + +kd.dataset.d); save(); render(); return; }
+  const del = e.target.closest('[data-del]');
+  if (del && PEOPLE() > 1){ state.members.splice(+del.dataset.del, 1); save(); render(); $('#addPerson').focus(); }
+});
+members.addEventListener('change', e => { const i = e.target.dataset.kcal; if (i !== undefined && DATA){ state.members[+i].kcal = clampK(+e.target.value); save(); render(); } });
+members.addEventListener('input', e => { const i = e.target.dataset.name; if (i !== undefined){ state.members[+i].name = e.target.value.slice(0, 24); save(); }});
+// Names show up elsewhere (servings, week view), so refresh those once typing is done.
+members.addEventListener('focusout', e => { if (e.target.dataset.name !== undefined && DATA) render(); });
+$('#addPerson').addEventListener('click', () => { if (!DATA || PEOPLE() >= 10) return;
+  state.members.push({ name: '', kcal: clampK(AVG()) }); save(); render(); const n = document.getElementById(`mn-${PEOPLE() - 1}`); if (n) n.focus(); });
 $('#cheap').addEventListener('click', () => { if (!DATA) return; state.cheap = !state.cheap; save(); render(); });
-$('#pMinus').addEventListener('click', () => { if (DATA && state.people > 1) { state.people--; save(); render(); } });
-$('#pPlus').addEventListener('click', () => { if (DATA && state.people < 10) { state.people++; save(); render(); } });
 document.querySelectorAll('.tg').forEach(b => b.addEventListener('click', () => { if (!DATA) return; state.types[b.dataset.type] = !state.types[b.dataset.type]; save(); render(); }));
 document.querySelector('.tabs').addEventListener('click', e => { const b = e.target.closest('.tab'); if (!b || !DATA) return; state.tab = b.dataset.tab; save(); render(); });
 view.addEventListener('click', e => {
@@ -526,7 +566,7 @@ view.addEventListener('click', e => {
   }
   if (e.target.id === 'copy'){
     const { lines, total } = SHOP;
-    const txt = `REMA 1000 uge ${DATA.week} · ${plural(state.people)} · 7 dage\n` + lines.map(l => `☐ ${l.name} – ${l.short}${l.onSale ? ' (tilbud)' : ''}`).join('\n') + `\nTotal ≈ ${kr(total)} kr`;
+    const txt = `REMA 1000 uge ${DATA.week} · ${plural(PEOPLE())} · 7 dage\n` + lines.map(l => `☐ ${l.name} – ${l.short}${l.onSale ? ' (tilbud)' : ''}`).join('\n') + `\nTotal ≈ ${kr(total)} kr`;
     const msg = $('#copyMsg');
     const fallback = () => { msg.textContent = 'Copy is blocked here. Select the list and copy it manually.'; const r = document.createRange(); r.selectNodeContents($('#receipt')); const sel = getSelection(); sel.removeAllRanges(); sel.addRange(r); };
     try { navigator.clipboard.writeText(txt).then(() => msg.textContent = 'Copied to clipboard', fallback); } catch(err){ fallback(); }
