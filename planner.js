@@ -75,10 +75,10 @@ export function createPlanner({ recipes, ing, seed = 0 }) {
     return slots.sort((a, b) => TYPES.indexOf(a.type) - TYPES.indexOf(b.type) || b.days.length - a.days.length);
   }
 
-  // A meal is ranked by what it adds to the shop, minus a credit for this week's discounts it uses
-  // (the planner is built around the avis, so a deal counts for more than its price alone).
-  // cheap: that is all. Otherwise quality leads and cost only nudges.
-  const DEAL = { cheap: 1.0, quality: 0.6 };
+  // cheap: a meal is ranked purely by what it adds to the shop (offers count only through their
+  // lower price). Otherwise quality leads, cost only nudges, and meals get some credit for the
+  // discounts they use, so that mode leans towards the avis.
+  const DEAL = { cheap: 0, quality: 0.6 };
   let cheap = true;
   const net = (cost, saved) => cost - (cheap ? DEAL.cheap : DEAL.quality) * saved;
   const rank = c => (cheap ? net(c.perPortion, c.savedPP) : (Math.max(0, net(c.perPortion, c.savedPP)) + 12) / (c.quality * c.quality)) * jitter(c.r.id);
