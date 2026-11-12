@@ -22,13 +22,13 @@ export const INGREDIENTS = {
   // ---- protein
   hkokse:       { n: 'Hakket oksekød', kcal: 200, p: 19, group: 'protein', pg: 'beef', cats: KOD, re: /HK\.? ?OKSE|HAKKET OKSE|OKSEFARS/, ex: /GRIS|KALV|BØF|DRENGE/, est: [45, 500, '500 g'] },
   hkgris:       { n: 'Hakket grisekød', kcal: 170, p: 19, group: 'protein', pg: 'pork', cats: KOD, re: /HK\.? ?GRIS|HAKKET GRIS|GRISEFARS/, ex: /OKSE|KALV/, est: [35, 500, '500 g'] },
-  hkblanding:   { n: 'Hakket gris & okse', kcal: 185, p: 19, group: 'protein', pg: 'beef', cats: KOD, re: /GRIS ?& ?OKSE|OKSE ?& ?GRIS|KALV ?& ?(FLÆSK|GRIS)/, est: [40, 500, '500 g'] },
+  hkblanding:   { n: 'Hakket gris & okse', kcal: 185, p: 19, group: 'protein', pg: 'beef', cats: KOD, re: /GRIS ?& ?OKSE|OKSE ?& ?GRIS|KALV ?& ?(FLÆSK|GRIS)|(GRIS|FLÆSK) ?& ?KALV|KALVE ?& ?FLÆSKE/, est: [40, 500, '500 g'] },
   kyllingebryst:{ n: 'Kyllingebryst', kcal: 106, p: 23, group: 'protein', pg: 'chicken', cats: KOD, re: /KYLLINGEBRYST|INDERFILET/, ex: /PÅLÆG|SALAT|PANER|CRISPY|MARINERET|TERN/, est: [60, 600, '600 g'] },
-  kyllingelaar: { n: 'Kyllingelår', kcal: 150, p: 17, group: 'protein', pg: 'chicken', cats: KOD, subs: ['kylling'], re: /LÅR/, ex: /FILET|CRISPY|PANER/, est: [40, 1000, '1 kg'] },
+  kyllingelaar: { n: 'Kyllingelår', kcal: 150, p: 17, group: 'protein', pg: 'chicken', cats: [...KOD, 'frost'], re: /KYLLING.*LÅR|LÅR.*KYLLING|^LÅR|OVERLÅR|UNDERLÅR/, ex: /CRISPY|PANER|HONNING|BBQ|CHILI|MARINERET|STEAKS|SNACK/, est: [40, 1000, '1 kg'] },
   kyllingfars:  { n: 'Hakket kylling', kcal: 140, p: 19, group: 'protein', pg: 'chicken', cats: KOD, re: /HK\.? ?KYLLING|KYLLINGEFARS|HAKKET KYLLING/, est: [35, 400, '400 g'] },
   moerbrad:     { n: 'Svinemørbrad', kcal: 120, p: 21, group: 'protein', pg: 'pork', cats: KOD, re: /MØRBRAD/, ex: /ALA|À LA|MARINERET/, est: [65, 500, '500 g'] },
   svinestrimler:{ n: 'Svinekød i strimler', kcal: 150, p: 21, group: 'protein', pg: 'pork', cats: KOD, subs: ['gris'], re: /STRIMLER|GYROS|GRYDE|SCHNITZ|KOTELET|NAKKE|INDERLÅR/, ex: /MØRBRAD|MEDISTER|FLÆSK|HK\.? |PAPRIKA|MARINERET/, est: [40, 400, '400 g'] },
-  flaeskesteg:  { n: 'Flæskesteg', kcal: 250, p: 17, group: 'protein', pg: 'pork', cats: KOD, re: /FLÆSKESTEG|SVINEKAM M/, ex: /PÅLÆG|SKIVER|SANDWICH/, est: [80, 1500, '1,5 kg'] },
+  flaeskesteg:  { n: 'Flæskesteg', kcal: 250, p: 17, group: 'protein', pg: 'pork', cats: KOD, re: /FLÆSKESTEG|SVINEKAM M|RIBBENSSTEG/, ex: /PÅLÆG|SKIVER|SANDWICH|BBQ/, est: [80, 1500, '1,5 kg'] },
   medister:     { n: 'Medister', kcal: 240, p: 14, group: 'protein', pg: 'pork', cats: KOD, re: /MEDISTER/, ex: /JULE/, est: [30, 500, '500 g'] },
   flaesk:       { n: 'Flæsk i skiver', kcal: 290, p: 16, group: 'protein', pg: 'pork', cats: KOD, re: /FLÆSK I SKIVER|STEGEFLÆSK|BRYSTFLÆSK/, est: [35, 400, '400 g'] },
   bacon:        { n: 'Bacon i tern', kcal: 290, p: 15, group: 'protein', pg: 'pork', cats: [...KOD, 'kol'], re: /BACON/, ex: /SALAT|CHIPS|DIP|SNACK|PÅLÆG|PØLSE|POSTEJ|GRYDE|M\/BACON|MED BACON|PIZZA|TÆRTE/, est: [15, 150, '150 g'] },
@@ -61,7 +61,7 @@ export const INGREDIENTS = {
   muesli:       { n: 'Müsli', kcal: 420, p: 9, group: 'grain', cats: KOL, re: /MUESLI|MÜSLI|GRANOLA/, ex: /BAR/, est: [25, 750, '750 g'] },
   mel:          { n: 'Hvedemel', kcal: 340, p: 10, spoon: 10, group: 'grain', cats: KOL, re: /HVEDEMEL/, ex: /FULDKORN|GROV/, est: [10, 1000, '1 kg'] },
   // ---- produce
-  kartofler:    { n: 'Kartofler', kcal: 77, p: 2, group: 'produce', cats: FRUGT, re: /KARTOFL/, ex: /SØD|BAGE|SALAT/, est: [20, 2000, '2 kg'] },
+  kartofler:    { n: 'Kartofler', kcal: 77, p: 2, group: 'produce', cats: FRUGT, re: /KARTOFL|KART\.|SANDERUMGAARD/, ex: /SØD|BAGE|SALAT/, est: [20, 2000, '2 kg'] },
   kaal:         { n: 'Hvidkål / spidskål', kcal: 25, p: 1.3, stkG: 1000, group: 'produce', cats: FRUGT, re: /HVIDKÅL|SPIDSKÅL|SAVOYKÅL|KINAKÅL/, ex: /SALAT|RÅKOST/, est: [12, 1000, '1 stk'] },
   gulerod:      { n: 'Gulerødder', kcal: 41, p: 0.9, group: 'produce', cats: FRUGT, re: /GULER[ØO]D/, ex: /SNACK|BABY|JUICE/, est: [10, 1000, '1 kg'] },
   log:          { n: 'Løg', kcal: 40, p: 1.1, each: 150, unit: 'stk', group: 'produce', cats: FRUGT, re: new RegExp(`${W}LØG${E}|GULE LØG|RØDLØG`), ex: /FORÅR|HVIDLØG|SKALOTTE|PERLE|PURLØG/, est: [10, 1000, '1 kg'] },
@@ -99,7 +99,7 @@ export const INGREDIENTS = {
   spidskommen:  { n: 'Spidskommen', kcal: 375, p: 18, tsp: 2, group: 'spice', cats: KOL, re: /SPIDSKOMMEN|CUMIN/, ex: /MIX|BLANDING/, est: [15, 40, '40 g'] },
   sukker:       { n: 'Sukker', kcal: 400, p: 0, spoon: 12, group: 'pantry', cats: KOL, re: new RegExp(`${W}(?:SUKKER|STØDT MELIS)${E}`), ex: /FLORMELIS|RØR|KANDIS|VANILJE|PERLE|SØDESTOF|FRI|BRUN|SIRUP/, est: [12, 1000, '1 kg'] },
   skinke:       { n: 'Skinke (pålæg)', kcal: 110, p: 19, group: 'protein', pg: 'pork', cats: ['kol'], re: /SKINKE/, ex: /STEG|SALAT|SALAMI|SCHNITZ|SPEGE/, est: [15, 100, '100 g'] },
-  burgerboller: { n: 'Burgerboller', kcal: 270, p: 9, each: 70, unit: 'stk', group: 'grain', cats: ['brod-bavinchi', 'frost'], re: /BURGER ?BOLLE|BRIOCHE ?BURGER|HAMBURGERBOLLE|BURGERBRØD/, est: [18, 280, '4 stk'] },
+  burgerboller: { n: 'Burgerboller', kcal: 270, p: 9, each: 70, unit: 'stk', group: 'grain', cats: ['brod-bavinchi', 'frost'], subs: undefined, re: /BURGER ?BOLLE|BRIOCHE ?BURGER|HAMBURGERBOLLE|BURGERBRØD|(?:FULDK\.?|FULDKORN|GROV) ?BURGER/, est: [18, 280, '4 stk'] },
   tacokrydderi: { n: 'Tacokrydderi', kcal: 300, p: 8, tsp: 3, group: 'spice', cats: KOL, re: /TACO ?KRYDDERI|TACO ?SPICE|TACO ?MIX|TACO SEASONING|TACOKRYDDERI/, ex: /SAUCE|SHELL|SKAL|CHIPS|KIT/, est: [8, 28, '1 pose'] },
 };
 

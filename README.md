@@ -8,7 +8,7 @@ Any day can be switched to a **treat day**, which uses a separate set of comfort
 
 The planning runs in the visitor's browser (`planner.js`, shared with the weekly build), so changing who's eating, their calories, treat days or the cheap switch re-plans the week instantly.
 
-Nothing is assumed to be in the cupboard. Every ingredient, salt, oil and spices included, is priced at REMA (offer price or normal shelf price) and bought in whole packs. Meals are picked by how little they add to the total shop, so packs bought for one meal get used up by the others. Pack sizes round differently for 1 person and for 6, so the build makes a separate cheapest plan for each household size.
+Nothing is assumed to be in the cupboard. Every ingredient, salt, oil and spices included, is priced at REMA (offer price or normal shelf price) and bought in whole packs. Meals are picked by how little they add to the total shop, with extra credit for what they save on this week's offers against normal prices (so the plan is built around the avis), so packs bought for one meal get used up by the others. Pack sizes round differently for 1 person and for 6, so the build makes a separate cheapest plan for each household size.
 
 Every Sunday morning a GitHub Action reads the new REMA 1000 avis, reads REMA's normal shelf prices, and picks the combination of recipes from the recipe bank that makes the whole week's shop cheapest per portion. Then it redeploys the site. Anyone with the link can open it, no login.
 

@@ -11,7 +11,7 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import { INGREDIENTS, RECIPES } from './recipes.mjs';
-import { createPlanner } from '../planner.js';
+import { createPlanner, cover } from '../planner.js';
 import { scrapeApi, scrapeRema, scrapeTjek, scrapeCatalogue, parseProduct, computedWeek, productDetails } from './offers.mjs';
 
 const args = process.argv.slice(2);
@@ -117,6 +117,20 @@ for (const key of USED) {
   OPTIONS[key] = frontier(opts);
   if (OPTIONS[key].some(o => o.onSale)) stats.sale++; else if (OPTIONS[key].some(o => !o.est)) stats.shelf++; else stats.est++;
 }
+// What each offer pack costs at normal price: the same product's shelf price when REMA lists it,
+// otherwise the cheapest normal-price pack of that ingredient per gram. The planner uses the
+// difference to prefer meals built on this week's discounts.
+const shelfById = new Map(catalogue.map(o => [String(o.id), o]));
+for (const key of Object.keys(OPTIONS)) {
+  const def = INGREDIENTS[key];
+  const ref = OPTIONS[key].concat(CANDIDATES[key]).filter(o => !o.onSale).sort((a, b) => a.price / a.pack - b.price / b.pack)[0];
+  for (const o of OPTIONS[key]) {
+    if (!o.onSale) continue;
+    const same = shelfById.get(String(o.id));
+    const normal = same && !same.loose ? same.price * (o.pack / packGrams(def, same)) : ref ? ref.price / ref.pack * o.pack : def.est[0] / def.est[1] * o.pack;
+    if (normal > o.price * 1.02) o.normal = Math.round(normal * 100) / 100;
+  }
+}
 console.log(`Priced ${Object.keys(OPTIONS).length} ingredients: ${stats.sale} on offer, ${stats.shelf} at shelf price, ${stats.est} estimated`);
 console.log(`Additives: ${additiveCheck.checked} products checked, ${additiveCheck.flagged} flagged and skipped where possible${stats.unavoidable.length ? `; no clean choice for ${stats.unavoidable.join(', ')}` : ''}`);
 
@@ -130,10 +144,11 @@ const recipes = RECIPES.map(r => ({ ...r, kind: r.kind || 'healthy' }));
 const seed = week.year * 100 + week.week;
 const planner = createPlanner({ recipes, ing, seed });
 const FRI_SAT = [0, 0, 0, 0, 0, 1, 1].map(Boolean);   // day 0 is Sunday, the first day of the offer week
+const dealsUsed = p => Object.entries(p.need).map(([k, g]) => cover(ing[k], g)).filter(c => c.o?.onSale);
 for (const [label, people, treat, cheap] of [['1 person', 1], ['2 people', 2], ['4 people', 4], ['2 people, Fri+Sat treat', 2, FRI_SAT], ['2 people, not cheapest', 2, undefined, false]]) {
   const p = planner.plan(people, treat, 2000, { cheap });
   if (!p) { console.error(`No plan could be made for ${label}`); process.exit(1); }
-  console.log(`${label.padEnd(24)} ${p.total.toFixed(2).padStart(8)} kr · ${p.kcal} kcal/day · q${p.quality.toFixed(2)} · `
+  console.log(`${label.padEnd(24)} ${p.total.toFixed(2).padStart(8)} kr · ${dealsUsed(p).length} offers, saves ${p.saved.toFixed(0)} kr · q${p.quality.toFixed(2)} · `
     + p.days.map(d => `${d.treat ? '*' : ''}${d.d}${d.left ? '(rest)' : ''}`).join(' '));
 }
 

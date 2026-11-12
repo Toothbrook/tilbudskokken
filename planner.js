@@ -33,7 +33,7 @@ export function createPlanner({ recipes, ing, seed = 0 }) {
   // Resolve 'a|b' lines to whichever adds least, then price the meal against what's already bought.
   function evaluate(r, need, portions, size) {
     const f = portions / r.base * size, trial = { ...need }, lines = [];
-    let added = 0, kcal = 0, veg = 0, prot = 0;
+    let added = 0, kcal = 0, veg = 0, prot = 0, saved = 0;
     for (const [spec, g] of r.ing) {
       let best = null;
       for (const k of spec.split('|')) {
@@ -43,6 +43,8 @@ export function createPlanner({ recipes, ing, seed = 0 }) {
       }
       if (!best) return null;
       trial[best.k] = (trial[best.k] || 0) + g * f; added += best.d; lines.push(best.k);
+      const o = coverK(best.k, trial[best.k]).o;
+      if (o?.onSale && o.normal) saved += g * f * (o.normal - o.price) / o.pack;
       kcal += ing[best.k].kcal * g / 100; prot += ing[best.k].p * g / 100;
       if (ing[best.k].group === 'produce') veg += g;
     }
@@ -51,7 +53,7 @@ export function createPlanner({ recipes, ing, seed = 0 }) {
     const per600 = 600 / Math.max(kcal, 1);
     const quality = 1 + Math.min(veg * per600 / 350, 1) * 0.7 + Math.min(prot * per600 / 40, 1) * 0.7
       + (protein && ing[protein].pg === 'fish' ? 0.35 : 0);
-    return { r, lines, portions, added, perPortion: added / portions, trial, protein, quality,
+    return { r, lines, portions, added, saved, perPortion: added / portions, savedPP: saved / portions, trial, protein, quality,
       carb: lines.find(k => CARBS.includes(k)), kcal: kcal / r.base };
   }
 
@@ -73,11 +75,15 @@ export function createPlanner({ recipes, ing, seed = 0 }) {
     return slots.sort((a, b) => TYPES.indexOf(a.type) - TYPES.indexOf(b.type) || b.days.length - a.days.length);
   }
 
-  // cheap: rank purely by what a meal adds to the shop. Otherwise quality leads and cost only nudges.
+  // A meal is ranked by what it adds to the shop, minus a credit for this week's discounts it uses
+  // (the planner is built around the avis, so a deal counts for more than its price alone).
+  // cheap: that is all. Otherwise quality leads and cost only nudges.
+  const DEAL = { cheap: 1.0, quality: 0.6 };
   let cheap = true;
-  const rank = c => (cheap ? c.perPortion : (c.perPortion + 12) / (c.quality * c.quality)) * jitter(c.r.id);
-  const score = p => cheap ? p.total / p.portions
-    : (p.total / p.portions + 12) / Math.pow(p.chosen.reduce((s, c) => s + c.quality * c.portions, 0) / p.portions, 2);
+  const net = (cost, saved) => cost - (cheap ? DEAL.cheap : DEAL.quality) * saved;
+  const rank = c => (cheap ? net(c.perPortion, c.savedPP) : (Math.max(0, net(c.perPortion, c.savedPP)) + 12) / (c.quality * c.quality)) * jitter(c.r.id);
+  const qOf = p => p.chosen.reduce((s, c) => s + c.quality * c.portions, 0) / p.portions;
+  const score = p => cheap ? net(p.total, p.saved) / p.portions : (Math.max(0, net(p.total, p.saved)) / p.portions + 12) / Math.pow(qOf(p), 2);
 
   function greedy(people, slots, size, opener) {
     let need = {};
@@ -106,7 +112,9 @@ export function createPlanner({ recipes, ing, seed = 0 }) {
       }
     }
     const portions = chosen.reduce((s, c) => s + c.portions, 0);
-    return { chosen, need, total: shopCost(need), portions };
+    // Savings of the final shop: every offer pack bought, against its normal price.
+    const saved = Object.entries(need).reduce((s, [k, g]) => { const c = coverK(k, g); return s + (c.o?.onSale && c.o.normal ? c.n * (c.o.normal - c.o.price) : 0); }, 0);
+    return { chosen, need, total: shopCost(need), portions, saved };
   }
 
   // people: household size; treat: 7 booleans (day 0 = first day of the offer week); kcal: per person
@@ -132,7 +140,7 @@ export function createPlanner({ recipes, ing, seed = 0 }) {
     }
     const onSale = Object.entries(best.need).reduce((s, [k, g]) => { const c = coverK(k, g); return s + (c.o?.onSale ? c.cost : 0); }, 0);
     const quality = best.chosen.reduce((s, c) => s + c.quality * c.portions, 0) / best.portions;
-    return { people, cheap, quality, size, kcal: Math.round(dayKcal(best.chosen) * size), total: best.total, onSale, portions: best.portions, need: best.need,
+    return { people, cheap, quality, saved: best.saved, size, kcal: Math.round(dayKcal(best.chosen) * size), total: best.total, onSale, portions: best.portions, need: best.need,
       cook: Object.fromEntries(best.chosen.map(c => [c.r.id, c.portions])),
       pick: Object.fromEntries(best.chosen.map(c => [c.r.id, c.lines])), days };
   }

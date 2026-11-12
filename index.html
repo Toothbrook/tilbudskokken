@@ -314,21 +314,21 @@ function shopping(){
   planMeals().filter(m => state.types[m.type]).forEach(m => { const n = P.cook[m.id], f = n/m.base*SCALE; portions += n;
     ingOf(m.id).forEach(([key,g]) => { need[key] = (need[key]||0) + g*f; }); });
   const byKey = {}, lines = [], home = [];
-  let total = 0, offer = 0, saved = 0;
+  let total = 0, offer = 0, saved = 0, dealSave = 0, deals = 0;
   for (const [key, g] of Object.entries(need)){
     const c = cover(key, g), o = c.o;
     byKey[key] = c;
     if (state.have[key]){ home.push({ key, name: ING[key].n }); saved += c.cost; continue; }
-    total += c.cost; if (o.onSale) offer += c.cost;
+    total += c.cost; if (o.onSale) { offer += c.cost; deals++; if (o.normal) dealSave += c.n * (o.normal - o.price); }
     const q = o.loose ? `≈ ${plain(amount(key,g)).replace(/ \(.*$/,'')} à ${o.label}`
-      : `${c.n} × ${o.label} à ${o.est?'≈':''}${kr(o.price)} · need ${plain(amount(key,g))}`;
+      : `${c.n} × ${o.label} à ${o.est?'≈':''}${kr(o.price)}${o.onSale && o.normal ? ` (normally ${kr(o.normal)})` : ''} · need ${plain(amount(key,g))}`;
     const qa = o.additives ? `${q} · contains ${o.additives.join(', ')}` : q;
     lines.push({ key, name: o.est ? ING[key].n : o.product, q: qa, short: o.loose ? `ca. ${plain(amount(key,g))}` : `${c.n} × ${o.label}`,
       price: c.cost, onSale: !!o.onSale, est: !!o.est, id: o.id, n: o.loose ? 1 : c.n });
   }
   lines.sort((a, b) => b.price - a.price);
   home.sort((a, b) => a.name.localeCompare(b.name, 'da'));
-  return { lines, home, total, offer, saved, portions, byKey };
+  return { lines, home, total, offer, saved, dealSave, deals, portions, byKey };
 }
 
 // ---- views
@@ -390,6 +390,7 @@ function shopView(){
     <div class="line sub"><span>On offer</span><span class="num">${kr(offer)}</span></div>
     <div class="line sub"><span>Normal price</span><span class="num">${kr(total - offer)}</span></div>
     <div class="line total"><span>TOTAL</span><span class="num">${kr(total)}</span></div>
+    ${SHOP.dealSave >= 1 ? `<p class="c l">You save ${kr(SHOP.dealSave)} kr on ${SHOP.deals} offers against normal prices.</p>` : ''}
     <p class="c l">${portions} portions · ${kr(total/portions)} kr each</p>
     <div class="dash"></div>
     <div class="home">
@@ -493,7 +494,7 @@ function renderHouse(){
   $('#totals').innerHTML = s.portions && !s.lines.length ? `<small>You have everything for this week already.</small>` : s.portions ? `<span><b class="num">${kr(s.total)} kr</b> <small>for the week</small></span>
     <span><b class="num">${kr(s.total/PEOPLE()/7)} kr</b> <small>per person per day</small></span>
     <span><b class="num">${s.portions}</b> <small>portions</small></span>
-    <span class="note">${kcalNote()} ${s.home.length ? `Leaving out ${s.home.length} thing${s.home.length > 1 ? 's' : ''} you have at home (${kr(s.saved)} kr).` : 'Everything on the list, salt and oil included.'} ${kr(s.offer)} kr of it is on offer.${all ? '' : ' Only the meals you picked are counted.'}${DATA.shelfPrices === 'estimated' ? ' Normal prices are estimates this week.' : ''}</span>`
+    <span class="note">${kcalNote()} ${s.home.length ? `Leaving out ${s.home.length} thing${s.home.length > 1 ? 's' : ''} you have at home (${kr(s.saved)} kr).` : 'Everything on the list, salt and oil included.'} <b>${s.deals} of this week's offers</b> are on the list${s.dealSave >= 1 ? `, saving ${kr(s.dealSave)} kr against normal prices` : ''}.${all ? '' : ' Only the meals you picked are counted.'}${DATA.shelfPrices === 'estimated' ? ' Normal prices are estimates this week.' : ''}</span>`
     : `<small>Pick at least one of breakfast, lunch or dinner.</small>`;
 }
 
