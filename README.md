@@ -1,8 +1,8 @@
 # Tilbudskøkken
 
-A free website with a weekly meal plan built from REMA 1000's offers: 4 dinners, 3 breakfasts and 3 lunches, with calories, protein, a full shopping list, and a list of every food offer that week.
+A free website with a full week of meals built from REMA 1000's offers: 7 breakfasts, lunches and dinners for however many people you are (1–8), with calories, protein, one shopping list for the week, and a list of every food offer. Some dinners are cooked once and eaten as leftovers the next evening. You can switch breakfast, lunch or dinner off if you don't need them.
 
-Nothing is assumed to be in the cupboard. Every ingredient, salt, oil and spices included, is priced at REMA (offer price or normal shelf price) and bought in whole packs. Meals are picked by how little they add to the total shop, so packs bought for one meal get used up by the others.
+Nothing is assumed to be in the cupboard. Every ingredient, salt, oil and spices included, is priced at REMA (offer price or normal shelf price) and bought in whole packs. Meals are picked by how little they add to the total shop, so packs bought for one meal get used up by the others. Pack sizes round differently for 1 person and for 6, so the build makes a separate cheapest plan for each household size.
 
 Every Sunday morning a GitHub Action reads the new REMA 1000 avis, reads REMA's normal shelf prices, and picks the combination of recipes from the recipe bank that makes the whole week's shop cheapest per portion. Then it redeploys the site. Anyone with the link can open it, no login.
 
@@ -32,7 +32,7 @@ If REMA changes their website and the offers can't be read, the run is marked fa
 
 ## Adding recipes
 
-Open `scripts/recipes.mjs` and add an entry to `RECIPES`. Ingredient lines are `[key, grams]` for the whole recipe, and must include everything the method uses (salt, oil, spices). `'hkokse|hkgris'` means "whichever is cheapest". Push the change and the next run can pick it.
+Open `scripts/recipes.mjs` and add an entry to `RECIPES`. Ingredient lines are `[key, grams]` for the whole recipe, and must include everything the method uses (salt, oil, spices). Add `leftovers: false` to dinners that don't keep (fried eggs, fish). `'hkokse|hkgris'` means "whichever is cheapest". Push the change and the next run can pick it.
 
 ## Run it locally
 

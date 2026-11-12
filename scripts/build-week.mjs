@@ -17,8 +17,10 @@ const args = process.argv.slice(2);
 const arg = f => { const i = args.indexOf(f); return i >= 0 ? args[i + 1] : null; };
 const OUT = arg('--out') || 'data/week.json';
 const PRICES_OUT = path.join(path.dirname(OUT), 'prices.json');
-const PICK = { dinner: 4, lunch: 3, breakfast: 3 };
-const PORTIONS = { breakfast: 2, lunch: 2 };            // dinners use the recipe's own portion count
+// A week is 7 breakfasts, lunches and dinners. Each slot is one recipe covering that many days:
+// dinners cooked for 2 nights are eaten as leftovers the next evening.
+const SLOTS = { dinner: [2, 2, 1, 1, 1], lunch: [3, 2, 2], breakfast: [3, 2, 2] };
+const PEOPLE = [1, 2, 3, 4, 5, 6, 7, 8];
 const KCAL = { dinner: [400, 1100], lunch: [300, 850], breakfast: [250, 700] };
 const CARBS = ['kartofler', 'ris', 'pasta', 'wraps', 'toast', 'boller', 'rugbrod'];
 
@@ -106,8 +108,8 @@ const nutrition = (ing, portions) => {
 };
 
 // Resolve 'a|b' lines to whichever adds least to the shop, then price the meal against what's already bought.
-function evaluate(r, need) {
-  const portions = PORTIONS[r.type] || r.base, f = portions / r.base;
+function evaluate(r, need, portions) {
+  const f = portions / r.base;
   const trial = { ...need }, ing = [];
   let added = 0;
   for (const [spec, g] of r.ing) {
@@ -126,13 +128,16 @@ function evaluate(r, need) {
 const seed = week.year * 100 + week.week;
 const jitter = id => { let h = seed; for (const c of id) h = (h * 31 + c.charCodeAt(0)) >>> 0; return 1 + (h % 1000) / 1000 * 0.06; };
 
-function greedy(firstDinner) {
+function greedy(people, firstDinner) {
   let need = {};
   const chosen = [];
   for (const type of ['dinner', 'lunch', 'breakfast']) {
     const usedProtein = new Set(), family = {}, carbs = {};
-    for (let i = 0; i < PICK[type]; i++) {
-      const pool = RECIPES.filter(r => r.type === type && !chosen.some(c => c.r.id === r.id)).map(r => evaluate(r, need));
+    SLOTS[type].forEach((days, i) => {
+      if (chosen.failed) return;
+      const portions = days * people;
+      const pool = RECIPES.filter(r => r.type === type && !chosen.some(c => c.r.id === r.id)
+        && !(days > 1 && r.leftovers === false)).map(r => evaluate(r, need, portions));
       const ok = c => {
         const [lo, hi] = KCAL[type];
         if (c.kcal < lo || c.kcal > hi) return false;
@@ -142,52 +147,73 @@ function greedy(firstDinner) {
         } else if (c.protein && usedProtein.has(c.protein) && pool.some(o => o.protein !== c.protein)) return false;
         return true;
       };
-      const rank = c => c.perPortion * jitter(c.r.id);
       const allowed = pool.filter(ok).length ? pool.filter(ok) : pool;
       const best = type === 'dinner' && i === 0 && firstDinner
         ? allowed.find(c => c.r.id === firstDinner)
-        : allowed.sort((a, b) => rank(a) - rank(b))[0];
-      if (!best) return null;
-      chosen.push(best); need = best.trial;
+        : allowed.sort((a, b) => a.perPortion * jitter(a.r.id) - b.perPortion * jitter(b.r.id))[0];
+      if (!best) { chosen.failed = true; return; }
+      chosen.push({ ...best, days }); need = best.trial;
       if (best.protein) { usedProtein.add(best.protein); const g = INGREDIENTS[best.protein].pg; family[g] = (family[g] || 0) + 1; }
       if (best.carb) carbs[best.carb] = (carbs[best.carb] || 0) + 1;
-    }
+    });
   }
+  if (chosen.failed) return null;
   const portions = chosen.reduce((s, c) => s + c.portions, 0);
-  return { chosen, need, perPortion: shopCost(need) / portions };
+  return { chosen, need, total: shopCost(need), portions };
 }
-// Greedy can paint itself into a corner with its first pick, so try every dinner as the opener.
-const plans = RECIPES.filter(r => r.type === 'dinner').map(r => greedy(r.id)).filter(Boolean);
-const { chosen, need } = plans.sort((a, b) => a.perPortion - b.perPortion)[0];
+
+// Lay the week out day by day, starting on the first day of the offer week.
+function schedule(chosen) {
+  const of = t => chosen.filter(c => c.r.type === t);
+  const dinners = of('dinner').flatMap(c => Array.from({ length: c.days }, (_, n) => ({ id: c.r.id, left: n > 0 })));
+  // Round-robin so the same breakfast/lunch isn't eaten three days running.
+  const rotate = t => {
+    const list = of(t), left = Object.fromEntries(list.map(c => [c.r.id, c.days])), out = [];
+    for (let k = 0; out.length < 7 && k < 50; k++) { const id = list[k % list.length].r.id; if (left[id] > 0) { out.push(id); left[id]--; } }
+    return out;
+  };
+  const b = rotate('breakfast'), l = rotate('lunch');
+  const start = Date.parse(week.validFrom + 'T12:00:00Z');
+  return Array.from({ length: 7 }, (_, d) => ({ date: new Date(start + d * 864e5).toISOString().slice(0, 10),
+    b: b[d], l: l[d], d: dinners[d].id, left: dinners[d].left }));
+}
+
+// Pack sizes round differently for 1 person and for 6, so plan each household size on its own.
+const plans = {}, allNeed = {}, recipeIds = new Set();
+for (const people of PEOPLE) {
+  const tries = RECIPES.filter(r => r.type === 'dinner' && r.leftovers !== false).map(r => greedy(people, r.id)).filter(Boolean);
+  const best = tries.sort((a, b) => a.total / a.portions - b.total / b.portions)[0];
+  const onSale = Object.entries(best.need).reduce((s, [k, g]) => { const c = cover(k, g); return s + (c.o?.onSale ? c.cost : 0); }, 0);
+  plans[people] = { people, total: +best.total.toFixed(2), portions: best.portions, perPortion: +(best.total / best.portions).toFixed(2),
+    onSale: +onSale.toFixed(2), cook: Object.fromEntries(best.chosen.map(c => [c.r.id, c.portions])),
+    pick: Object.fromEntries(best.chosen.map(c => [c.r.id, c.ing.map(([k]) => k)])), days: schedule(best.chosen) };
+  for (const k of Object.keys(best.need)) allNeed[k] = true;
+  best.chosen.forEach(c => recipeIds.add(c.r.id));
+  console.log(`${people} ${people > 1 ? 'people' : 'person '}: ${best.total.toFixed(2)} kr for ${best.portions} portions (${(best.total / best.portions).toFixed(2)} kr/portion) · `
+    + best.chosen.map(c => `${c.r.id}×${c.days}`).join(' '));
+}
 
 // ---------- 4. output
-const meals = chosen.map(c => ({ id: c.r.id, type: c.r.type, name: c.r.name, dk: c.r.dk, base: c.r.base, portions: c.portions,
-  time: c.r.time, tags: c.r.tags, ing: c.ing, steps: c.r.steps, ...(c.r.tip ? { tip: c.r.tip } : {}) }));
+// Each plan resolves 'a|b' lines its own way, so meals carry the raw lines and each plan says what it picked.
+const meals = RECIPES.filter(r => recipeIds.has(r.id)).map(r => ({ id: r.id, type: r.type, name: r.name, dk: r.dk, base: r.base,
+  time: r.time, tags: r.tags, steps: r.steps, ...(r.tip ? { tip: r.tip } : {}), ...(r.leftovers === false ? { leftovers: false } : {}) }));
 const ing = {};
-for (const k of Object.keys(need)) {
+for (const k of Object.keys(allNeed)) {
   const { re, ex, cats, subs, group, pg, stkG, est, ...rest } = INGREDIENTS[k];
   ing[k] = { ...rest, group, options: OPTIONS[k] };
 }
-const total = shopCost(need), portions = chosen.reduce((s, c) => s + c.portions, 0);
-const onSaleSpend = Object.entries(need).reduce((s, [k, g]) => { const c = cover(k, g); return s + (c.o?.onSale ? c.cost : 0); }, 0);
-const plan = { total: Math.round(total * 100) / 100, portions, perPortion: Math.round(total / portions * 100) / 100,
-  onSale: Math.round(onSaleSpend * 100) / 100 };
+const grams = Object.fromEntries(RECIPES.filter(r => recipeIds.has(r.id)).map(r => [r.id, r.ing.map(([, g]) => g)]));
 
-const usedIds = new Set(Object.entries(need).map(([k, g]) => cover(k, g).o).filter(o => o?.onSale).map(o => o.id));
 const ORDER = ['kod-fisk-fjerkrae', 'kol', 'frugt-gront', 'mejeri', 'ost-mv', 'brod-bavinchi', 'frost', 'kolonial', '*'];
 const offerList = [...offers]
   .sort((a, b) => ORDER.indexOf(a.cat) - ORDER.indexOf(b.cat) || a.name.localeCompare(b.name, 'da'))
-  .map(o => ({ name: sentence(o.name), desc: o.desc ? sentence(o.desc) : '', size: sizeLabel(o.qty, o.unit), price: o.price,
-    unitPrice: o.unitPrice, per: o.per, cat: o.cat, url: o.url, inPlan: usedIds.has(o.id) }));
+  .map(o => ({ id: o.id, name: sentence(o.name), desc: o.desc ? sentence(o.desc) : '', size: sizeLabel(o.qty, o.unit), price: o.price,
+    unitPrice: o.unitPrice, per: o.per, cat: o.cat, url: o.url }));
 
-const data = { ...week, source, generatedAt: new Date().toISOString(), plan,
-  shelfPrices: catalogue.length ? 'live' : 'estimated', ing, meals, offers: offerList };
+const data = { ...week, source, generatedAt: new Date().toISOString(), shelfPrices: catalogue.length ? 'live' : 'estimated',
+  defaultPeople: 2, plans, ing, meals, grams, offers: offerList };
 await fs.mkdir(path.dirname(OUT), { recursive: true });
-await fs.writeFile(OUT, JSON.stringify(data, null, 1) + '\n');
+await fs.writeFile(OUT, JSON.stringify(data) + '\n');
 await fs.writeFile(PRICES_OUT, JSON.stringify({ week: week.week, catalogueProducts: catalogue.length,
   ingredients: Object.fromEntries(Object.entries(OPTIONS).map(([k, o]) => [k, o.map(x => `${x.onSale ? 'TILBUD ' : x.est ? 'EST ' : ''}${x.product} ${x.label} ${x.price} kr`)])) }, null, 1) + '\n');
-
-console.log(`Week ${week.week} (${week.validFrom} → ${week.validTo}), shelf prices ${data.shelfPrices}`);
-for (const c of chosen) console.log(`  ${c.r.type.padEnd(9)} ${c.r.name.padEnd(42)} +${c.added.toFixed(2)} kr / ${c.portions} = ${c.perPortion.toFixed(2)} kr/portion, ${Math.round(c.kcal)} kcal`);
-console.log(`Whole shop: ${plan.total.toFixed(2)} kr for ${portions} portions (${plan.perPortion.toFixed(2)} kr/portion), ${plan.onSale.toFixed(2)} kr of it on offer`);
-console.log(`Wrote ${OUT}`);
+console.log(`Week ${week.week} (${week.validFrom} → ${week.validTo}), shelf prices ${data.shelfPrices}. Wrote ${OUT}`);
