@@ -1,8 +1,8 @@
 {
  "week": 46,
- "catalogueProducts": 1757,
+ "catalogueProducts": 2014,
  "additiveCheck": {
-  "checked": 245,
+  "checked": 256,
   "failed": 0,
   "probe": {
    "keys": [
@@ -29,7 +29,7 @@
    "query": "?include=declaration,nutrition_info",
    "declarationLike": []
   },
-  "flagged": 100
+  "flagged": 96
  },
  "flaggedProducts": {
   "28824": [
@@ -143,18 +143,14 @@
    "hærdet",
    "modificeret stivelse"
   ],
-  "71579": [
-   "E450"
-  ],
-  "72391": [
-   "E450",
-   "hærdet"
-  ],
   "72609": [
    "E339"
   ],
-  "102500": [
-   "modificeret stivelse"
+  "90984": [
+   "phosphat"
+  ],
+  "100028": [
+   "E407"
   ],
   "102802": [
    "E422",
@@ -164,20 +160,10 @@
   "102806": [
    "modificeret stivelse"
   ],
-  "102816": [
-   "E150"
-  ],
   "102831": [
    "E422",
    "E471",
    "E282"
-  ],
-  "104336": [
-   "E954"
-  ],
-  "104346": [
-   "E211",
-   "E950"
   ],
   "107912": [
    "modificeret stivelse"
@@ -451,7 +437,7 @@
  },
  "ingredients": {
   "hkokse": [
-   "Hk. oksekød, 35% grønt 400 g 29.95 kr",
+   "Hk. oksekød 15-18% 400 g 37.95 kr",
    "Hk. oksekød 8-12% 800 g 76.95 kr"
   ],
   "hkblanding": [
@@ -476,6 +462,7 @@
    "Passata di pomodoro 680 g 15.95 kr"
   ],
   "bonner": [
+   "Sorte bønner 252 g 7.78 kr",
    "Kikærter 400 g 14.95 kr"
   ],
   "ris": [
@@ -490,17 +477,17 @@
    "Hvidløg i net 90 g 6 kr"
   ],
   "paprika": [
+   "Sød paprika 45 g 9.67 kr",
    "Sød paprika 60 g 12.75 kr"
   ],
   "spidskommen": [
-   "EST Spidskommen 40 g 15 kr"
+   "Spidskommen 33 g 21.39 kr"
   ],
   "salt": [
    "Salt m/jod 800 g 4.4 kr",
    "Salt m/ jod 1 kg 4.75 kr"
   ],
   "skyr": [
-   "Skyr airy strawberry 128 g 8.5 kr",
    "Skyr naturel 450 g 18.1 kr",
    "Skyr naturel 1 kg 19.95 kr"
   ],
@@ -508,10 +495,10 @@
    "TILBUD Squash 1 stk 6 kr"
   ],
   "pasta": [
-   "EST Fuldkornspasta 500 g 8 kr"
+   "Spaghetti fuldkorn 500 g 9.08 kr"
   ],
   "sortpeber": [
-   "EST Sort peber 50 g 15 kr"
+   "Stødt sort peber 100 g 7.5 kr"
   ],
   "kyllingfars": [
    "Hk. kyllingekød 7-10% 400 g 29.95 kr"
@@ -562,7 +549,7 @@
    "Becel smørbar 250 g 18.95 kr"
   ],
   "mel": [
-   "EST Hvedemel 1 kg 10 kr"
+   "Hvedemel 2 kg 9.95 kr"
   ],
   "flaeskesteg": [
    "TILBUD Ribbenssteg ovnklar 1 kg 50 kr",
@@ -593,7 +580,7 @@
    "Blomkål 1 stk 17 kr"
   ],
   "karry": [
-   "EST Karry 50 g 15 kr"
+   "Karry 35 g 11.17 kr"
   ],
   "moerbrad": [
    "TILBUD Grisemørbrad 600 g 30 kr",
@@ -613,12 +600,12 @@
    "Piskefløde 36% fedt 500 ml 14.95 kr"
   ],
   "ost": [
-   "Peber 125 g 13.95 kr",
-   "Grøn pikant 200 g 14.95 kr",
+   "Cheddar ost 100 g 14.95 kr",
+   "Røgeost 175 g 16.95 kr",
+   "Xl skiveost 45+ 200 g 19.95 kr",
    "TILBUD Cheddar mature 250 g 20 kr",
    "Gouda skiveost 48+ 300 g 22.46 kr",
-   "Havarti 60+ 400 g 29.95 kr",
-   "TILBUD Riberhus ml 45+ 468 g 39 kr"
+   "Havarti 60+ 400 g 29.95 kr"
   ],
   "porre": [
    "Porrer 1 stk 6 kr"
@@ -627,10 +614,12 @@
    "Persille 1 stk 10 kr"
   ],
   "laks": [
-   "Lakse- & torskefars 400 g 34.95 kr"
+   "Laksefileter 225 g 43.95 kr",
+   "Lakseportioner 400 g 63.96 kr"
   ],
   "hvidfisk": [
-   "Lakse- & torskefars 400 g 34.95 kr",
+   "Torskefileter 225 g 49.95 kr",
+   "Kullerloins 300 g 59 kr",
    "Store vesterhavs rødspætter 500 g 59.95 kr"
   ],
   "soja": [
@@ -671,13 +660,13 @@
    "Søde kartofler 1 stk 7 kr"
   ],
   "chiliflager": [
-   "EST Chiliflager 30 g 12 kr"
+   "Cayennepeber 40 g 16.67 kr"
   ],
   "bulgur": [
    "Bulgur 400 g 15.16 kr"
   ],
   "oregano": [
-   "EST Oregano (tørret) 10 g 12 kr"
+   "Oregano 10 g 6.55 kr"
   ],
   "feta": [
    "Salatost i tern 45+ 200 g 15.95 kr"
@@ -686,8 +675,7 @@
    "Banan 1 stk 2.5 kr"
   ],
   "baer": [
-   "Jordbær 400 g 12 kr",
-   "Flødeis jordbær 750 ml 40.18 kr"
+   "Jordbær 400 g 12 kr"
   ],
   "citrus": [
    "Clementin spanien kl.1 1 stk 3 kr",
@@ -702,16 +690,17 @@
    "Hytteost 4% 450 g 16.95 kr"
   ],
   "noedder": [
-   "Mandler 90 g 12 kr",
-   "TILBUD Pebernødder 180 g 20 kr",
+   "Mandler 100 g 8.95 kr",
+   "Mandler m/ røgsmag 150 g 22.03 kr",
+   "Grønne oliven 180 g 22.95 kr",
    "Pistacienødder 200 g 24.05 kr",
-   "Granola nødder 500 g 30.56 kr"
+   "Hasselnøddecreme 400 g 29.3 kr"
   ],
   "avocado": [
    "Avocado 1 stk 9 kr"
   ],
   "peanutbutter": [
-   "EST Peanutbutter 350 g 25 kr"
+   "Peanut butter 300 g 25.95 kr"
   ],
   "rogetfisk": [
    "Ørredfilet 80 g 12.77 kr",
@@ -732,8 +721,7 @@
    "Medister 500 g 24.95 kr ⚠ modificeret stivelse"
   ],
   "bacon": [
-   "Bacon skiver 100 g 19.95 kr",
-   "Hakkebøffer 250 g 24.95 kr"
+   "Bacon skiver 100 g 19.95 kr"
   ],
   "polser": [
    "Grillpølser 300 g 25 kr",
@@ -746,7 +734,7 @@
    "Taco spice mix 40 g 5.25 kr ⚠ modificeret stivelse"
   ],
   "wraps": [
-   "TILBUD Tortillas hvede 370 g 9 kr ⚠ E422,E471,E282"
+   "Øko tortilla, medium 320 g 15.95 kr"
   ],
   "revetost": [
    "Mozzarella 200 g 14.36 kr",
@@ -765,7 +753,7 @@
    "Limpan 900 g 26.95 kr"
   ],
   "sukker": [
-   "Hugget sukker 500 g 13.5 kr",
+   "Sukker 1 kg 7.5 kr",
    "Sukker 2 kg 21.95 kr"
   ],
   "leverpostej": [
@@ -780,12 +768,13 @@
    "Pizzadej 275 g 9.95 kr"
   ],
   "mozzarella": [
+   "Mozzarella 125 g 6.95 kr",
    "Mini mozzarella 150 g 14.34 kr",
    "Mozzarella 200 g 14.36 kr",
    "Mozzarella 400 g 23.96 kr"
   ],
   "lasagne": [
-   "Italian lasagne 262 g 19.95 kr"
+   "Fuldk. lasagneplade 500 g 9.95 kr"
   ],
   "taertedej": [
    "TILBUD Tærtedej 275 g 9 kr ⚠ E471,E450,hærdet"
@@ -803,27 +792,28 @@
    "Sennep 400 g 9.15 kr"
   ],
   "eddike": [
-   "Æblecider eddike 500 ml 25.45 kr"
+   "Klar eddike 1 l 6.5 kr"
   ],
   "tomatpure": [
    "Tomatpuré 200 g 12.95 kr"
   ],
   "bagepulver": [
-   "Natron 140 g 4.49 kr"
+   "Bagepulver 140 g 5.24 kr ⚠ phosphat"
   ],
   "kanel": [
-   "Stødt kanel 45 g 11.95 kr",
-   "Kanelkiks 160 g 24.16 kr",
-   "Runda kanel 330 g 29.95 kr"
+   "Stødt kanel 45 g 11.95 kr"
   ],
   "majs": [
-   "Majs 140 g 7.14 kr"
+   "Majs 140 g 7.14 kr",
+   "Majs 285 g 7.91 kr",
+   "Majs 420 g 36.5 kr"
   ],
   "timian": [
    "EST Timian (tørret) 10 g 12 kr"
   ],
   "rosiner": [
-   "EST Rosiner 250 g 12 kr"
+   "Rosiner 250 g 12.95 kr",
+   "Salat rosiner 450 g 22.5 kr"
   ],
   "purloeg": [
    "Purløg 1 stk 10 kr"
