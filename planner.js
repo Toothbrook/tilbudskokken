@@ -144,6 +144,7 @@ export function createPlanner({ recipes, ing, seed = 0 }) {
       openers = plans.slice(0, opts.openers || OPENERS).map(p => openers[0] === null ? null : p.chosen[0].r.id);
       best = plans[0] || greedy(people, slots, size, null, fixed);
       if (!best) return null;
+      best.size = size;
       const next = Math.min(2.6, Math.max(0.5, kcal / dayKcal(best.chosen)));
       if (Math.abs(next - size) < 0.02) break;
       size = next;
@@ -155,6 +156,7 @@ export function createPlanner({ recipes, ing, seed = 0 }) {
     }
     const onSale = Object.entries(best.need).reduce((s, [k, g]) => { const c = coverK(k, g); return s + (c.o?.onSale ? c.cost : 0); }, 0);
     const quality = best.chosen.reduce((s, c) => s + c.quality * c.portions, 0) / best.portions;
+    size = best.size;   // the size this week was priced at (the loop may have moved on to the next guess)
     return { people, treat, target: kcal, cheap, quality, saved: best.saved, size, kcal: Math.round(dayKcal(best.chosen) * size), total: best.total, onSale, portions: best.portions, need: best.need,
       cook: Object.fromEntries(best.chosen.map(c => [c.r.id, c.portions])),
       pick: Object.fromEntries(best.chosen.map(c => [c.r.id, c.lines])), days, fixed,
