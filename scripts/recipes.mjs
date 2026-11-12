@@ -46,7 +46,7 @@ export const INGREDIENTS = {
   hytteost:     { n: 'Hytteost', kcal: 90, p: 12, group: 'dairy', cats: [...MEJERI, 'ost-mv'], re: /HYTTEOST/, ex: /SALAT/, est: [15, 250, '250 g'] },
   ost:          { n: 'Ost', kcal: 350, p: 25, each: 20, unit: 'skiver', group: 'dairy', cats: ['ost-mv'], re: /./, ex: /FLØDEOST|SMØREOST|REVET|DOUBLE CREAM|BRIE|CAMEMBERT|SKIMMEL|FETA|MOZZARELLA|HYTTEOST|PARMESAN|SNACK|STANG|TERN|HALLOUMI|GED|SALATOST|BLÅ|PHILADELPHIA|MYSE|SMØRBAR|RIVE|FRISKOST|RICOTTA|MASCARPONE|SKYR|KVARK|DIP/, est: [40, 400, '400 g'] },
   revetost:     { n: 'Revet ost', kcal: 340, p: 25, group: 'dairy', cats: ['ost-mv', ...MEJERI], re: /REVET/, est: [15, 175, '175 g'] },
-  floede:       { n: 'Madlavningsfløde', kcal: 200, p: 3, unitLabel: 'ml', group: 'dairy', cats: MEJERI, re: /FLØDE/, ex: new RegExp(`${W}IS${E}|OST|BOLLE|KARAMEL|LIKØR|SKUM|CREME FRA|KAFFE|BOLLER`), est: [12, 250, '250 ml'] },
+  floede:       { n: 'Madlavningsfløde', kcal: 200, p: 3, unitLabel: 'ml', group: 'dairy', cats: MEJERI, re: /FLØDE/, ex: new RegExp(`${W}IS${E}|OST|BOLLE|KARAMEL|LIKØR|SKUM|CREME FRA|KAFFE|BOLLER|CUISINE|PLANTE|SOJA|HAVRE|VEGANSK`), est: [12, 250, '250 ml'] },
   cremefraiche: { n: 'Creme fraiche', kcal: 180, p: 3, group: 'dairy', cats: MEJERI, re: /CR[EÈ]ME ?FRA/, ex: /DRESSING|DIP/, est: [10, 200, '200 g'] },
   maelk:        { n: 'Mælk', kcal: 46, p: 3.5, unitLabel: 'ml', group: 'dairy', cats: MEJERI, re: new RegExp(`${W}MÆLK${E}|LETMÆLK|MINIMÆLK|SKUMMETMÆLK|SØDMÆLK(?!S)`), ex: /CHOKO|KAKAO|KOKOS|HAVRE|SOJA|MANDEL|KÆRNE|LAKTOSEFRI|PROTEIN/, est: [12, 1000, '1 l'] },
   smor:         { n: 'Smør', kcal: 717, p: 0.9, spoon: 15, group: 'dairy', cats: MEJERI, re: new RegExp(`${W}SMØR${E}|SMØRBAR|KÆRGÅRDEN|LURPAK|BAKKEDAL`), ex: /SMØREOST|KAGE|PLANTE/, est: [22, 250, '250 g'] },
@@ -95,7 +95,7 @@ export const INGREDIENTS = {
   salt:         { n: 'Salt', kcal: 0, p: 0, tsp: 6, group: 'spice', cats: KOL, re: new RegExp(`${W}(?:SALT|HAVSALT|BORDSALT|KØKKENSALT|FLAGESALT|GROFTSALT)${E}`), ex: /CHIPS|NØDD|PEANUT|LAKRIDS|KARAMEL|SMØR|PEBER|STÆNG|MANDL|CASHEW|POPCORN|SALTET|KRYDDER|URTE|HVIDLØG|SELLERI|BRINE|SALTSTEN/, est: [6, 1000, '1 kg'] },
   sortpeber:    { n: 'Sort peber', kcal: 250, p: 10, tsp: 2.5, group: 'spice', cats: KOL, re: /SORT PEBER|PEBER SORT|SORTPEBER|PEBERKORN|PEBERKVÆRN|PEBER KVÆRN|KVÆRN SORT/, ex: /SAUCE|BØF|MAKREL|SALAMI|CHIPS|MIX|CITRON|HVID|GRØN|LAKRIDS/, est: [15, 50, '50 g'] },
   paprika:      { n: 'Paprika', kcal: 280, p: 14, tsp: 2.5, group: 'spice', cats: KOL, re: /PAPRIKA/, ex: /CHIPS|GRYDE|PØLSE|SALAMI|SAUCE|PEBER|PASTA|SNACK|NØDD|MANDL/, est: [15, 50, '50 g'] },
-  karry:        { n: 'Karry', kcal: 325, p: 12, tsp: 2.5, group: 'spice', cats: KOL, re: /KARRY|CURRY/, ex: /PASTA|PASTE|SAUCE|KETCHUP|SILD|SALAT|DRESSING|NUDLER|KYLLING|KETCH|DIP|SUPPE|SNACK/, est: [15, 50, '50 g'] },
+  karry:        { n: 'Karry', kcal: 325, p: 12, tsp: 2.5, group: 'spice', cats: KOL, re: /KARRY|CURRY/, ex: /PASTA|PASTE|SAUCE|KETCHUP|SILD|SALAT|DRESSING|NUDLER|KYLLING|KETCH|DIP|SUPPE|SNACK|MIX|RED|GREEN|GRØN|RØD/, est: [15, 50, '50 g'] },
   tacokrydderi: { n: 'Tacokrydderi', kcal: 300, p: 8, tsp: 3, group: 'spice', cats: KOL, re: /TACO ?KRYDDERI|TACO ?SPICE|TACO ?MIX|TACO SEASONING|TACOKRYDDERI/, ex: /SAUCE|SHELL|SKAL|CHIPS|KIT/, est: [8, 28, '1 pose'] },
 };
 

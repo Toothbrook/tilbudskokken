@@ -128,7 +128,21 @@ h1 em{font-style:normal;color:var(--sale)}
 .check input:checked + span{text-decoration:line-through;opacity:.5}
 .empty{text-align:center;color:var(--muted);padding:20px 0;font-family:var(--body)}
 .actions{display:flex;gap:8px;justify-content:center;flex-wrap:wrap}
-.btn{border:1px solid var(--ink);background:transparent;padding:7px 14px;border-radius:10px;font-weight:600;cursor:pointer;font-size:14px}
+.btn{border:1px solid var(--ink);background:transparent;padding:7px 14px;border-radius:10px;font-weight:600;cursor:pointer;font-size:14px;text-decoration:none;display:inline-block}
+.btn.primary{background:var(--ink);color:var(--paper)}
+.line .r{display:flex;flex-direction:column;align-items:flex-end;gap:2px}
+.mini{border:0;background:none;padding:2px 0;font:inherit;font-size:11px;color:var(--muted);cursor:pointer;text-decoration:underline;text-underline-offset:2px;white-space:nowrap}
+.mini:hover{color:var(--ink)}
+.home{font-family:var(--body);font-size:13px;color:var(--muted);display:flex;flex-direction:column;gap:6px}
+.home ul{list-style:none;margin:0;padding:0;display:flex;flex-wrap:wrap;gap:6px}
+.home li{display:inline-flex;gap:6px;align-items:center;background:var(--soft);border-radius:999px;padding:3px 4px 3px 10px;font-size:12.5px;color:var(--ink)}
+.home li button{border:0;background:var(--card);border-radius:999px;padding:1px 8px;font-size:11.5px;cursor:pointer;color:var(--muted)}
+.athome{font-size:11px;font-weight:700;color:var(--muted);background:var(--soft);padding:0 6px;border-radius:3px;margin-left:6px}
+.rema{font-family:var(--body);background:var(--soft);border-radius:10px;padding:14px;display:flex;flex-direction:column;gap:10px;font-size:13.5px}
+.rema h3{font-size:16px}
+.rema ol{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:8px}
+.rema p{margin:0;color:var(--muted);font-size:12.5px}
+.rema .bm{display:inline-block;background:var(--tag);color:var(--tag-ink);font-weight:700;padding:6px 12px;border-radius:8px;text-decoration:none;cursor:grab}
 
 .offers{display:flex;flex-direction:column;gap:18px}
 .ocat h3{font-size:15px;font-family:var(--body);font-weight:700;margin-bottom:6px}
@@ -194,10 +208,11 @@ const MONTHS = ['januar','februar','marts','april','maj','juni','juli','august',
 const DAYS = ['Søn','Man','Tir','Ons','Tor','Fre','Lør'];
 const TYPES = { breakfast:'Breakfast', lunch:'Lunch', dinner:'Dinner' };
 const SLOT = { breakfast:'b', lunch:'l', dinner:'d' };
+const BASICS = ['salt', 'sortpeber', 'olie'];
 const DOT = { breakfast:'var(--b1)', lunch:'var(--b2)', dinner:'var(--sale)' };
 const CAT = {'kod-fisk-fjerkrae':'Meat, fish & poultry','kol':'Chilled','frugt-gront':'Fruit & veg','mejeri':'Dairy','ost-mv':'Cheese','brod-bavinchi':'Bread','frost':'Frozen','kolonial':'Groceries','*':'Other'};
 let DATA, ING, MEALS = {}, KEY, SHOP;
-let state = { tab:'week', open:{}, got:{}, people:2, types:{ breakfast:true, lunch:true, dinner:true } };
+let state = { tab:'week', open:{}, got:{}, have:{}, people:2, types:{ breakfast:true, lunch:true, dinner:true } };
 
 const kr = v => v.toFixed(2).replace('.', ',');
 const plural = n => `${n} ${n === 1 ? 'person' : 'people'}`;
@@ -206,12 +221,12 @@ const fmtDate = (a, b) => {
   return m1 === m2 ? `${d1}.–${d2}. ${MONTHS[m2-1]} ${y2}` : `${d1}. ${MONTHS[m1-1].slice(0,3)} – ${d2}. ${MONTHS[m2-1].slice(0,3)} ${y2}`;
 };
 function save(){
-  try{ localStorage.setItem('ugeplan:prefs', JSON.stringify({ people:state.people, types:state.types, tab:state.tab }));
+  try{ localStorage.setItem('ugeplan:prefs', JSON.stringify({ people:state.people, types:state.types, tab:state.tab, have:state.have }));
        localStorage.setItem(KEY, JSON.stringify(state.got)); }catch(e){}
 }
 function load(){
   try{ const p = JSON.parse(localStorage.getItem('ugeplan:prefs')||'null');
-    if (p){ if (p.people) state.people = p.people; if (p.types) state.types = { ...state.types, ...p.types }; if (p.tab) state.tab = p.tab; } }catch(e){}
+    if (p){ if (p.people) state.people = p.people; if (p.types) state.types = { ...state.types, ...p.types }; if (p.tab) state.tab = p.tab; if (p.have) state.have = p.have; } }catch(e){}
   try{ state.got = JSON.parse(localStorage.getItem(KEY)||'{}') || {}; }catch(e){ state.got = {}; }
 }
 
@@ -253,18 +268,21 @@ function shopping(){
   let portions = 0;
   planMeals().filter(m => state.types[m.type]).forEach(m => { const n = P.cook[m.id], f = n/m.base; portions += n;
     ingOf(m.id).forEach(([key,g]) => { need[key] = (need[key]||0) + g*f; }); });
-  const byKey = {}, lines = [];
-  let total = 0, offer = 0;
+  const byKey = {}, lines = [], home = [];
+  let total = 0, offer = 0, saved = 0;
   for (const [key, g] of Object.entries(need)){
     const c = cover(key, g), o = c.o;
-    byKey[key] = c; total += c.cost; if (o.onSale) offer += c.cost;
+    byKey[key] = c;
+    if (state.have[key]){ home.push({ key, name: ING[key].n }); saved += c.cost; continue; }
+    total += c.cost; if (o.onSale) offer += c.cost;
     const q = o.loose ? `≈ ${plain(amount(key,g)).replace(/ \(.*$/,'')} à ${o.label}`
       : `${c.n} × ${o.label} à ${o.est?'≈':''}${kr(o.price)} · need ${plain(amount(key,g))}`;
     lines.push({ key, name: o.est ? ING[key].n : o.product, q, short: o.loose ? `ca. ${plain(amount(key,g))}` : `${c.n} × ${o.label}`,
-      price: c.cost, onSale: !!o.onSale, est: !!o.est, id: o.id });
+      price: c.cost, onSale: !!o.onSale, est: !!o.est, id: o.id, n: o.loose ? 1 : c.n });
   }
   lines.sort((a, b) => b.price - a.price);
-  return { lines, total, offer, portions, byKey };
+  home.sort((a, b) => a.name.localeCompare(b.name, 'da'));
+  return { lines, home, total, offer, saved, portions, byKey };
 }
 
 // ---- views
@@ -287,7 +305,7 @@ function mealCard(m){
     : `${n} portions over the week: ${days} ${word} for ${plural(state.people)}.${m.base > 1 ? ' Cook it all at once and keep it in the fridge.' : ' Make it fresh each day.'}`;
   const ings = ingOf(m.id).map(([key,g]) => { const i = ING[key], o = (SHOP.byKey[key] || cover(key, g*f)).o;
     const prod = o.est ? '' : `<span class="prod">${o.product}${o.desc ? ', '+o.desc.toLowerCase() : ''}</span>`;
-    return `<li><span>${i.n}${tag(o)}${prod}</span><span class="amt num">${amount(key, g*f)}</span></li>`; }).join('');
+    return `<li><span>${i.n}${state.have[key] ? '<span class="athome">at home</span>' : tag(o)}${prod}</span><span class="amt num">${amount(key, g*f)}</span></li>`; }).join('');
   return `<article class="meal" id="m-${m.id}">
     <button class="meal-top" data-toggle="${m.id}" aria-expanded="${open}" aria-controls="b-${m.id}">
       <div><h3>${m.name}</h3><div class="dk">${m.dk}</div>
@@ -304,9 +322,10 @@ function mealCard(m){
 }
 
 function shopView(){
-  const { lines, total, offer, portions } = SHOP;
-  if (!lines.length) return `<div class="receipt"><p class="empty">Pick at least one of breakfast, lunch or dinner above.</p></div>`;
-  const row = l => `<div class="line"><label class="check" for="g-${l.key}"><input type="checkbox" id="g-${l.key}" data-got="${l.key}" ${state.got[l.key]?'checked':''}><span>${l.name}<span class="q">${l.q}</span></span></label><span class="num">${l.est?'≈':''}${kr(l.price)}</span></div>`;
+  const { lines, home, total, offer, portions } = SHOP;
+  if (!lines.length && !home.length) return `<div class="receipt"><p class="empty">Pick at least one of breakfast, lunch or dinner above.</p></div>`;
+  const row = l => `<div class="line"><label class="check" for="g-${l.key}"><input type="checkbox" id="g-${l.key}" data-got="${l.key}" ${state.got[l.key]?'checked':''}><span>${l.name}<span class="q">${l.q}</span></span></label><span class="r"><span class="num">${l.est?'≈':''}${kr(l.price)}</span><button class="mini" data-have="${l.key}" aria-label="I already have ${ING[l.key].n}">have it</button></span></div>`;
+  const basics = BASICS.filter(k => lines.some(l => l.key === k));
   const on = lines.filter(l => l.onSale), full = lines.filter(l => !l.onSale);
   const which = Object.keys(TYPES).filter(t => state.types[t]).map(t => TYPES[t].toLowerCase()).join(', ');
   return `<div class="receipt" id="receipt">
@@ -322,8 +341,68 @@ function shopView(){
     <div class="line total"><span>TOTAL</span><span class="num">${kr(total)}</span></div>
     <p class="c l">${portions} portions · ${kr(total/portions)} kr each</p>
     <div class="dash"></div>
+    <div class="home">
+      ${home.length ? `<p class="sect">ALREADY AT HOME · NOT COUNTED</p><ul>${home.map(h => `<li>${h.name}<button data-need="${h.key}" aria-label="I need to buy ${h.name}">buy it</button></li>`).join('')}</ul>`
+        : `<p class="sect">ALREADY AT HOME</p><span>Tap “have it” next to anything you already have, and it comes off the list. It's remembered next week too.</span>`}
+      ${basics.length ? `<div><button class="btn" id="basics">I have ${basics.map(k => ING[k].n.toLowerCase()).join(', ').replace(/, ([^,]*)$/, ' and $1')}</button></div>` : ''}
+    </div>
+    <div class="dash"></div>
     <div class="actions"><button class="btn" id="copy">Copy list</button><button class="btn" id="reset">Clear ticks</button></div>
     <p class="c" id="copyMsg" aria-live="polite"></p>
+    <div class="dash"></div>
+    ${lines.length ? remaBox(lines) : ''}
+  </div>`;
+}
+
+// ---- send the list to the REMA 1000 app
+// REMA has no public way in, so this runs as a bookmark on shop.rema1000.dk, where the visitor is
+// logged in: it uses their own session there to add the items to their primary shopping list,
+// the same list the app shows. Nothing passes through this site.
+function remaBookmark(){
+  (async () => {
+    const TITLE = 'Tilbudskøkken → REMA 1000';
+    if (location.hostname !== 'shop.rema1000.dk') { alert(TITLE + '\n\nOpen shop.rema1000.dk first, then tap this bookmark there.'); return; }
+    const m = location.hash.match(/tilbudskokken=([^&]+)/);
+    const raw = m ? decodeURIComponent(m[1]) : prompt(TITLE + '\n\nPaste the list you copied from Tilbudskøkken:');
+    if (!raw) return;
+    let items; try { items = JSON.parse(raw); } catch (e) { alert(TITLE + '\n\nThat list could not be read. Copy it again from Tilbudskøkken.'); return; }
+    const cookie = n => { const c = document.cookie.match(new RegExp('(?:^|; )' + n + '=([^;]+)')); return c ? decodeURIComponent(c[1]) : ''; };
+    let token = cookie('access_token');
+    if (!token) {
+      try { const r = await fetch('/api/auth/refresh', { method: 'POST', credentials: 'include', headers: { Accept: 'application/json' } });
+        if (r.ok) { const j = await r.json().catch(() => ({})); token = (j.tokens && j.tokens.access_token) || cookie('access_token'); } } catch (e) {}
+    }
+    if (!token) { alert(TITLE + '\n\nLog in to REMA 1000 on this page first, then tap the bookmark again.'); return; }
+    let uid; try { uid = JSON.parse(atob(token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/'))).sub; } catch (e) {}
+    const API = 'https://api.digital.rema1000.dk/api';
+    const H = { Accept: 'application/json', 'Content-Type': 'application/json', Authorization: 'Bearer ' + token, 'X-Device': 'web', 'X-Locale': 'da' };
+    let lists = [];
+    try { lists = ((await (await fetch(API + '/v3/users/' + uid + '/shopping-lists?per_page=100', { headers: H })).json()).data) || []; } catch (e) {}
+    if (!lists.length) { alert(TITLE + '\n\nNo shopping list found. Make one in the REMA 1000 app first, then try again.'); return; }
+    const list = lists.find(l => l.is_primary) || lists[0];
+    let ok = 0; const failed = [];
+    for (const [id, amount, name] of items) {
+      const add = body => fetch(API + '/v2/shoppinglists/' + list.id + '/items', { method: 'POST', headers: H, body: JSON.stringify({ amount, store_id: 1, ...body }) });
+      let r = id ? await add({ store_item_id: +id }) : null;
+      if (!r || !r.ok) r = await add({ name });
+      if (r.ok) ok++; else failed.push(name);
+    }
+    alert(TITLE + '\n\nAdded ' + ok + ' item' + (ok === 1 ? '' : 's') + ' to "' + (list.name || 'your list') + '". Open the REMA 1000 app to see them.'
+      + (failed.length ? '\n\nCould not add: ' + failed.join(', ') : ''));
+  })();
+}
+const BOOKMARK = 'javascript:' + encodeURIComponent('(' + remaBookmark.toString() + ')()');
+const remaItems = lines => JSON.stringify(lines.map(l => [/^\d+$/.test(l.id || '') ? l.id : 0, l.n, l.name]));
+function remaBox(lines){
+  return `<div class="rema">
+    <h3>Send the list to the REMA 1000 app</h3>
+    <ol>
+      <li>Once: add the bookmark. On a computer, drag <a class="bm" href="${BOOKMARK}" draggable="true" title="Drag me to your bookmarks bar">Til REMA</a> to your bookmarks bar. On a phone, bookmark any page, then edit the bookmark and replace its address with the code from <button class="mini" id="copyBm">Copy bookmark code</button>.</li>
+      <li><a class="btn primary" id="toRema" href="https://shop.rema1000.dk/#tilbudskokken=${encodeURIComponent(remaItems(lines))}" target="_blank" rel="noopener">Open REMA's webshop</a> and log in if you aren't already.</li>
+      <li>Tap the <b>Til REMA</b> bookmark. The ${lines.length} items land on your shopping list in the app.</li>
+    </ol>
+    <p>REMA has no official way to do this, so the bookmark uses REMA's own website while you're logged in there. Your login never touches this site. If REMA changes their site it may stop working.</p>
+    <p id="remaMsg" aria-live="polite"></p>
   </div>`;
 }
 
@@ -341,10 +420,10 @@ function renderHouse(){
   $('#pMinus').disabled = state.people <= Math.min(...sizes); $('#pPlus').disabled = state.people >= Math.max(...sizes);
   document.querySelectorAll('.tg').forEach(b => b.setAttribute('aria-pressed', !!state.types[b.dataset.type]));
   const s = SHOP, all = Object.values(state.types).every(Boolean);
-  $('#totals').innerHTML = s.portions ? `<span><b class="num">${kr(s.total)} kr</b> <small>for the week</small></span>
+  $('#totals').innerHTML = s.portions && !s.lines.length ? `<small>You have everything for this week already.</small>` : s.portions ? `<span><b class="num">${kr(s.total)} kr</b> <small>for the week</small></span>
     <span><b class="num">${kr(s.total/state.people/7)} kr</b> <small>per person per day</small></span>
     <span><b class="num">${s.portions}</b> <small>portions</small></span>
-    <span class="note">Everything on the list, salt and oil included. ${kr(s.offer)} kr of it is on offer.${all ? '' : ' Only the meals you picked are counted.'}${DATA.shelfPrices === 'estimated' ? ' Normal prices are estimates this week.' : ''}</span>`
+    <span class="note">${s.home.length ? `Leaving out ${s.home.length} thing${s.home.length > 1 ? 's' : ''} you have at home (${kr(s.saved)} kr).` : 'Everything on the list, salt and oil included.'} ${kr(s.offer)} kr of it is on offer.${all ? '' : ' Only the meals you picked are counted.'}${DATA.shelfPrices === 'estimated' ? ' Normal prices are estimates this week.' : ''}</span>`
     : `<small>Pick at least one of breakfast, lunch or dinner.</small>`;
 }
 
@@ -388,6 +467,16 @@ view.addEventListener('click', e => {
     return; }
   const t = e.target.closest('[data-toggle]'); if (t){ const id = t.dataset.toggle; state.open[id] = !state.open[id]; render(); return; }
   if (e.target.id === 'reset'){ state.got = {}; save(); render(); return; }
+  const hv = e.target.closest('[data-have]'); if (hv){ state.have[hv.dataset.have] = true; save(); render(); return; }
+  const nd = e.target.closest('[data-need]'); if (nd){ delete state.have[nd.dataset.need]; save(); render(); return; }
+  if (e.target.id === 'basics'){ BASICS.forEach(k => state.have[k] = true); save(); render(); return; }
+  if (e.target.closest('.bm')){ e.preventDefault(); $('#remaMsg').textContent = 'Drag this button to your bookmarks bar instead of clicking it.'; return; }
+  if (e.target.id === 'copyBm' || e.target.id === 'toRema'){
+    const isBm = e.target.id === 'copyBm', txt = isBm ? BOOKMARK : remaItems(SHOP.lines), msg = $('#remaMsg');
+    const done = () => msg.textContent = isBm ? 'Bookmark code copied. Paste it as the bookmark’s address.' : 'List copied too, in case the bookmark asks for it.';
+    try { navigator.clipboard.writeText(txt).then(done, () => { if (isBm) msg.textContent = 'Copy was blocked. Long-press the Til REMA button and copy its link instead.'; }); } catch (err) {}
+    return;
+  }
   if (e.target.id === 'copy'){
     const { lines, total } = SHOP;
     const txt = `REMA 1000 uge ${DATA.week} · ${plural(state.people)} · 7 dage\n` + lines.map(l => `☐ ${l.name} – ${l.short}${l.onSale ? ' (tilbud)' : ''}`).join('\n') + `\nTotal ≈ ${kr(total)} kr`;
