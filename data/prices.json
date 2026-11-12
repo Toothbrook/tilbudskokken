@@ -2,7 +2,7 @@
  "week": 46,
  "catalogueProducts": 2014,
  "additiveCheck": {
-  "checked": 130,
+  "checked": 210,
   "failed": 0,
   "probe": {
    "keys": [
@@ -29,7 +29,7 @@
    "query": "?include=declaration,nutrition_info",
    "declarationLike": []
   },
-  "flagged": 28
+  "flagged": 92
  },
  "flaggedProducts": {
   "28824": [
@@ -65,11 +65,94 @@
    "hærdet",
    "modificeret stivelse"
   ],
+  "60009": [
+   "E471",
+   "E472"
+  ],
+  "60089": [
+   "E471",
+   "E472"
+  ],
+  "60106": [
+   "E471"
+  ],
+  "60112": [
+   "E471",
+   "E472"
+  ],
+  "60113": [
+   "E471",
+   "E472"
+  ],
+  "60114": [
+   "E471",
+   "E472"
+  ],
+  "60115": [
+   "E471",
+   "E472"
+  ],
+  "60120": [
+   "E471"
+  ],
+  "60121": [
+   "E471",
+   "E472"
+  ],
+  "60122": [
+   "E471",
+   "E472"
+  ],
+  "60153": [
+   "E472",
+   "E471"
+  ],
+  "61541": [
+   "E472",
+   "E471"
+  ],
+  "61542": [
+   "E472",
+   "E471"
+  ],
+  "62632": [
+   "E471",
+   "E472"
+  ],
+  "63139": [
+   "E471",
+   "E472"
+  ],
+  "63143": [
+   "E471",
+   "E472"
+  ],
+  "63861": [
+   "E471",
+   "E472"
+  ],
+  "64746": [
+   "E472",
+   "E471"
+  ],
   "72609": [
    "E339"
   ],
   "100028": [
    "E407"
+  ],
+  "102802": [
+   "E422",
+   "E471",
+   "E282"
+  ],
+  "102806": [
+   "modificeret stivelse"
+  ],
+  "102831": [
+   "E422",
+   "E471",
+   "E282"
   ],
   "107912": [
    "modificeret stivelse"
@@ -79,6 +162,11 @@
   ],
   "107914": [
    "modificeret majsstivelse"
+  ],
+  "110496": [
+   "E150",
+   "E202",
+   "modificeret stivelse"
   ],
   "110764": [
    "E407",
@@ -90,10 +178,56 @@
   "120053": [
    "E202"
   ],
+  "360809": [
+   "E475",
+   "E471",
+   "E472",
+   "E211"
+  ],
+  "360853": [
+   "E1414",
+   "E471",
+   "E450",
+   "E481",
+   "E211",
+   "modificeret stivelse"
+  ],
+  "360869": [
+   "E1414",
+   "E475",
+   "E471",
+   "E450",
+   "E481",
+   "E211",
+   "E220",
+   "E202",
+   "modificeret stivelse"
+  ],
+  "400529": [
+   "E267"
+  ],
+  "400726": [
+   "modificeret stivelse"
+  ],
+  "401010": [
+   "modificeret stivelse"
+  ],
+  "410202": [
+   "E451",
+   "E250"
+  ],
   "410204": [
    "E450",
    "E451",
    "E452",
+   "E250"
+  ],
+  "410215": [
+   "E450",
+   "E250"
+  ],
+  "410216": [
+   "E450",
    "E250"
   ],
   "410245": [
@@ -101,9 +235,87 @@
    "E120",
    "modificeret majsstivelse"
   ],
+  "410417": [
+   "E250",
+   "E252"
+  ],
+  "410813": [
+   "E451",
+   "E250"
+  ],
+  "410823": [
+   "nitrit"
+  ],
+  "410829": [
+   "E250"
+  ],
+  "410858": [
+   "E451",
+   "E250"
+  ],
+  "410873": [
+   "E250"
+  ],
+  "410874": [
+   "E250"
+  ],
+  "410875": [
+   "E250"
+  ],
+  "410961": [
+   "E451",
+   "E250"
+  ],
+  "410962": [
+   "E451",
+   "E250",
+   "E120"
+  ],
+  "410963": [
+   "E451",
+   "E250",
+   "modificeret stivelse"
+  ],
+  "410964": [
+   "E451",
+   "E250"
+  ],
+  "410965": [
+   "E451",
+   "E316",
+   "E621",
+   "E250"
+  ],
+  "410980": [
+   "E451",
+   "E250"
+  ],
+  "410981": [
+   "E451",
+   "E250"
+  ],
+  "411263": [
+   "nitrit",
+   "carrageenan"
+  ],
+  "411349": [
+   "E250"
+  ],
   "411670": [
    "E261",
    "E451",
+   "E250"
+  ],
+  "411820": [
+   "E451",
+   "E450",
+   "E407",
+   "E250"
+  ],
+  "411822": [
+   "E250"
+  ],
+  "411823": [
    "E250"
   ],
   "411997": [
@@ -111,12 +323,29 @@
    "E250",
    "E261"
   ],
+  "412010": [
+   "E451",
+   "E250"
+  ],
+  "412371": [
+   "E250",
+   "E252"
+  ],
   "412516": [
    "E202"
   ],
   "413602": [
    "E451",
    "nitrit"
+  ],
+  "413614": [
+   "E450",
+   "E452",
+   "E120",
+   "E250"
+  ],
+  "413632": [
+   "glucose-fructose"
   ],
   "413716": [
    "E250"
@@ -130,6 +359,35 @@
   ],
   "413731": [
    "E451",
+   "E250"
+  ],
+  "414548": [
+   "E451",
+   "E250"
+  ],
+  "414549": [
+   "E451",
+   "E250",
+   "E120"
+  ],
+  "414580": [
+   "E450",
+   "E250"
+  ],
+  "414791": [
+   "E250",
+   "modificeret stivelse"
+  ],
+  "414792": [
+   "E250",
+   "E202",
+   "E211",
+   "modificeret stivelse"
+  ],
+  "416609": [
+   "E200"
+  ],
+  "417079": [
    "E250"
   ],
   "450583": [
@@ -146,6 +404,14 @@
   ],
   "452885": [
    "E339",
+   "sorbat"
+  ],
+  "455540": [
+   "E339",
+   "E202",
+   "modificeret kartoffelstivelse"
+  ],
+  "455583": [
    "sorbat"
   ]
  },
@@ -372,6 +638,57 @@
   "tun": [
    "Tun i vand 140 g 9.95 kr",
    "Tun i vand 168 g 20.27 kr"
+  ],
+  "flaesk": [
+   "TILBUD Stegeflæsk i skiver 400 g 20 kr"
+  ],
+  "medister": [
+   "Medister 500 g 24.95 kr ⚠ modificeret stivelse"
+  ],
+  "bacon": [
+   "Bacon skiver 100 g 19.95 kr",
+   "Hakkebøffer 250 g 24.95 kr"
+  ],
+  "polser": [
+   "Grillpølser 300 g 25 kr",
+   "Hotdog pølser 375 g 29.95 kr"
+  ],
+  "burgerboller": [
+   "Burgerboller 330 g 15 kr"
+  ],
+  "tacokrydderi": [
+   "Taco spice mix 40 g 5.25 kr ⚠ modificeret stivelse"
+  ],
+  "wraps": [
+   "Øko tortilla, medium 320 g 15.95 kr"
+  ],
+  "revetost": [
+   "Mozzarella 200 g 14.36 kr",
+   "Mozzarella 400 g 23.96 kr"
+  ],
+  "brunsauce": [
+   "Brun sauce 410 g 16.95 kr ⚠ E150,E202,modificeret stivelse"
+  ],
+  "boller": [
+   "TILBUD Boller økologisk 375 g 12 kr",
+   "Græskarkerneboller 438 g 14.95 kr"
+  ],
+  "toast": [
+   "TILBUD Grov cafesandwich 400 g 10 kr",
+   "Fuldkornsklemmer 420 g 24.75 kr",
+   "Limpan 900 g 26.95 kr"
+  ],
+  "sukker": [
+   "Sukker 1 kg 7.5 kr",
+   "Sukker 2 kg 21.95 kr"
+  ],
+  "leverpostej": [
+   "Fransk leverpostej 200 g 7.95 kr",
+   "Stor leverpostej 400 g 15.95 kr"
+  ],
+  "skinke": [
+   "Sennpsmarin.skinke 90 g 16.8 kr",
+   "Italiensk skinke 100 g 18.13 kr"
   ]
  }
 }
