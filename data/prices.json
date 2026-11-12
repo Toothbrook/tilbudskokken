@@ -1,16 +1,288 @@
 {
  "week": 46,
  "catalogueProducts": 2014,
+ "additiveCheck": {
+  "checked": 130,
+  "failed": 0,
+  "probe": {
+   "keys": [
+    "id",
+    "name",
+    "underline",
+    "age_limit",
+    "hazard_precaution_statements",
+    "labels",
+    "description",
+    "info",
+    "nutrition_info",
+    "declaration",
+    "images",
+    "prices",
+    "temperature_zone",
+    "is_self_scale_item",
+    "is_weight_item",
+    "is_available_in_all_stores",
+    "is_batch_item",
+    "origin_country",
+    "wine_labels"
+   ],
+   "query": "?include=declaration,nutrition_info",
+   "declarationLike": []
+  },
+  "flagged": 30
+ },
+ "flaggedProducts": {
+  "28824": [
+   "modificeret kartoffelstivelse"
+  ],
+  "28825": [
+   "modificeret kartoffelstivelse"
+  ],
+  "28827": [
+   "modificeret kartoffelstivelse"
+  ],
+  "32078": [
+   "E211",
+   "E202"
+  ],
+  "42975": [
+   "E471",
+   "E475",
+   "E339",
+   "modificeret stivelse",
+   "hærdet"
+  ],
+  "42980": [
+   "E471",
+   "E339",
+   "hærdet",
+   "modificeret stivelse"
+  ],
+  "42982": [
+   "E471",
+   "E450",
+   "E339",
+   "hærdet",
+   "modificeret stivelse"
+  ],
+  "72609": [
+   "E339"
+  ],
+  "93605": [
+   "E535"
+  ],
+  "93612": [
+   "E535"
+  ],
+  "100028": [
+   "E407"
+  ],
+  "107912": [
+   "E509",
+   "modificeret stivelse"
+  ],
+  "107913": [
+   "E509",
+   "E385"
+  ],
+  "107914": [
+   "modificeret majsstivelse"
+  ],
+  "110764": [
+   "E407",
+   "E150",
+   "E202",
+   "glukose-fruktosesirup",
+   "modificeret stivelse"
+  ],
+  "120053": [
+   "E202"
+  ],
+  "410204": [
+   "E450",
+   "E451",
+   "E452",
+   "E250"
+  ],
+  "410245": [
+   "E407",
+   "E120",
+   "modificeret majsstivelse"
+  ],
+  "411670": [
+   "E261",
+   "E451",
+   "E250"
+  ],
+  "411997": [
+   "E451",
+   "E250",
+   "E261"
+  ],
+  "412516": [
+   "E202"
+  ],
+  "413602": [
+   "E451",
+   "nitrit"
+  ],
+  "413716": [
+   "E250"
+  ],
+  "413723": [
+   "E451"
+  ],
+  "413730": [
+   "E451",
+   "E250"
+  ],
+  "413731": [
+   "E451",
+   "E250"
+  ],
+  "450583": [
+   "modificeret stivelse",
+   "sorbat"
+  ],
+  "452878": [
+   "E339",
+   "sorbat"
+  ],
+  "452880": [
+   "E339",
+   "sorbat"
+  ],
+  "452885": [
+   "E339",
+   "sorbat"
+  ]
+ },
  "ingredients": {
   "hkokse": [
    "Hk. oksekød, 35% grønt 400 g 29.95 kr",
    "Hk. oksekød 8-12% 800 g 76.95 kr"
   ],
+  "hkblanding": [
+   "EST Hakket gris & okse 500 g 40 kr"
+  ],
   "hkgris": [
    "Hk. grisekød 8-12% 500 g 24.95 kr"
   ],
-  "hkblanding": [
-   "EST Hakket gris & okse 500 g 40 kr"
+  "log": [
+   "Rødløg 500 g 8 kr",
+   "Løg 1 kg 12 kr"
+  ],
+  "peber": [
+   "Rød peber 1 stk 9 kr"
+  ],
+  "gulerod": [
+   "TILBUD Gulerødder 1 kg 5 kr"
+  ],
+  "hakkedetomater": [
+   "Hakkede tomater 400 g 6.37 kr",
+   "Tomat passata 500 g 8.69 kr",
+   "Passata di pomodoro 680 g 15.95 kr"
+  ],
+  "bonner": [
+   "Sorte bønner 252 g 7.78 kr",
+   "Kikærter 400 g 14.95 kr"
+  ],
+  "ris": [
+   "Kogepose ris 500 g 7.95 kr",
+   "Parboiled ris 1 kg 11.95 kr"
+  ],
+  "olie": [
+   "Solsikkeolie 1 l 19.09 kr"
+  ],
+  "hvidlog": [
+   "Øko. hvidløg 1 stk 4 kr",
+   "Hvidløg i net 90 g 6 kr"
+  ],
+  "paprika": [
+   "Sød paprika 45 g 9.67 kr",
+   "Sød paprika 60 g 12.75 kr"
+  ],
+  "spidskommen": [
+   "Spidskommen 33 g 21.39 kr"
+  ],
+  "salt": [
+   "Salt m/jod 800 g 4.4 kr ⚠ E535",
+   "Salt m/ jod 1 kg 4.75 kr ⚠ E535"
+  ],
+  "skyr": [
+   "Skyr airy strawberry 128 g 8.5 kr",
+   "Skyr naturel 450 g 18.1 kr",
+   "Skyr naturel 1 kg 19.95 kr"
+  ],
+  "squash": [
+   "TILBUD Squash 1 stk 6 kr"
+  ],
+  "pasta": [
+   "Spaghetti fuldkorn 500 g 9.08 kr"
+  ],
+  "sortpeber": [
+   "Stødt sort peber 100 g 7.5 kr"
+  ],
+  "kyllingfars": [
+   "Hk. kyllingekød 7-10% 400 g 29.95 kr"
+  ],
+  "salat": [
+   "TILBUD Øko. rucola 75 g 8 kr",
+   "Iceberg salat 1 stk 13 kr"
+  ],
+  "kaal": [
+   "Hvidkål 7 kr/kg 7 kr"
+  ],
+  "tomat": [
+   "Cherryblommetomat 250 g 13 kr",
+   "Øko. tomater 400 g 17 kr"
+  ],
+  "agurk": [
+   "Agurk 1 stk 10 kr"
+  ],
+  "aeg": [
+   "Frilandsæg 6 stk 26.15 kr",
+   "Skrabeæg 10 stk 31.95 kr",
+   "Skrabeæg 15 stk 45.25 kr"
+  ],
+  "maelk": [
+   "Letmælk 250 ml 3.95 kr",
+   "Sødmælk 3,5% 500 ml 7.95 kr",
+   "Skummetmælk 1 l 9.95 kr"
+  ],
+  "havregryn": [
+   "Havregryn grovvalsede 1 kg 7.95 kr"
+  ],
+  "kartofler": [
+   "Øko. kartofler 1 kg 10 kr",
+   "Skrælle kartofler 2 kg 18 kr"
+  ],
+  "aeble": [
+   "Royal gala æbler 1 stk 2.5 kr",
+   "Æbler i pose 1,5 kg 18 kr"
+  ],
+  "broccoli": [
+   "Broccoli 1 stk 15 kr"
+  ],
+  "frostgront": [
+   "Hakket spinat 750 g 9.95 kr"
+  ],
+  "smor": [
+   "Smør 200 g 7.96 kr",
+   "Becel smørbar 250 g 18.95 kr"
+  ],
+  "mel": [
+   "Hvedemel 2 kg 9.95 kr"
+  ],
+  "flaeskesteg": [
+   "Flæskesteg 1,5-1,8 kg 1,5 kg 125 kr"
+  ],
+  "rodkaal": [
+   "Rødkål 7 kr/kg 7 kr"
+  ],
+  "svinestrimler": [
+   "TILBUD Koteletter 400 g 25 kr",
+   "Nakkefilet 1100-1400g 1,1 kg 89 kr"
   ],
   "kyllingebryst": [
    "Kyllingebrystfilet 280 g 27.95 kr",
@@ -21,203 +293,40 @@
    "TILBUD Kyllingeoverlår 800 g 29 kr",
    "Lår m/havsalt & peber 825 g 32.95 kr"
   ],
-  "kyllingfars": [
-   "Hk. kyllingekød 7-10% 400 g 29.95 kr"
+  "kokosmaelk": [
+   "Kokosmælk light 165 ml 3.69 kr",
+   "Kokosmælk 400 ml 8.95 kr"
+  ],
+  "blomkaal": [
+   "Blomkål 1 stk 17 kr"
+  ],
+  "karry": [
+   "Karry 35 g 11.17 kr"
   ],
   "moerbrad": [
    "TILBUD Grisemørbrad 600 g 30 kr",
    "Grisemørbrad 47,94 kr/kg 47.94 kr",
    "Kalvemørbrad 1,4 kg 399 kr"
   ],
-  "svinestrimler": [
-   "TILBUD Koteletter 400 g 25 kr",
-   "Nakkefilet 1100-1400g 1,1 kg 89 kr"
-  ],
-  "flaeskesteg": [
-   "Flæskesteg 1,5-1,8 kg 1,5 kg 125 kr"
-  ],
-  "medister": [
-   "Medister 500 g 24.95 kr"
-  ],
-  "flaesk": [
-   "TILBUD Stegeflæsk i skiver 400 g 20 kr"
-  ],
-  "bacon": [
-   "Bacon i skiver 150 g 9.97 kr",
-   "Bacon i tern 200 g 12.95 kr",
-   "TILBUD Bacon cubes 240 g 15 kr",
-   "Baconmix 300 g 19.11 kr",
-   "Bacon i skiver 3 pk. 375 g 34.95 kr",
-   "Røget bacon 67,12 kr/kg 67.12 kr"
-  ],
-  "polser": [
-   "Jægerpølse 100 g 14.95 kr",
-   "Kyllinge pølser 300 g 17.95 kr",
-   "Grillpølser 550 g 24.95 kr"
-  ],
-  "laks": [
-   "Indbagt laks 250 g 17.95 kr",
-   "Lakse- & torskefars 400 g 34.95 kr",
-   "Indbagt vildlaks 500 g 36.99 kr"
-  ],
-  "hvidfisk": [
-   "Lakse- & torskefars 400 g 34.95 kr",
-   "Store vesterhavs rødspætter 500 g 59.95 kr"
-  ],
-  "rejer": [
-   "Paneret fisk m/rejer 250 g 21.95 kr",
-   "Rejer i lage 315 g 59.95 kr"
-  ],
-  "rogetfisk": [
-   "Røget rullepølse 120 g 11.95 kr",
-   "Røget medister 125 g 14.95 kr",
-   "Røget medister 345 g 29.61 kr",
-   "Røget bacon 67,12 kr/kg 67.12 kr"
-  ],
-  "tun": [
-   "Tun i vand 140 g 9.95 kr",
-   "Tun i vand 168 g 20.27 kr"
-  ],
-  "aeg": [
-   "Frilandsæg 6 stk 26.15 kr",
-   "Skrabeæg 10 stk 31.95 kr",
-   "Skrabeæg 15 stk 45.25 kr"
-  ],
-  "leverpostej": [
-   "Fransk leverpostej 200 g 7.95 kr",
-   "Leverpostej 500 g 13.95 kr"
-  ],
-  "skyr": [
-   "Skyr airy strawberry 128 g 8.5 kr",
-   "Skyr naturel 450 g 18.1 kr",
-   "Skyr naturel 1 kg 19.95 kr"
-  ],
-  "yoghurt": [
-   "Naturel yoghurt 1 kg 9.95 kr"
-  ],
-  "hytteost": [
-   "Hytteost 1,5% 200 g 8.95 kr",
-   "Hytteost 1,5% 450 g 14.92 kr"
-  ],
-  "ost": [
-   "Country cow toast 200 g 11.95 kr",
-   "TILBUD Cheddar mature 250 g 20 kr",
-   "Gouda skiveost 48+ 300 g 22.46 kr",
-   "Havarti 60+ 400 g 29.95 kr",
-   "TILBUD Riberhus ml 45+ 468 g 39 kr",
-   "Kronekilde 30+ mild mk 651 g 42.95 kr"
-  ],
-  "revetost": [
-   "Revet texmex 150 g 13.46 kr",
-   "Mozzarella 200 g 14.36 kr",
-   "Mozzarella 400 g 23.96 kr",
-   "Revet pizzatopping 500 g 24.95 kr"
-  ],
-  "floede": [
-   "Piskefløde 36% 250 ml 12.95 kr",
-   "Piskefløde 36% fedt 500 ml 14.95 kr"
+  "champignon": [
+   "Champignon 250 g 15 kr",
+   "Champignon 400 g 20 kr"
   ],
   "cremefraiche": [
    "Cremefraiche 18% 250 g 12.95 kr",
    "Creme fraiche 18% 500 g 18.95 kr"
   ],
-  "maelk": [
-   "Letmælk 250 ml 3.95 kr",
-   "Sødmælk 3,5% 500 ml 7.95 kr",
-   "Skummetmælk 1 l 9.95 kr"
+  "floede": [
+   "Piskefløde 36% 250 ml 12.95 kr",
+   "Piskefløde 36% fedt 500 ml 14.95 kr"
   ],
-  "smor": [
-   "Smør 200 g 7.96 kr",
-   "Becel smørbar 250 g 18.95 kr"
-  ],
-  "rugbrod": [
-   "Schwarzbrød 560 g 5.54 kr",
-   "Solsikkerugbrød 600 g 9.75 kr",
-   "TILBUD Herkules 1 kg 10 kr",
-   "Groft rugbrød 1,12 kg 18 kr"
-  ],
-  "boller": [
-   "Tebolle 46 g 4 kr",
-   "Krydderboller 410 g 6.64 kr",
-   "TILBUD Rugbrødsboller 500 g 10 kr",
-   "Multikerneboller 550 g 25.95 kr"
-  ],
-  "toast": [
-   "Hvedetoast 375 g 6 kr",
-   "Hvedesandwich 500 g 8.8 kr",
-   "Sødmælksbrød 600 g 20.95 kr",
-   "Multik. sandwich 800 g 25.95 kr",
-   "Limpan 900 g 26.95 kr"
-  ],
-  "wraps": [
-   "TILBUD Tortillas hvede 370 g 9 kr"
-  ],
-  "pasta": [
-   "Pasta skruer 500 g 5.95 kr",
-   "Spaghetti 1 kg 8.95 kr"
-  ],
-  "ris": [
-   "Ris cuisine 200 ml 6.95 kr",
-   "Kogepose ris 500 g 7.95 kr",
-   "Parboiled ris 1 kg 11.95 kr"
-  ],
-  "havregryn": [
-   "Havregryn grovvalsede 1 kg 7.95 kr"
-  ],
-  "muesli": [
-   "Kirsebær müsli 350 g 24.95 kr",
-   "Granola med bær 450 g 29.95 kr",
-   "Granola chokolade 500 g 30.56 kr",
-   "Müsli 600 g 30.66 kr",
-   "Crunchy granola 750 g 39.95 kr"
-  ],
-  "mel": [
-   "Hvedemel 2 kg 9.95 kr"
-  ],
-  "kartofler": [
-   "Øko. kartofler 1 kg 10 kr",
-   "Skrælle kartofler 2 kg 18 kr"
-  ],
-  "kaal": [
-   "Hvidkål 7 kr/kg 7 kr"
-  ],
-  "gulerod": [
-   "TILBUD Gulerødder 1 kg 5 kr"
-  ],
-  "log": [
-   "Rødløg 500 g 8 kr",
-   "Løg 1 kg 12 kr"
-  ],
-  "hvidlog": [
-   "Øko. hvidløg 1 stk 4 kr",
-   "Hvidløg i net 90 g 6 kr"
-  ],
-  "peber": [
-   "Rød peber 1 stk 9 kr"
-  ],
-  "broccoli": [
-   "Broccoli 1 stk 15 kr"
-  ],
-  "blomkaal": [
-   "Blomkål 1 stk 17 kr"
-  ],
-  "tomat": [
-   "Cherryblommetomat 250 g 13 kr",
-   "Øko. tomater 400 g 17 kr"
-  ],
-  "agurk": [
-   "Agurk 1 stk 10 kr"
-  ],
-  "salat": [
-   "TILBUD Øko. rucola 75 g 8 kr",
-   "Iceberg salat 1 stk 13 kr"
-  ],
-  "squash": [
-   "TILBUD Squash 1 stk 6 kr"
-  ],
-  "champignon": [
-   "Champignon 250 g 15 kr",
-   "Champignon 400 g 20 kr"
+  "ost": [
+   "Garli 125 g 13.95 kr",
+   "Grøn pikant 200 g 14.95 kr",
+   "TILBUD Cheddar mature 250 g 20 kr",
+   "Gouda skiveost 48+ 300 g 22.46 kr",
+   "Havarti 60+ 400 g 29.95 kr",
+   "TILBUD Riberhus ml 45+ 468 g 39 kr"
   ],
   "porre": [
    "Porrer 1 stk 6 kr"
@@ -225,75 +334,52 @@
   "persille": [
    "Persille 1 stk 10 kr"
   ],
-  "aeble": [
-   "Royal gala æbler 1 stk 2.5 kr",
-   "Æbler i pose 1,5 kg 18 kr"
+  "laks": [
+   "Lakse- & torskefars 400 g 34.95 kr"
+  ],
+  "hvidfisk": [
+   "Lakse- & torskefars 400 g 34.95 kr",
+   "Store vesterhavs rødspætter 500 g 59.95 kr"
+  ],
+  "soja": [
+   "Sojasauce 250 ml 34.03 kr"
+  ],
+  "rejer": [
+   "TILBUD Ekstra store rejer 200 g 25 kr"
   ],
   "banan": [
    "Banan 1 stk 2.5 kr"
+  ],
+  "baer": [
+   "Jordbær 400 g 12 kr",
+   "Flødeis jordbær 750 ml 40.18 kr"
   ],
   "citrus": [
    "Clementin spanien kl.1 1 stk 3 kr",
    "Øko. clementiner 500 g 15 kr",
    "Clementin land se vare 1 kg 18 kr"
   ],
-  "baer": [
-   "Jordbær 400 g 12 kr",
-   "Flødeis jordbær 750 ml 40.18 kr"
+  "yoghurt": [
+   "Naturel yoghurt 1 kg 9.95 kr"
   ],
-  "frostgront": [
-   "Hakket spinat 750 g 9.95 kr"
+  "rugbrod": [
+   "Schwarzbrød 560 g 5.54 kr",
+   "Solsikkerugbrød 600 g 9.75 kr",
+   "TILBUD Herkules 1 kg 10 kr",
+   "Groft rugbrød 1,12 kg 18 kr"
   ],
-  "hakkedetomater": [
-   "Hakkede tomater 400 g 6.37 kr",
-   "Tomat passata 500 g 8.69 kr",
-   "Passata di pomodoro 680 g 15.95 kr"
+  "hytteost": [
+   "Hytteost 4,0% 200 g 10.95 kr",
+   "Hytteost 4% 450 g 16.95 kr"
   ],
-  "kokosmaelk": [
-   "Kokosmælk light 165 ml 3.69 kr",
-   "Kokosmælk 400 ml 8.95 kr"
+  "rogetfisk": [
+   "Ørredfilet 80 g 12.77 kr",
+   "Varmrøget makrel 100 g 24.75 kr",
+   "Varmrøget laks 125 g 29.95 kr"
   ],
-  "bonner": [
-   "Hvide bønner 420 g 7.15 kr"
-  ],
-  "fond": [
-   "Oksefond 180 ml 20.84 kr"
-  ],
-  "bearnaise": [
-   "Mayo bearnaise 210 g 14.12 kr",
-   "Bearnaisesauce 410 g 16.95 kr"
-  ],
-  "brunsauce": [
-   "Brun sauce 410 g 16.95 kr"
-  ],
-  "rodkaal": [
-   "Herregårdsrødkål 535 g 9.6 kr",
-   "Rødkål 690 g 14.12 kr",
-   "Klassisk dk rødkål 950 g 25.26 kr"
-  ],
-  "soja": [
-   "Sojasauce 250 ml 10.5 kr",
-   "Soja dressing 415 g 12.95 kr"
-  ],
-  "olie": [
-   "Solsikkeolie 1 l 19.09 kr"
-  ],
-  "salt": [
-   "Salt m/jod 800 g 4.4 kr",
-   "Salt m/ jod 1 kg 4.75 kr"
-  ],
-  "sortpeber": [
-   "Stødt sort peber 100 g 7.5 kr"
-  ],
-  "paprika": [
-   "Sød paprika 45 g 9.67 kr",
-   "Majskiks 120 g 12 kr"
-  ],
-  "karry": [
-   "Karry 35 g 11.17 kr"
-  ],
-  "tacokrydderi": [
-   "Taco spice mix 40 g 5.25 kr"
+  "tun": [
+   "Tun i vand 140 g 9.95 kr",
+   "Tun i vand 168 g 20.27 kr"
   ]
  }
 }
