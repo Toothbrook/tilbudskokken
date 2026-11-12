@@ -356,9 +356,9 @@ function weekView(){
 // Raw recipe amounts are turned into what's on the plate: rice and pasta swell, meat and
 // vegetables shrink, and the water a method adds ends up in the pot.
 const plain = h => h.replace(/<[^>]+>/g, '');
-const COOKED = { ris: 2.6, pasta: 2.3 };
-const SIDES = ['ris', 'pasta', 'kartofler', 'rugbrod', 'burgerboller', 'wraps', 'boller', 'toast'];
-const SIDE_NAME = { ris: 'rice', pasta: 'pasta', kartofler: 'potatoes' };
+const COOKED = { ris: 2.6, pasta: 2.3, bulgur: 2.5, nudler: 2.3, roedelinser: 2.5, lasagne: 1.8 };
+const SIDES = ['ris', 'pasta', 'bulgur', 'kartofler', 'rugbrod', 'burgerboller', 'wraps', 'boller', 'toast'];
+const SIDE_NAME = { ris: 'rice', pasta: 'pasta', bulgur: 'bulgur', kartofler: 'potatoes', salat: 'salad' };
 const EACH_NAME = { rugbrod: ['slice of rye', 'slices of rye'], burgerboller: ['bun', 'buns'], wraps: ['tortilla', 'tortillas'],
   boller: ['roll', 'rolls'], toast: ['slice of toast', 'slices of toast'], aeg: ['egg', 'eggs'] };
 const cookedF = (m, k) => COOKED[k] ?? (k === 'kartofler' ? (m.roast ? 0.75 : 1)

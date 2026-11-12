@@ -7,7 +7,7 @@
 // recipes it may use. Portions are sized so a day averages the calorie target.
 
 const KCAL = { dinner: [300, 1100], lunch: [200, 850], breakfast: [200, 700] };   // per portion at recipe size
-const CARBS = ['kartofler', 'ris', 'pasta', 'wraps', 'toast', 'boller', 'burgerboller', 'rugbrod'];
+const CARBS = ['kartofler', 'ris', 'pasta', 'bulgur', 'nudler', 'sodkartoffel', 'lasagne', 'pizzadej', 'taertedej', 'wraps', 'toast', 'boller', 'burgerboller', 'rugbrod'];
 const TYPES = ['dinner', 'lunch', 'breakfast'];
 const MAX_PAIRS = 2;            // dinners cooked once and eaten two nights running
 const ROTATE = { healthy: 3, treat: 2 };   // distinct breakfasts/lunches per kind of day
