@@ -4,11 +4,11 @@
  "validFrom": "2026-11-08",
  "validTo": "2026-11-14",
  "source": "shop.rema1000.dk",
- "generatedAt": "2026-11-12T14:32:05.609Z",
+ "generatedAt": "2026-11-12T14:41:05.325Z",
  "plan": {
-  "total": 276.11,
+  "total": 310.95,
   "portions": 26,
-  "perPortion": 10.62,
+  "perPortion": 11.96,
   "onSale": 17
  },
  "shelfPrices": "live",
@@ -119,14 +119,24 @@
    "group": "protein",
    "options": [
     {
-     "price": 25.16,
-     "pack": 1000,
-     "label": "1 l",
-     "product": "Koldskål",
-     "desc": "Arla, med tykmælk & æg",
+     "price": 31.95,
+     "pack": 480,
+     "label": "8 stk",
+     "product": "Økologiske æg",
+     "desc": "Rema 1000 str. m/l",
      "onSale": false,
-     "id": "26094",
-     "url": "https://shop.rema1000.dk/varer/26094"
+     "id": "220017",
+     "url": "https://shop.rema1000.dk/varer/220017"
+    },
+    {
+     "price": 45.25,
+     "pack": 900,
+     "label": "15 stk",
+     "product": "Skrabeæg",
+     "desc": "Str. s/m",
+     "onSale": false,
+     "id": "220032",
+     "url": "https://shop.rema1000.dk/varer/220032"
     }
    ]
   },
@@ -139,24 +149,24 @@
    "group": "dairy",
    "options": [
     {
-     "price": 9.95,
+     "price": 11.95,
      "pack": 200,
      "label": "200 g",
-     "product": "Naturel friskost",
-     "desc": "Arla, lactofree",
+     "product": "Country cow toast",
+     "desc": "",
      "onSale": false,
-     "id": "455401",
-     "url": "https://shop.rema1000.dk/varer/455401"
+     "id": "451078",
+     "url": "https://shop.rema1000.dk/varer/451078"
     },
     {
-     "price": 12.95,
+     "price": 20,
      "pack": 250,
      "label": "250 g",
-     "product": "Ricotta",
-     "desc": "Ambrosi",
-     "onSale": false,
-     "id": "451619",
-     "url": "https://shop.rema1000.dk/varer/451619"
+     "product": "Cheddar mature",
+     "desc": "Kilmeaden, lagret",
+     "onSale": true,
+     "id": "458293",
+     "url": "https://shop.rema1000.dk/varer/ost-mv/hard-ost/458293-cheddar-mature"
     },
     {
      "price": 22.46,
@@ -226,13 +236,24 @@
    "group": "spice",
    "options": [
     {
-     "price": 6,
+     "price": 4.4,
+     "pack": 800,
+     "label": "800 g",
+     "product": "Salt m/jod",
+     "desc": "Salina, grov",
+     "onSale": false,
+     "id": "93612",
+     "url": "https://shop.rema1000.dk/varer/93612"
+    },
+    {
+     "price": 4.75,
      "pack": 1000,
      "label": "1 kg",
-     "product": "Salt",
-     "desc": "",
+     "product": "Salt m/ jod",
+     "desc": "Salina, fint",
      "onSale": false,
-     "est": true
+     "id": "93605",
+     "url": "https://shop.rema1000.dk/varer/93605"
     }
    ]
   },
@@ -252,6 +273,54 @@
      "onSale": false,
      "id": "90930",
      "url": "https://shop.rema1000.dk/varer/90930"
+    }
+   ]
+  },
+  "polser": {
+   "n": "Pølser",
+   "kcal": 240,
+   "p": 12,
+   "group": "protein",
+   "options": [
+    {
+     "price": 12.95,
+     "pack": 80,
+     "label": "80 g",
+     "product": "Bjørnepølse",
+     "desc": "Reinert",
+     "onSale": false,
+     "id": "411725",
+     "url": "https://shop.rema1000.dk/varer/411725"
+    },
+    {
+     "price": 14.95,
+     "pack": 110,
+     "label": "110 g",
+     "product": "Kyllingepølse 8%",
+     "desc": "3-stjernet",
+     "onSale": false,
+     "id": "411638",
+     "url": "https://shop.rema1000.dk/varer/411638"
+    },
+    {
+     "price": 17.95,
+     "pack": 300,
+     "label": "300 g",
+     "product": "Kyllinge pølser",
+     "desc": "Rema 1000",
+     "onSale": false,
+     "id": "410963",
+     "url": "https://shop.rema1000.dk/varer/410963"
+    },
+    {
+     "price": 24.95,
+     "pack": 550,
+     "label": "550 g",
+     "product": "Grillpølser",
+     "desc": "Rema 1000",
+     "onSale": false,
+     "id": "410961",
+     "url": "https://shop.rema1000.dk/varer/410961"
     }
    ]
   },
@@ -322,16 +391,6 @@
    "group": "pantry",
    "options": [
     {
-     "price": 14.95,
-     "pack": 500,
-     "label": "500 ml",
-     "product": "Flydende margarine",
-     "desc": "Ama rapsolie",
-     "onSale": false,
-     "id": "231613",
-     "url": "https://shop.rema1000.dk/varer/231613"
-    },
-    {
      "price": 19.09,
      "pack": 1000,
      "label": "1 l",
@@ -340,64 +399,6 @@
      "onSale": false,
      "id": "118400",
      "url": "https://shop.rema1000.dk/varer/118400"
-    }
-   ]
-  },
-  "polser": {
-   "n": "Pølser",
-   "kcal": 240,
-   "p": 12,
-   "group": "protein",
-   "options": [
-    {
-     "price": 9.95,
-     "pack": 80,
-     "label": "80 g",
-     "product": "Spansk chorizo",
-     "desc": "Taga, slice",
-     "onSale": false,
-     "id": "411305",
-     "url": "https://shop.rema1000.dk/varer/411305"
-    },
-    {
-     "price": 11.95,
-     "pack": 135,
-     "label": "135 g",
-     "product": "Kødpølse",
-     "desc": "Gøl",
-     "onSale": false,
-     "id": "411653",
-     "url": "https://shop.rema1000.dk/varer/411653"
-    },
-    {
-     "price": 15.95,
-     "pack": 191,
-     "label": "191 g",
-     "product": "Kyllinge kødpølse",
-     "desc": "Rema 1000",
-     "onSale": false,
-     "id": "412215",
-     "url": "https://shop.rema1000.dk/varer/412215"
-    },
-    {
-     "price": 17.95,
-     "pack": 300,
-     "label": "300 g",
-     "product": "Kyllinge pølser",
-     "desc": "Rema 1000",
-     "onSale": false,
-     "id": "410963",
-     "url": "https://shop.rema1000.dk/varer/410963"
-    },
-    {
-     "price": 24.95,
-     "pack": 550,
-     "label": "550 g",
-     "product": "Grillpølser",
-     "desc": "Rema 1000",
-     "onSale": false,
-     "id": "410961",
-     "url": "https://shop.rema1000.dk/varer/410961"
     }
    ]
   },
@@ -447,11 +448,11 @@
      "price": 6.37,
      "pack": 400,
      "label": "400 g",
-     "product": "Flåede tomater",
-     "desc": "Rema 1000, økologiske",
+     "product": "Hakkede tomater",
+     "desc": "Rema 1000",
      "onSale": false,
-     "id": "110329",
-     "url": "https://shop.rema1000.dk/varer/110329"
+     "id": "108341",
+     "url": "https://shop.rema1000.dk/varer/108341"
     },
     {
      "price": 8.69,
@@ -621,14 +622,42 @@
      "url": "https://shop.rema1000.dk/varer/25751"
     },
     {
-     "price": 18.95,
+     "price": 32.95,
      "pack": 250,
      "label": "250 g",
-     "product": "Becel smørbar",
-     "desc": "Let",
+     "product": "Arla smør",
+     "desc": "Lactofree",
      "onSale": false,
-     "id": "232111",
-     "url": "https://shop.rema1000.dk/varer/232111"
+     "id": "25748",
+     "url": "https://shop.rema1000.dk/varer/25748"
+    }
+   ]
+  },
+  "hytteost": {
+   "n": "Hytteost",
+   "kcal": 90,
+   "p": 12,
+   "group": "dairy",
+   "options": [
+    {
+     "price": 8.95,
+     "pack": 200,
+     "label": "200 g",
+     "product": "Hytteost 1,5%",
+     "desc": "Mammen, laktosefri",
+     "onSale": false,
+     "id": "28825",
+     "url": "https://shop.rema1000.dk/varer/28825"
+    },
+    {
+     "price": 14.92,
+     "pack": 450,
+     "label": "450 g",
+     "product": "Hytteost 1,5%",
+     "desc": "Mammen, laktosefri",
+     "onSale": false,
+     "id": "28824",
+     "url": "https://shop.rema1000.dk/varer/28824"
     }
    ]
   },
@@ -691,54 +720,6 @@
      "url": "https://shop.rema1000.dk/varer/60055"
     }
    ]
-  },
-  "peber": {
-   "n": "Peberfrugt",
-   "kcal": 31,
-   "p": 1,
-   "each": 150,
-   "unit": "stk",
-   "group": "produce",
-   "options": [
-    {
-     "price": 9,
-     "pack": 150,
-     "label": "1 stk",
-     "product": "Rød peber",
-     "desc": "Spanien kl. 1",
-     "onSale": false,
-     "id": "306345",
-     "url": "https://shop.rema1000.dk/varer/306345"
-    }
-   ]
-  },
-  "hytteost": {
-   "n": "Hytteost",
-   "kcal": 90,
-   "p": 12,
-   "group": "dairy",
-   "options": [
-    {
-     "price": 8.95,
-     "pack": 200,
-     "label": "200 g",
-     "product": "Hytteost 1,5%",
-     "desc": "Mammen, laktosefri",
-     "onSale": false,
-     "id": "28825",
-     "url": "https://shop.rema1000.dk/varer/28825"
-    },
-    {
-     "price": 14.92,
-     "pack": 450,
-     "label": "450 g",
-     "product": "Hytteost 1,5%",
-     "desc": "Mammen, laktosefri",
-     "onSale": false,
-     "id": "28824",
-     "url": "https://shop.rema1000.dk/varer/28824"
-    }
-   ]
   }
  },
  "meals": [
@@ -787,6 +768,54 @@
     "Boil the pasta in salted water, adding the vegetables for the last 3 min.",
     "Fry the bacon crisp. Whisk the eggs with the grated cheese and plenty of pepper.",
     "Off the heat, toss the drained pasta with the bacon, then the egg mix and a splash of pasta water until glossy."
+   ]
+  },
+  {
+   "id": "biksemad",
+   "type": "dinner",
+   "name": "Biksemad with fried egg",
+   "dk": "Biksemad med spejlæg & rødkål",
+   "base": 4,
+   "portions": 4,
+   "time": "40 min",
+   "tags": [
+    "Danish classic",
+    "Cheap"
+   ],
+   "ing": [
+    [
+     "polser",
+     400
+    ],
+    [
+     "kartofler",
+     800
+    ],
+    [
+     "log",
+     200
+    ],
+    [
+     "aeg",
+     240
+    ],
+    [
+     "olie",
+     25
+    ],
+    [
+     "salt",
+     5
+    ],
+    [
+     "sortpeber",
+     1
+    ]
+   ],
+   "steps": [
+    "Dice the potatoes small and fry them in most of the oil for 15–20 min until golden and cooked through.",
+    "Fry the diced meat and onion in another pan, then mix everything and season with salt and pepper.",
+    "Fry one egg per person in the last of the oil and put it on top."
    ]
   },
   {
@@ -839,54 +868,6 @@
     "Fry the potatoes, onion and pepper in the oil in an ovenproof pan.",
     "Pour over the eggs beaten with salt and pepper. Cook on low heat 8 min.",
     "Top with the cheese and finish under the oven grill until set."
-   ]
-  },
-  {
-   "id": "biksemad",
-   "type": "dinner",
-   "name": "Biksemad with fried egg",
-   "dk": "Biksemad med spejlæg & rødkål",
-   "base": 4,
-   "portions": 4,
-   "time": "40 min",
-   "tags": [
-    "Danish classic",
-    "Cheap"
-   ],
-   "ing": [
-    [
-     "polser",
-     400
-    ],
-    [
-     "kartofler",
-     800
-    ],
-    [
-     "log",
-     200
-    ],
-    [
-     "aeg",
-     240
-    ],
-    [
-     "olie",
-     25
-    ],
-    [
-     "salt",
-     5
-    ],
-    [
-     "sortpeber",
-     1
-    ]
-   ],
-   "steps": [
-    "Dice the potatoes small and fry them in most of the oil for 15–20 min until golden and cooked through.",
-    "Fry the diced meat and onion in another pan, then mix everything and season with salt and pepper.",
-    "Fry one egg per person in the last of the oil and put it on top."
    ]
   },
   {
@@ -1061,6 +1042,74 @@
    ]
   },
   {
+   "id": "hytteost",
+   "type": "breakfast",
+   "name": "Cottage cheese on rye",
+   "dk": "Rugbrød med hytteost & grønt",
+   "base": 1,
+   "portions": 2,
+   "time": "5 min",
+   "tags": [
+    "High protein"
+   ],
+   "ing": [
+    [
+     "rugbrod",
+     90
+    ],
+    [
+     "hytteost",
+     100
+    ],
+    [
+     "agurk",
+     100
+    ],
+    [
+     "salt",
+     0.5
+    ]
+   ],
+   "steps": [
+    "Top two slices of rye with the cottage cheese.",
+    "Add sliced vegetables and a pinch of salt."
+   ]
+  },
+  {
+   "id": "bolle",
+   "type": "breakfast",
+   "name": "Bread roll with cheese",
+   "dk": "Bolle med ost & grønt",
+   "base": 1,
+   "portions": 2,
+   "time": "5 min",
+   "tags": [
+    "Classic"
+   ],
+   "ing": [
+    [
+     "toast",
+     62
+    ],
+    [
+     "smor",
+     5
+    ],
+    [
+     "ost",
+     40
+    ],
+    [
+     "agurk",
+     75
+    ]
+   ],
+   "steps": [
+    "Halve and toast the roll, butter thinly.",
+    "Add the cheese and sliced vegetables."
+   ]
+  },
+  {
    "id": "toastaeg",
    "type": "breakfast",
    "name": "Egg & cheese toast",
@@ -1096,74 +1145,6 @@
    "steps": [
     "Fry the egg in the butter with a pinch of salt.",
     "Toast the bread with the cheese on top until melted, and put the egg on top."
-   ]
-  },
-  {
-   "id": "bolle",
-   "type": "breakfast",
-   "name": "Bread roll with cheese",
-   "dk": "Bolle med ost & grønt",
-   "base": 1,
-   "portions": 2,
-   "time": "5 min",
-   "tags": [
-    "Classic"
-   ],
-   "ing": [
-    [
-     "toast",
-     62
-    ],
-    [
-     "smor",
-     5
-    ],
-    [
-     "ost",
-     40
-    ],
-    [
-     "peber",
-     75
-    ]
-   ],
-   "steps": [
-    "Halve and toast the roll, butter thinly.",
-    "Add the cheese and sliced vegetables."
-   ]
-  },
-  {
-   "id": "hytteost",
-   "type": "breakfast",
-   "name": "Cottage cheese on rye",
-   "dk": "Rugbrød med hytteost & grønt",
-   "base": 1,
-   "portions": 2,
-   "time": "5 min",
-   "tags": [
-    "High protein"
-   ],
-   "ing": [
-    [
-     "rugbrod",
-     90
-    ],
-    [
-     "hytteost",
-     100
-    ],
-    [
-     "agurk",
-     100
-    ],
-    [
-     "salt",
-     0.5
-    ]
-   ],
-   "steps": [
-    "Top two slices of rye with the cottage cheese.",
-    "Add sliced vegetables and a pinch of salt."
    ]
   }
  ],
@@ -2071,17 +2052,6 @@
    "inPlan": false
   },
   {
-   "name": "Frikadeller",
-   "desc": "Frilandsgris",
-   "size": "360 g",
-   "price": 25,
-   "unitPrice": 69.44,
-   "per": "kg",
-   "cat": "frost",
-   "url": "https://shop.rema1000.dk/varer/frost/kod-fjerkrae/45042-frikadeller",
-   "inPlan": false
-  },
-  {
    "name": "Grov porretærte",
    "desc": "Rema 1000",
    "size": "400 g",
@@ -2090,17 +2060,6 @@
    "per": "kg",
    "cat": "frost",
    "url": "https://shop.rema1000.dk/varer/frost/faerdigretter/44951-grov-porretaerte",
-   "inPlan": false
-  },
-  {
-   "name": "Gyros kebab",
-   "desc": "Frilandsgris",
-   "size": "300 g",
-   "price": 25,
-   "unitPrice": 83.33,
-   "per": "kg",
-   "cat": "frost",
-   "url": "https://shop.rema1000.dk/varer/frost/kod-fjerkrae/45052-gyros-kebab",
    "inPlan": false
   },
   {
@@ -2134,17 +2093,6 @@
    "per": "ltr",
    "cat": "frost",
    "url": "https://shop.rema1000.dk/varer/frost/is-og-dessert/260504-isvafler",
-   "inPlan": false
-  },
-  {
-   "name": "Karbonader",
-   "desc": "Rema 1000",
-   "size": "440 g",
-   "price": 25,
-   "unitPrice": 56.82,
-   "per": "kg",
-   "cat": "frost",
-   "url": "https://shop.rema1000.dk/varer/frost/kod-fjerkrae/45047-karbonader",
    "inPlan": false
   },
   {
@@ -2236,39 +2184,6 @@
    "inPlan": false
   },
   {
-   "name": "Middagsfrikadeller",
-   "desc": "Rema 1000",
-   "size": "480 g",
-   "price": 25,
-   "unitPrice": 52.08,
-   "per": "kg",
-   "cat": "frost",
-   "url": "https://shop.rema1000.dk/varer/frost/kod-fjerkrae/45037-middagsfrikadeller",
-   "inPlan": false
-  },
-  {
-   "name": "Middagskødboller",
-   "desc": "Rema 1000",
-   "size": "500 g",
-   "price": 25,
-   "unitPrice": 50,
-   "per": "kg",
-   "cat": "frost",
-   "url": "https://shop.rema1000.dk/varer/frost/kod-fjerkrae/45039-middagskoedboller",
-   "inPlan": false
-  },
-  {
-   "name": "Mini frikadeller",
-   "desc": "Med kylling, rema 1000",
-   "size": "400 g",
-   "price": 25,
-   "unitPrice": 62.5,
-   "per": "kg",
-   "cat": "frost",
-   "url": "https://shop.rema1000.dk/varer/frost/kod-fjerkrae/45046-mini-frikadeller",
-   "inPlan": false
-  },
-  {
    "name": "Ovnklare kyllingelår",
    "desc": "Rema 1000, med bbq,",
    "size": "1 kg",
@@ -2346,72 +2261,6 @@
    "inPlan": false
   },
   {
-   "name": "Æbleskiver",
-   "desc": "Karen volf",
-   "size": "504 g",
-   "price": 18,
-   "unitPrice": 35.71,
-   "per": "kg",
-   "cat": "frost",
-   "url": "https://shop.rema1000.dk/varer/frost/brod-kager/45554-aebleskiver",
-   "inPlan": false
-  },
-  {
-   "name": "Abrikoser",
-   "desc": "Trope",
-   "size": "175 g",
-   "price": 20,
-   "unitPrice": 114.29,
-   "per": "kg",
-   "cat": "kolonial",
-   "url": "https://shop.rema1000.dk/varer/kolonial/nodder-torret-frugt/101568-abrikoser",
-   "inPlan": false
-  },
-  {
-   "name": "Amarena kirsebær",
-   "desc": "",
-   "size": "460 g",
-   "price": 49,
-   "unitPrice": 106.52,
-   "per": "kg",
-   "cat": "kolonial",
-   "url": "https://shop.rema1000.dk/varer/kolonial/konserves-survarer/100998-amarena-kirsebaer",
-   "inPlan": false
-  },
-  {
-   "name": "Aspargessnitter",
-   "desc": "Paradiso fine",
-   "size": "240 g",
-   "price": 15,
-   "unitPrice": 62.5,
-   "per": "kg",
-   "cat": "kolonial",
-   "url": "https://shop.rema1000.dk/varer/kolonial/konserves-survarer/100534-aspargessnitter",
-   "inPlan": false
-  },
-  {
-   "name": "Bbq sauce",
-   "desc": "Nemt & grønt",
-   "size": "70 g",
-   "price": 5,
-   "unitPrice": 71.43,
-   "per": "kg",
-   "cat": "kolonial",
-   "url": "https://shop.rema1000.dk/varer/kolonial/dressing/101575-bbq-sauce",
-   "inPlan": false
-  },
-  {
-   "name": "Belgian chocolate",
-   "desc": "Green dates rainforest alliance",
-   "size": "120 g",
-   "price": 20,
-   "unitPrice": 166.67,
-   "per": "kg",
-   "cat": "kolonial",
-   "url": "https://shop.rema1000.dk/varer/kolonial/nodder-torret-frugt/101960-belgian-chocolate",
-   "inPlan": false
-  },
-  {
    "name": "Candy cane cookies",
    "desc": "Favorita bagemix",
    "size": "400 g",
@@ -2445,39 +2294,6 @@
    "inPlan": false
   },
   {
-   "name": "Chocolate & coconut",
-   "desc": "Green dates rainforest alliance",
-   "size": "120 g",
-   "price": 20,
-   "unitPrice": 166.67,
-   "per": "kg",
-   "cat": "kolonial",
-   "url": "https://shop.rema1000.dk/varer/kolonial/nodder-torret-frugt/101961-chocolate-coconut",
-   "inPlan": false
-  },
-  {
-   "name": "Chocolate & peanuts",
-   "desc": "Green dates rainforest alliance",
-   "size": "120 g",
-   "price": 20,
-   "unitPrice": 166.67,
-   "per": "kg",
-   "cat": "kolonial",
-   "url": "https://shop.rema1000.dk/varer/kolonial/nodder-torret-frugt/101959-chocolate-peanuts",
-   "inPlan": false
-  },
-  {
-   "name": "Chocolate/licorice",
-   "desc": "Green dates rainforest alliance",
-   "size": "110 g",
-   "price": 20,
-   "unitPrice": 181.82,
-   "per": "kg",
-   "cat": "kolonial",
-   "url": "https://shop.rema1000.dk/varer/kolonial/nodder-torret-frugt/101962-chocolatelicorice",
-   "inPlan": false
-  },
-  {
    "name": "Christmas tree cookies",
    "desc": "Favorita bagemix",
    "size": "245 g",
@@ -2486,83 +2302,6 @@
    "per": "kg",
    "cat": "kolonial",
    "url": "https://shop.rema1000.dk/varer/kolonial/mel-sukker-bagning/91609-christmas-tree-cookies",
-   "inPlan": false
-  },
-  {
-   "name": "Dadelbrød",
-   "desc": "Grown by nature",
-   "size": "200 g",
-   "price": 20,
-   "unitPrice": 100,
-   "per": "kg",
-   "cat": "kolonial",
-   "url": "https://shop.rema1000.dk/varer/kolonial/nodder-torret-frugt/102023-dadelbroed",
-   "inPlan": false
-  },
-  {
-   "name": "Dadler",
-   "desc": "Trope",
-   "size": "375 g",
-   "price": 20,
-   "unitPrice": 53.33,
-   "per": "kg",
-   "cat": "kolonial",
-   "url": "https://shop.rema1000.dk/varer/kolonial/nodder-torret-frugt/101569-dadler",
-   "inPlan": false
-  },
-  {
-   "name": "Dijon sennep",
-   "desc": "Maille",
-   "size": "380 g",
-   "price": 22,
-   "unitPrice": 57.89,
-   "per": "kg",
-   "cat": "kolonial",
-   "url": "https://shop.rema1000.dk/varer/kolonial/ketchup-remoulade-mayonnaise-mv/110144-dijon-sennep",
-   "inPlan": false
-  },
-  {
-   "name": "Figen marmelade",
-   "desc": "Rema 1000, sødt tilbehør",
-   "size": "85 g",
-   "price": 7,
-   "unitPrice": 82.35,
-   "per": "kg",
-   "cat": "kolonial",
-   "url": "https://shop.rema1000.dk/varer/kolonial/marmelade-chokolade-palaeg-mv/101901-figen-marmelade",
-   "inPlan": false
-  },
-  {
-   "name": "Figenbrød",
-   "desc": "Grown by nature",
-   "size": "200 g",
-   "price": 20,
-   "unitPrice": 100,
-   "per": "kg",
-   "cat": "kolonial",
-   "url": "https://shop.rema1000.dk/varer/kolonial/nodder-torret-frugt/102021-figenbroed",
-   "inPlan": false
-  },
-  {
-   "name": "Figner i sirup",
-   "desc": "Zelected",
-   "size": "500 g",
-   "price": 49,
-   "unitPrice": 98,
-   "per": "kg",
-   "cat": "kolonial",
-   "url": "https://shop.rema1000.dk/varer/kolonial/konserves-survarer/101648-figner-i-sirup",
-   "inPlan": false
-  },
-  {
-   "name": "Fine aspargessnitter",
-   "desc": "Økologiske",
-   "size": "130 g",
-   "price": 15,
-   "unitPrice": 115.38,
-   "per": "kg",
-   "cat": "kolonial",
-   "url": "https://shop.rema1000.dk/varer/kolonial/konserves-survarer/108476-fine-aspargessnitter",
    "inPlan": false
   },
   {
@@ -2585,28 +2324,6 @@
    "per": "kg",
    "cat": "kolonial",
    "url": "https://shop.rema1000.dk/varer/kolonial/mel-sukker-bagning/90353-fuldkorns-hvedemel",
-   "inPlan": false
-  },
-  {
-   "name": "Fuldkornstortillas",
-   "desc": "Tex mex",
-   "size": "370 g",
-   "price": 9,
-   "unitPrice": 24.32,
-   "per": "kg",
-   "cat": "kolonial",
-   "url": "https://shop.rema1000.dk/varer/kolonial/tex-mex/102831-fuldkornstortillas",
-   "inPlan": false
-  },
-  {
-   "name": "Garland figner",
-   "desc": "Grown by nature",
-   "size": "200 g",
-   "price": 20,
-   "unitPrice": 100,
-   "per": "kg",
-   "cat": "kolonial",
-   "url": "https://shop.rema1000.dk/varer/kolonial/nodder-torret-frugt/101562-garland-figner",
    "inPlan": false
   },
   {
@@ -2662,28 +2379,6 @@
    "per": "kg",
    "cat": "kolonial",
    "url": "https://shop.rema1000.dk/varer/kolonial/morgenmad/180097-havregryn-grovvalsede",
-   "inPlan": false
-  },
-  {
-   "name": "Hele asparges",
-   "desc": "Paradiso",
-   "size": "110 g",
-   "price": 15,
-   "unitPrice": 136.36,
-   "per": "kg",
-   "cat": "kolonial",
-   "url": "https://shop.rema1000.dk/varer/kolonial/konserves-survarer/108407-hele-asparges",
-   "inPlan": false
-  },
-  {
-   "name": "Hele asparges",
-   "desc": "Paradiso",
-   "size": "180 g",
-   "price": 15,
-   "unitPrice": 83.33,
-   "per": "kg",
-   "cat": "kolonial",
-   "url": "https://shop.rema1000.dk/varer/kolonial/konserves-survarer/108487-hele-asparges",
    "inPlan": false
   },
   {
@@ -2783,61 +2478,6 @@
    "per": "kg",
    "cat": "kolonial",
    "url": "https://shop.rema1000.dk/varer/kolonial/mel-sukker-bagning/91607-snowman-muffins",
-   "inPlan": false
-  },
-  {
-   "name": "Solbær marmelade",
-   "desc": "Rema 1000, sødt tilbehør",
-   "size": "85 g",
-   "price": 7,
-   "unitPrice": 82.35,
-   "per": "kg",
-   "cat": "kolonial",
-   "url": "https://shop.rema1000.dk/varer/kolonial/marmelade-chokolade-palaeg-mv/101902-solbaer-marmelade",
-   "inPlan": false
-  },
-  {
-   "name": "Spanske figner",
-   "desc": "Grown by nature",
-   "size": "300 g",
-   "price": 20,
-   "unitPrice": 66.67,
-   "per": "kg",
-   "cat": "kolonial",
-   "url": "https://shop.rema1000.dk/varer/kolonial/nodder-torret-frugt/102031-spanske-figner",
-   "inPlan": false
-  },
-  {
-   "name": "Syltede rødbeder",
-   "desc": "Gram slot økologisk",
-   "size": "240 g",
-   "price": 12,
-   "unitPrice": 50,
-   "per": "kg",
-   "cat": "kolonial",
-   "url": "https://shop.rema1000.dk/varer/kolonial/konserves-survarer/100511-syltede-roedbeder",
-   "inPlan": false
-  },
-  {
-   "name": "Syltet rødkål",
-   "desc": "Gram slot økologisk",
-   "size": "370 g",
-   "price": 12,
-   "unitPrice": 32.43,
-   "per": "kg",
-   "cat": "kolonial",
-   "url": "https://shop.rema1000.dk/varer/kolonial/konserves-survarer/100457-syltet-roedkaal",
-   "inPlan": false
-  },
-  {
-   "name": "Tortillas hvede",
-   "desc": "Tex mex",
-   "size": "370 g",
-   "price": 9,
-   "unitPrice": 24.32,
-   "per": "kg",
-   "cat": "kolonial",
-   "url": "https://shop.rema1000.dk/varer/kolonial/tex-mex/102802-tortillas-hvede",
    "inPlan": false
   },
   {

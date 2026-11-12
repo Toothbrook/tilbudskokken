@@ -1,6 +1,6 @@
 {
  "week": 46,
- "catalogueProducts": 1689,
+ "catalogueProducts": 1778,
  "ingredients": {
   "hkokse": [
    "Hk. oksekød, 35% grønt 400 g 29.95 kr",
@@ -51,9 +51,8 @@
    "Røget bacon 67,12 kr/kg 67.12 kr"
   ],
   "polser": [
-   "Spansk chorizo 80 g 9.95 kr",
-   "Kødpølse 135 g 11.95 kr",
-   "Kyllinge kødpølse 191 g 15.95 kr",
+   "Bjørnepølse 80 g 12.95 kr",
+   "Kyllingepølse 8% 110 g 14.95 kr",
    "Kyllinge pølser 300 g 17.95 kr",
    "Grillpølser 550 g 24.95 kr"
   ],
@@ -81,15 +80,16 @@
    "Tun i vand 168 g 20.27 kr"
   ],
   "aeg": [
-   "Koldskål 1 l 25.16 kr"
+   "Økologiske æg 8 stk 31.95 kr",
+   "Skrabeæg 15 stk 45.25 kr"
   ],
   "leverpostej": [
    "Fransk leverpostej 200 g 7.95 kr",
    "Leverpostej 500 g 13.95 kr"
   ],
   "skyr": [
-   "Skyr airy strawberry 128 g 8.5 kr",
-   "Skyr naturel 1 kg 19.95 kr"
+   "Skyr naturel 450 g 18.1 kr",
+   "Skovbær 1 kg 30.95 kr"
   ],
   "yoghurt": [
    "Naturel yoghurt 1 kg 9.95 kr"
@@ -99,8 +99,8 @@
    "Hytteost 1,5% 450 g 14.92 kr"
   ],
   "ost": [
-   "Naturel friskost 200 g 9.95 kr",
-   "Ricotta 250 g 12.95 kr",
+   "Country cow toast 200 g 11.95 kr",
+   "TILBUD Cheddar mature 250 g 20 kr",
    "Gouda skiveost 48+ 300 g 22.46 kr",
    "Havarti 60+ 400 g 29.95 kr",
    "TILBUD Riberhus ml 45+ 468 g 39 kr",
@@ -117,16 +117,16 @@
    "Piskefløde 36% fedt 500 ml 14.95 kr"
   ],
   "cremefraiche": [
-   "Cremefraiche 18% 250 g 12.95 kr",
-   "Creme fraiche 18% 500 g 18.95 kr"
+   "Cremefraiche 18% 250 g 14.95 kr"
   ],
   "maelk": [
-   "Minimælk 250 ml 4.36 kr",
-   "Minimælk 0,4% fedt 1 l 10.5 kr"
+   "Letmælk 250 ml 3.95 kr",
+   "Sødmælk 3,5% 500 ml 7.95 kr",
+   "Skummetmælk 1 l 9.95 kr"
   ],
   "smor": [
    "Smør 200 g 7.96 kr",
-   "Becel smørbar 250 g 18.95 kr"
+   "Arla smør 250 g 32.95 kr"
   ],
   "rugbrod": [
    "Schwarzbrød 560 g 5.54 kr",
@@ -148,7 +148,7 @@
    "Limpan 900 g 26.95 kr"
   ],
   "wraps": [
-   "TILBUD Tortillas hvede 370 g 9 kr"
+   "Tortillas hvede 370 g 10.7 kr"
   ],
   "pasta": [
    "Pasta skruer 500 g 5.95 kr",
@@ -156,7 +156,8 @@
   ],
   "ris": [
    "Ris cuisine 200 ml 6.95 kr",
-   "Langk. øko jasminris 1 kg 22.02 kr"
+   "Kogepose ris 500 g 7.95 kr",
+   "Parboiled ris 1 kg 11.95 kr"
   ],
   "havregryn": [
    "Havregryn grovvalsede 1 kg 7.95 kr"
@@ -241,7 +242,7 @@
    "Hakket spinat 750 g 9.95 kr"
   ],
   "hakkedetomater": [
-   "Flåede tomater 400 g 6.37 kr",
+   "Hakkede tomater 400 g 6.37 kr",
    "Tomat passata 500 g 8.69 kr",
    "Passata di pomodoro 680 g 15.95 kr"
   ],
@@ -272,11 +273,11 @@
    "Soja dressing 415 g 12.95 kr"
   ],
   "olie": [
-   "Flydende margarine 500 ml 14.95 kr",
    "Solsikkeolie 1 l 19.09 kr"
   ],
   "salt": [
-   "EST Salt 1 kg 6 kr"
+   "Salt m/jod 800 g 4.4 kr",
+   "Salt m/ jod 1 kg 4.75 kr"
   ],
   "sortpeber": [
    "Stødt sort peber 100 g 7.5 kr"
