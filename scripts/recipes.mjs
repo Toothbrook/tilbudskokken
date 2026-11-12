@@ -38,7 +38,7 @@ export const INGREDIENTS = {
   rejer:        { n: 'Rejer', kcal: 70, p: 16, group: 'protein', pg: 'fish', cats: [...KOD, 'kol', 'frost'], re: /REJER/, ex: /SALAT|COCKTAIL|CHIPS/, est: [35, 300, '300 g'] },
   rogetfisk:    { n: 'Røget fisk', kcal: 230, p: 21, group: 'protein', pg: 'fish', cats: [...KOD, 'kol'], re: /RØGET|MAKREL/, ex: /SALAT|SILD|MOUSSE|TOMAT|POSTEJ/, est: [25, 100, '100 g'] },
   tun:          { n: 'Tun (dåse)', kcal: 110, p: 25, group: 'protein', pg: 'fish', cats: KOL, re: new RegExp(`${W}TUN${E}`), ex: /SALAT|SPICY|MOUSSE|POSTEJ|PASTA/, est: [12, 185, '185 g'] },
-  aeg:          { n: 'Æg', kcal: 140, p: 12.5, each: 60, unit: 'stk', group: 'protein', pg: 'egg', cats: [...MEJERI, 'kol', 'kolonial'], re: new RegExp(`${W}ÆG${E}|SKRABEÆG|FRILANDSÆG|BURÆG|ÆGGEBAKKE`), ex: /SALAT|PÅLÆG|NUDLER|PASTA|PÅSKE|CHOKOLADE|KOLDSKÅL|DRIK|MAYO|REMOULADE|DRESSING|KAGE|IS|SAUCE|DESSERT|CREME|MOUSSE/, est: [30, 600, '10 stk'] },
+  aeg:          { n: 'Æg', kcal: 140, p: 12.5, each: 60, unit: 'stk', group: 'protein', pg: 'egg', cats: [...MEJERI, 'kol', 'kolonial'], re: new RegExp(`${W}ÆG${E}|SKRABEÆG|FRILANDSÆG|BURÆG|ÆGGEBAKKE`), ex: new RegExp(`SALAT|PÅLÆG|NUDLER|PASTA|PÅSKE|CHOKOLADE|KOLDSKÅL|DRIK|MAYO|REMOULADE|DRESSING|KAGE|${W}IS${E}|SAUCE|DESSERT|MOUSSE`), est: [30, 600, '10 stk'] },
   leverpostej:  { n: 'Leverpostej', kcal: 250, p: 11, group: 'protein', pg: 'pork', cats: ['kol'], re: /LEVERPOSTEJ/, ex: /BACON|SVAMPE|LUKSUS/, est: [15, 500, '500 g'] },
   // ---- dairy
   skyr:         { n: 'Skyr naturel', kcal: 63, p: 11, group: 'dairy', cats: MEJERI, re: /SKYR/, ex: /VANILJE|JORDBÆR|HINDBÆR|BLÅBÆR|MANGO|DRIK|KAGE/, est: [25, 1000, '1 kg'] },
