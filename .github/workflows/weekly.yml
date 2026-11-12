@@ -52,7 +52,7 @@ jobs:
       - name: Prepare site
         run: |
           mkdir -p _site/data
-          cp index.html _site/
+          cp index.html planner.js _site/
           cp data/week.json _site/data/
 
       - uses: actions/configure-pages@v5

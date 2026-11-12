@@ -59,6 +59,11 @@ h1 em{font-style:normal;color:var(--sale)}
 .stepper input::-webkit-outer-spin-button,.stepper input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
 .stepper .unit{font-size:12px;color:var(--muted);padding-right:8px}
 .warn{display:inline-block;font-size:10.5px;font-weight:700;color:var(--sale);border:1px solid currentColor;padding:0 5px;border-radius:3px;margin-left:6px;white-space:nowrap}
+.switch{display:inline-flex;align-items:center;gap:8px;border:1px solid var(--line);background:var(--paper);border-radius:999px;padding:4px 12px 4px 4px;cursor:pointer;font-weight:700;font-size:13.5px;color:var(--muted);width:max-content}
+.switch .knob{width:30px;height:30px;border-radius:50%;background:var(--soft);transition:background .15s}
+.switch[aria-checked="true"]{background:var(--ink);border-color:var(--ink);color:var(--paper)}
+.switch[aria-checked="true"] .knob{background:var(--tag)}
+.ctl .hint{font-size:11.5px;color:var(--muted);max-width:30ch}
 .toggles{display:flex;gap:6px;flex-wrap:wrap}
 .tg{border:1px solid var(--line);background:var(--paper);padding:7px 12px;border-radius:999px;cursor:pointer;font-weight:600;font-size:13.5px;color:var(--muted)}
 .tg[aria-pressed="true"]{background:var(--ink);border-color:var(--ink);color:var(--paper)}
@@ -84,8 +89,13 @@ h1 em{font-style:normal;color:var(--sale)}
 .slot i{font-style:normal;display:inline-block;width:8px;height:8px;border-radius:2px;margin-right:6px;vertical-align:1px}
 .go{background:none;border:0;padding:2px 0;text-align:left;cursor:pointer;font-weight:600;text-decoration:underline;text-decoration-color:var(--line);text-underline-offset:3px}
 .go:hover{text-decoration-color:currentColor}
+.kind{margin-top:8px;border:1px solid var(--line);background:var(--paper);color:var(--muted);border-radius:999px;padding:3px 10px;font:inherit;font-family:var(--body);font-size:12px;font-weight:700;cursor:pointer;display:inline-block}
+.kind[aria-pressed="true"]{background:var(--tag);color:var(--tag-ink);border-color:var(--tag)}
+.day.treat{border-color:var(--tag);box-shadow:inset 4px 0 0 var(--tag)}
+.weekhint{margin:0 0 10px;font-size:13px;color:var(--muted)}
+.chip.treat{background:var(--tag);color:var(--tag-ink)}
 .left{font-size:11px;font-weight:700;background:var(--soft);color:var(--muted);padding:1px 6px;border-radius:3px;margin-left:6px;display:inline-block}
-@media (max-width:420px){.day{grid-template-columns:1fr}.day .date{display:flex;gap:8px;align-items:baseline}.day .date small,.day .date .k{display:inline;margin:0}.day .date .k{margin-left:auto}}
+@media (max-width:420px){.day{grid-template-columns:1fr}.day .date{display:flex;gap:8px;align-items:baseline;flex-wrap:wrap}.day .date small,.day .date .k{display:inline;margin:0}.day .date .k{margin-left:auto}.kind{margin-top:0;order:3}}
 
 /* meal cards */
 .list{display:flex;flex-direction:column;gap:12px}
@@ -168,7 +178,7 @@ footer p{margin:0}
   <header>
     <div class="week" id="weekline"><b>REMA 1000</b> Loading this week's offers…</div>
     <h1>Eat the <em>tilbud</em>.</h1>
-    <p class="lede">A whole week of healthy breakfasts, lunches and dinners planned around this week's REMA 1000 offers, with one shopping list. Nothing is assumed to be in your cupboard: salt, oil and spices are on the list too. Some dinners are cooked once and eaten twice. A new plan arrives every Sunday morning.</p>
+    <p class="lede">A whole week of breakfasts, lunches and dinners, healthy by default with treat days when you want them, planned around this week's REMA 1000 offers, with one shopping list. Nothing is assumed to be in your cupboard: salt, oil and spices are on the list too. Some dinners are cooked once and eaten twice. A new plan arrives every Sunday morning.</p>
     <div class="banner" id="stale" hidden></div>
   </header>
 
@@ -182,6 +192,9 @@ footer p{margin:0}
         <div class="stepper" role="group" aria-labelledby="kcalLbl">
           <button id="kMinus" aria-label="100 kcal less">−</button><input id="kcal" class="num" type="number" inputmode="numeric" min="1200" max="4000" step="50" value="2000"><span class="unit">kcal</span><button id="kPlus" aria-label="100 kcal more">+</button>
         </div></div>
+      <div class="ctl"><span id="cheapLbl">Cheapest week</span>
+        <button class="switch" id="cheap" role="switch" aria-checked="true" aria-labelledby="cheapLbl"><span class="knob"></span><span class="txt">On</span></button>
+        <small class="hint" id="cheapHint">Off picks more vegetables, protein and fish, at a higher price.</small></div>
       <div class="ctl"><span id="typesLbl">Plan for</span>
         <div class="toggles" role="group" aria-labelledby="typesLbl">
           <button class="tg" data-type="breakfast" aria-pressed="true">Breakfast</button>
@@ -205,12 +218,13 @@ footer p{margin:0}
 
   <footer>
     <p>Offer prices are read from REMA 1000's weekly avis every Sunday, and normal prices from REMA's webshop. Some items aren't stocked in every store and prices can change, so check the shelf label. Calories are estimates from typical nutrition values.</p>
-    <p id="healthNote">The recipes are built from whole ingredients: no sausages, bacon or other processed meat, no ready-made sauces or spice mixes, whole-grain pasta and rye bread. Products with additives worth avoiding (nitrite, phosphates, sweeteners, glutamate, colourings and similar E-numbers) are skipped when REMA has a cleaner alternative; a red tag shows the few times it doesn't.</p>
+    <p id="healthNote">Healthy days are built from whole ingredients: no sausages, bacon or other processed meat, no ready-made sauces or spice mixes, whole-grain pasta and rye bread. Treat days allow the classics. Products with additives worth avoiding (nitrite, phosphates, sweeteners, glutamate, colourings and similar E-numbers) are skipped when REMA has a cleaner alternative; a red tag shows the few times it doesn't.</p>
     <p>Yellow tags are this week's offer prices. Grey tags are normal shelf prices, and a ≈ means the price is an estimate because the shop's price couldn't be read. <span id="updated"></span></p>
   </footer>
 </div>
 
-<script>
+<script type="module">
+import { createPlanner, cover as coverDef } from './planner.js';
 const $ = s => document.querySelector(s);
 const view = $('#view');
 const MONTHS = ['januar','februar','marts','april','maj','juni','juli','august','september','oktober','november','december'];
@@ -220,8 +234,8 @@ const SLOT = { breakfast:'b', lunch:'l', dinner:'d' };
 const BASICS = ['salt', 'sortpeber', 'olie'];
 const DOT = { breakfast:'var(--b1)', lunch:'var(--b2)', dinner:'var(--sale)' };
 const CAT = {'kod-fisk-fjerkrae':'Meat, fish & poultry','kol':'Chilled','frugt-gront':'Fruit & veg','mejeri':'Dairy','ost-mv':'Cheese','brod-bavinchi':'Bread','frost':'Frozen','kolonial':'Groceries','*':'Other'};
-let DATA, ING, MEALS = {}, KEY, SHOP;
-let state = { tab:'week', open:{}, got:{}, have:{}, people:2, kcal:2000, types:{ breakfast:true, lunch:true, dinner:true } };
+let DATA, ING, MEALS = {}, KEY, SHOP, PLANNER, PLAN, PLAN_KEY = '';
+let state = { tab:'week', open:{}, got:{}, have:{}, cheap:true, treatW:[false,false,false,false,false,false,false], people:2, kcal:2000, types:{ breakfast:true, lunch:true, dinner:true } };
 
 const kr = v => v.toFixed(2).replace('.', ',');
 const plural = n => `${n} ${n === 1 ? 'person' : 'people'}`;
@@ -230,41 +244,32 @@ const fmtDate = (a, b) => {
   return m1 === m2 ? `${d1}.–${d2}. ${MONTHS[m2-1]} ${y2}` : `${d1}. ${MONTHS[m1-1].slice(0,3)} – ${d2}. ${MONTHS[m2-1].slice(0,3)} ${y2}`;
 };
 function save(){
-  try{ localStorage.setItem('ugeplan:prefs', JSON.stringify({ people:state.people, kcal:state.kcal, types:state.types, tab:state.tab, have:state.have }));
+  try{ localStorage.setItem('ugeplan:prefs', JSON.stringify({ people:state.people, kcal:state.kcal, treatW:state.treatW, cheap:state.cheap, types:state.types, tab:state.tab, have:state.have }));
        localStorage.setItem(KEY, JSON.stringify(state.got)); }catch(e){}
 }
 function load(){
   try{ const p = JSON.parse(localStorage.getItem('ugeplan:prefs')||'null');
-    if (p){ if (p.people) state.people = p.people; if (p.types) state.types = { ...state.types, ...p.types }; if (p.tab) state.tab = p.tab; if (p.have) state.have = p.have; if (p.kcal) state.kcal = p.kcal; } }catch(e){}
+    if (p){ if (p.people) state.people = p.people; if (p.types) state.types = { ...state.types, ...p.types }; if (p.tab) state.tab = p.tab; if (p.have) state.have = p.have; if (p.kcal) state.kcal = p.kcal; if (typeof p.cheap === 'boolean') state.cheap = p.cheap; if (Array.isArray(p.treatW) && p.treatW.length === 7) state.treatW = p.treatW; } }catch(e){}
   try{ state.got = JSON.parse(localStorage.getItem(KEY)||'{}') || {}; }catch(e){ state.got = {}; }
 }
 
-// ---- the current plan (one per household size, made by the weekly build)
-const plan = () => DATA.plans[state.people];
-const ingOf = id => plan().pick[id].map((k, i) => [k, DATA.grams[id][i]]);
+// ---- the current plan, made live in the browser by the shared planner
+// Treat days are remembered by weekday (0 = Sunday), so "Friday is a treat day" carries over.
+const startW = () => new Date(DATA.validFrom + 'T12:00:00Z').getUTCDay();
+const dayDate = d => new Date(Date.parse(DATA.validFrom + 'T12:00:00Z') + d * 864e5);
+const treatPattern = () => Array.from({ length: 7 }, (_, d) => !!state.treatW[(startW() + d) % 7]);
+function plan(){
+  const key = `${state.people}|${state.kcal}|${state.cheap}|${treatPattern().join()}`;
+  if (key !== PLAN_KEY) { PLAN = PLANNER.plan(state.people, treatPattern(), state.kcal, { cheap: state.cheap }); PLAN_KEY = key; }
+  return PLAN;
+}
+const ingOf = id => plan().pick[id].map((k, i) => [k, MEALS[id].ing[i][1]]);
 const planMeals = type => Object.keys(plan().cook).map(id => MEALS[id]).filter(m => m && (!type || m.type === type));
 const daysOf = id => plan().days.filter(d => d[SLOT[MEALS[id].type]] === id).length;
-// Portions are scaled so a full day (breakfast + lunch + dinner) averages the calorie target.
-// The scale uses all three meals even when some are switched off, so skipping lunch doesn't
-// make dinner bigger.
-let SCALE = 1, NATURAL = 0;
-function computeScale(){
-  const P = plan();
-  NATURAL = P.days.reduce((s, d) => s + rawKcal(d.b) + rawKcal(d.l) + rawKcal(d.d), 0) / P.days.length;
-  SCALE = Math.min(2.6, Math.max(0.5, state.kcal / NATURAL));
-}
-const rawKcal = id => { const m = MEALS[id]; let k = 0; ingOf(id).forEach(([key, g]) => k += ING[key].kcal * g / 100); return k / m.base; };
-
-// Cheapest way to buy g grams of an ingredient: n packs of one option (loose items by weight).
-function cover(key, g){
-  const i = ING[key]; let best = null;
-  for (const o of i.options){
-    const n = o.loose ? 1 : Math.max(1, Math.ceil(g/o.pack - 0.03));
-    const cost = o.loose ? o.price * Math.max(g, i.each || 200) / o.pack : n * o.price;
-    if (!best || cost < best.cost - 1e-9) best = { cost, o, n };
-  }
-  return best;
-}
+// Portions are sized by the planner so a full day averages the calorie target. It counts all three
+// meals even when some are switched off, so skipping lunch doesn't make dinner bigger.
+let SCALE = 1;
+const cover = (key, g) => coverDef(ING[key], g);
 const cheapest = key => ING[key].options.reduce((a, o) => (o.price/o.pack < a.price/a.pack ? o : a));
 const per = id => {
   const m = MEALS[id]; let k = 0, p = 0, cost = 0, onSale = 0;
@@ -310,9 +315,12 @@ function shopping(){
 function weekView(){
   const keys = Object.keys(TYPES).filter(t => state.types[t]);
   if (!keys.length) return `<p class="empty">Pick at least one of breakfast, lunch or dinner above.</p>`;
-  return `<div class="days">${plan().days.map(d => {
-    const dt = new Date(d.date + 'T12:00:00Z'), kcal = keys.reduce((s, t) => s + per(d[SLOT[t]]).kcal, 0);
-    return `<div class="day"><div class="date">${DAYS[dt.getUTCDay()]}<small>${dt.getUTCDate()}. ${MONTHS[dt.getUTCMonth()].slice(0,3)}</small><span class="k num">${kcal} kcal</span></div>
+  const treats = plan().days.filter(d => d.treat).length;
+  return `<p class="weekhint">Tap <b>Healthy</b> on a day to make it a treat day with comfort-food classics instead. ${treats ? `${treats} treat day${treats > 1 ? 's' : ''} this week.` : ''}</p>
+  <div class="days">${plan().days.map((d, i) => {
+    const dt = dayDate(i), kcal = keys.reduce((s, t) => s + per(d[SLOT[t]]).kcal, 0), w = dt.getUTCDay();
+    return `<div class="day${d.treat ? ' treat' : ''}"><div class="date">${DAYS[w]}<small>${dt.getUTCDate()}. ${MONTHS[dt.getUTCMonth()].slice(0,3)}</small><span class="k num">${kcal} kcal</span>
+      <button class="kind" data-treat="${w}" aria-pressed="${d.treat}" aria-label="${DAYS[w]}: ${d.treat ? 'treat day, tap to make it healthy' : 'healthy day, tap to make it a treat day'}">${d.treat ? 'Treat' : 'Healthy'}</button></div>
       <div class="slots">${keys.map(t => { const id = d[SLOT[t]]; return `<div class="slot"><span><i style="background:${DOT[t]}"></i>${TYPES[t]}</span>
         <div><button class="go" data-go="${id}">${MEALS[id].name}</button>${t === 'dinner' && d.left ? '<span class="left">leftovers</span>' : ''}</div></div>`; }).join('')}</div></div>`;
   }).join('')}</div>`;
@@ -330,7 +338,7 @@ function mealCard(m){
   return `<article class="meal" id="m-${m.id}">
     <button class="meal-top" data-toggle="${m.id}" aria-expanded="${open}" aria-controls="b-${m.id}">
       <div><h3>${m.name}</h3><div class="dk">${m.dk}</div>
-        <div class="chips"><span class="chip when">${days} ${word}</span><span class="chip hot">${s.onSale} on offer</span>${m.tags.map(t=>`<span class="chip">${t}</span>`).join('')}<span class="chip">${m.time}</span></div></div>
+        <div class="chips"><span class="chip when">${days} ${word}</span>${m.kind === 'treat' ? '<span class="chip treat">Treat</span>' : ''}<span class="chip hot">${s.onSale} on offer</span>${m.tags.map(t=>`<span class="chip">${t}</span>`).join('')}<span class="chip">${m.time}</span></div></div>
       <div class="kcal"><b class="num">${s.kcal}</b><span>kcal / portion</span><span class="pr num">${s.p} g protein</span></div>
     </button>
     <div class="meal-body" id="b-${m.id}" ${open?'':'hidden'}>
@@ -436,15 +444,16 @@ function offersView(){
 }
 
 function kcalNote(){
-  const got = Math.round(NATURAL * SCALE);
+  const got = plan().kcal;
   if (Math.abs(got - state.kcal) > 60) return `Portions are as ${SCALE > 1 ? 'big' : 'small'} as this plan sensibly goes: about ${got.toLocaleString('da-DK')} kcal per person per day.`;
   return `Portions sized for about ${state.kcal.toLocaleString('da-DK')} kcal per person per day on average; some days a little more, some less.`;
 }
 function renderHouse(){
   if (document.activeElement !== $('#kcal')) $('#kcal').value = state.kcal;
-  const sizes = Object.keys(DATA.plans).map(Number);
   $('#people').textContent = plural(state.people);
-  $('#pMinus').disabled = state.people <= Math.min(...sizes); $('#pPlus').disabled = state.people >= Math.max(...sizes);
+  $('#cheap').setAttribute('aria-checked', state.cheap); $('#cheap .txt').textContent = state.cheap ? 'On' : 'Off';
+  $('#cheapHint').textContent = state.cheap ? 'Off picks more vegetables, protein and fish, at a higher price.' : 'Picking for vegetables, protein and fish. Turn on for the lowest price.';
+  $('#pMinus').disabled = state.people <= 1; $('#pPlus').disabled = state.people >= 10;
   document.querySelectorAll('.tg').forEach(b => b.setAttribute('aria-pressed', !!state.types[b.dataset.type]));
   const s = SHOP, all = Object.values(state.types).every(Boolean);
   $('#totals').innerHTML = s.portions && !s.lines.length ? `<small>You have everything for this week already.</small>` : s.portions ? `<span><b class="num">${kr(s.total)} kr</b> <small>for the week</small></span>
@@ -455,7 +464,7 @@ function renderHouse(){
 }
 
 function render(){
-  computeScale();
+  SCALE = plan().size;
   SHOP = shopping();
   if (TYPES[state.tab] && !state.types[state.tab]) state.tab = 'week';
   document.querySelectorAll('.tab').forEach(t => { t.setAttribute('aria-selected', t.dataset.tab === state.tab);
@@ -470,10 +479,11 @@ function render(){
 function init(){
   KEY = `ugeplan:${DATA.year}-${DATA.week}:got`;
   state.people = DATA.defaultPeople || 2;
-  DATA.meals.forEach(m => MEALS[m.id] = m);
+  DATA.recipes.forEach(m => MEALS[m.id] = m);
   ING = DATA.ing;
+  PLANNER = createPlanner({ recipes: DATA.recipes, ing: ING, seed: DATA.seed });
   load();
-  if (!DATA.plans[state.people]) state.people = DATA.defaultPeople || 2;
+  state.people = Math.min(10, Math.max(1, state.people));
   $('#weekline').innerHTML = `<b>Uge ${DATA.week}</b> REMA 1000 · ${fmtDate(DATA.validFrom, DATA.validTo)}`;
   document.title = `Tilbudskøkken · uge ${DATA.week}`;
   const today = new Date().toISOString().slice(0,10);
@@ -488,11 +498,15 @@ const setKcal = v => { state.kcal = Math.min(4000, Math.max(1200, Math.round(v /
 $('#kMinus').addEventListener('click', () => DATA && setKcal(state.kcal - 100));
 $('#kPlus').addEventListener('click', () => DATA && setKcal(state.kcal + 100));
 $('#kcal').addEventListener('change', e => DATA && setKcal(+e.target.value));
-$('#pMinus').addEventListener('click', () => { if (DATA && DATA.plans[state.people - 1]) { state.people--; save(); render(); } });
-$('#pPlus').addEventListener('click', () => { if (DATA && DATA.plans[state.people + 1]) { state.people++; save(); render(); } });
+$('#cheap').addEventListener('click', () => { if (!DATA) return; state.cheap = !state.cheap; save(); render(); });
+$('#pMinus').addEventListener('click', () => { if (DATA && state.people > 1) { state.people--; save(); render(); } });
+$('#pPlus').addEventListener('click', () => { if (DATA && state.people < 10) { state.people++; save(); render(); } });
 document.querySelectorAll('.tg').forEach(b => b.addEventListener('click', () => { if (!DATA) return; state.types[b.dataset.type] = !state.types[b.dataset.type]; save(); render(); }));
 document.querySelector('.tabs').addEventListener('click', e => { const b = e.target.closest('.tab'); if (!b || !DATA) return; state.tab = b.dataset.tab; save(); render(); });
 view.addEventListener('click', e => {
+  const tr = e.target.closest('[data-treat]');
+  if (tr){ const w = +tr.dataset.treat; state.treatW[w] = !state.treatW[w]; save(); render();
+    const again = view.querySelector(`[data-treat="${w}"]`); if (again) again.focus(); return; }
   const g = e.target.closest('[data-go]');
   if (g){ const id = g.dataset.go; state.tab = MEALS[id].type; state.open[id] = true; save(); render();
     const el = document.getElementById('m-' + id);

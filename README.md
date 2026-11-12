@@ -4,6 +4,10 @@ A free website with a full week of meals built from REMA 1000's offers: 7 breakf
 
 The recipes are healthy by design: whole ingredients, no processed meat (sausages, bacon, medister, leverpostej), no ready-made sauces or spice mixes, whole-grain pasta and rye bread, plenty of vegetables, fish and beans. Each week the build reads the ingredient declaration of every product it would pick and skips products with additives worth avoiding (nitrite, phosphates, sweeteners, glutamate, colourings and similar E-numbers) whenever a cleaner product exists. Portions are sized for 2,000 kcal per person per day, and visitors can set their own target.
 
+Any day can be switched to a **treat day**, which uses a separate set of comfort-food classics (`kind: 'treat'` in `recipes.mjs`). A **Cheapest week** switch picks the lowest price when on, and favours vegetables, protein and fish when off.
+
+The planning runs in the visitor's browser (`planner.js`, shared with the weekly build), so changing people, calories, treat days or the cheap switch re-plans the week instantly.
+
 Nothing is assumed to be in the cupboard. Every ingredient, salt, oil and spices included, is priced at REMA (offer price or normal shelf price) and bought in whole packs. Meals are picked by how little they add to the total shop, so packs bought for one meal get used up by the others. Pack sizes round differently for 1 person and for 6, so the build makes a separate cheapest plan for each household size.
 
 Every Sunday morning a GitHub Action reads the new REMA 1000 avis, reads REMA's normal shelf prices, and picks the combination of recipes from the recipe bank that makes the whole week's shop cheapest per portion. Then it redeploys the site. Anyone with the link can open it, no login.
@@ -22,7 +26,8 @@ When it finishes, the site is at `https://<your-username>.github.io/<repo-name>/
 
 | File | What it does |
 | --- | --- |
-| `index.html` | The site. Loads `data/week.json`. Portions, ticks and your calorie target are remembered in the visitor's browser. |
+| `planner.js` | The week planner, shared by the build and the site. |
+| `index.html` | The site. Loads `data/week.json` and plans the week live. Portions, ticks and your calorie target are remembered in the visitor's browser. |
 | `scripts/offers.mjs` | Reads every product labelled "Avisvare" from REMA's product API (the one shop.rema1000.dk uses). Falls back to reading the avisvarer pages, then the Tjek / eTilbudsavis API. |
 | `scripts/recipes.mjs` | The ingredient catalogue (nutrition per 100 g + rules for recognising each ingredient in the avis) and the recipe bank. |
 | `scripts/build-week.mjs` | Prices every ingredient (cheapest pack on offer or on the shelf), picks the cheapest varied week, writes `data/week.json` and `data/prices.json` (which product each ingredient matched, for checking). |

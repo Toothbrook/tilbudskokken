@@ -52,7 +52,7 @@ export const INGREDIENTS = {
   smor:         { n: 'Smør', kcal: 717, p: 0.9, spoon: 15, group: 'dairy', cats: MEJERI, re: new RegExp(`${W}SMØR${E}|SMØRBAR|KÆRGÅRDEN|LURPAK|BAKKEDAL`), ex: /SMØREOST|KAGE|PLANTE/, est: [22, 250, '250 g'] },
   // ---- bread & grains
   rugbrod:      { n: 'Rugbrød', kcal: 220, p: 6.5, each: 45, unit: 'skiver', group: 'grain', cats: ['brod-bavinchi'], subs: ['rugbrod'], re: /./, ex: /CHIPS|KNÆK/, est: [18, 1000, '1 kg'] },
-  boller:       { n: 'Boller', kcal: 260, p: 9, each: 62, unit: 'stk', group: 'grain', cats: ['brod-bavinchi', 'frost'], re: /BOLLE/, ex: /KANEL|FASTELAVN|CHOKOLADE|BURGER|PØLSE|KØD|MELBOLLE|FRIKADEL|FISKE|SUPPE/, est: [18, 600, '600 g'] },
+  boller:       { n: 'Boller', kcal: 260, p: 9, each: 62, unit: 'stk', group: 'grain', cats: ['brod-bavinchi', 'frost'], re: /BOLLE/, ex: /KANEL|FASTELAVN|CHOKOLADE|BURGER|PØLSE|KØD|MELBOLLE|FRIKADEL|FISKE|SUPPE|BRIOCHE/, est: [18, 600, '600 g'] },
   toast:        { n: 'Toastbrød', kcal: 260, p: 9, each: 35, unit: 'skiver', group: 'grain', cats: ['brod-bavinchi'], subs: ['brod'], re: /./, ex: /RUG|KNÆK|GLUTENFRI/, est: [15, 700, '700 g'] },
   wraps:        { n: 'Tortillas', kcal: 300, p: 8, each: 60, unit: 'stk', group: 'grain', re: /TORTILLA|WRAP/, ex: /CHIPS|KIT/, est: [18, 480, '8 stk'] },
   pasta:        { n: 'Fuldkornspasta', kcal: 350, p: 13, group: 'grain', cats: KOL, must: /FULDKORN/, re: /PASTA|SPAGHETTI|PENNE|FUSILLI|FARFALLE|MAKARONI|TAGLIATELLE|LINGUINE|RIGATONI|SKRUER|SPIRALER/, ex: /SAUCE|SALAT|LASAGNETTE|FRISK|FYLDT|TOMAT|PESTO|KARRY|SNACK/, est: [8, 500, '500 g'] },
@@ -97,11 +97,15 @@ export const INGREDIENTS = {
   paprika:      { n: 'Paprika', kcal: 280, p: 14, tsp: 2.5, group: 'spice', cats: KOL, re: /PAPRIKA/, ex: /CHIPS|GRYDE|PØLSE|SALAMI|SAUCE|PEBER|PASTA|SNACK|NØDD|MANDL/, est: [15, 50, '50 g'] },
   karry:        { n: 'Karry', kcal: 325, p: 12, tsp: 2.5, group: 'spice', cats: KOL, re: /KARRY|CURRY/, ex: /PASTA|PASTE|SAUCE|KETCHUP|SILD|SALAT|DRESSING|NUDLER|KYLLING|KETCH|DIP|SUPPE|SNACK|MIX|RED|GREEN|GRØN|RØD/, est: [15, 50, '50 g'] },
   spidskommen:  { n: 'Spidskommen', kcal: 375, p: 18, tsp: 2, group: 'spice', cats: KOL, re: /SPIDSKOMMEN|CUMIN/, ex: /MIX|BLANDING/, est: [15, 40, '40 g'] },
+  sukker:       { n: 'Sukker', kcal: 400, p: 0, spoon: 12, group: 'pantry', cats: KOL, re: new RegExp(`${W}(?:SUKKER|STØDT MELIS)${E}`), ex: /FLORMELIS|RØR|KANDIS|VANILJE|PERLE|SØDESTOF|FRI|BRUN|SIRUP/, est: [12, 1000, '1 kg'] },
+  skinke:       { n: 'Skinke (pålæg)', kcal: 110, p: 19, group: 'protein', pg: 'pork', cats: ['kol'], re: /SKINKE/, ex: /STEG|SALAT|SALAMI|SCHNITZ|SPEGE/, est: [15, 100, '100 g'] },
+  burgerboller: { n: 'Burgerboller', kcal: 270, p: 9, each: 70, unit: 'stk', group: 'grain', cats: ['brod-bavinchi', 'frost'], re: /BURGER ?BOLLE|BRIOCHE ?BURGER|HAMBURGERBOLLE|BURGERBRØD/, est: [18, 280, '4 stk'] },
   tacokrydderi: { n: 'Tacokrydderi', kcal: 300, p: 8, tsp: 3, group: 'spice', cats: KOL, re: /TACO ?KRYDDERI|TACO ?SPICE|TACO ?MIX|TACO SEASONING|TACOKRYDDERI/, ex: /SAUCE|SHELL|SKAL|CHIPS|KIT/, est: [8, 28, '1 pose'] },
 };
 
 const MINCE = 'hkokse|hkblanding|hkgris';
 
+// Recipes have kind 'healthy' (the default) or 'treat'; each day of the week is one or the other.
 // Healthy by design: no processed meat (sausages, bacon, medister, leverpostej), no ready-made
 // sauces or spice mixes, whole-grain pasta and rye bread, plenty of vegetables, fish and beans.
 export const RECIPES = [
@@ -216,4 +220,49 @@ export const RECIPES = [
   { id: 'risbowl', type: 'lunch', name: 'Egg fried rice with vegetables', dk: 'Stegte ris med æg & grønt', base: 1, time: '25 min', tags: ['Cheap'],
     ing: [['ris', 65], ['aeg', 120], ['frostgront|broccoli|peber|kaal', 200], ['soja', 10], ['olie', 8]],
     steps: ['Boil the rice and let it steam dry (or cook it the night before).', 'Stir-fry the vegetables in the oil, push them aside and scramble the eggs.', 'Add the rice and soy sauce and toss until hot.'] },
+  // ================= treat days: classics and comfort food =================
+  // Allowed processed meat, white bread and ready-made sauces. The additive check still picks the
+  // cleanest product it can; anything unavoidable gets a red tag on the site.
+  { id: 'stegtflaesk', type: 'dinner', kind: 'treat', name: 'Stegt flæsk with parsley sauce', dk: 'Stegt flæsk med kartofler & persillesovs', base: 3, time: '40 min', tags: ['Danish classic'], leftovers: false,
+    ing: [['flaesk', 600], ['kartofler', 800], ['maelk', 400], ['smor', 30], ['mel', 30], ['persille', 25], ['salt', 6]],
+    steps: ['Boil the potatoes in salted water.', 'Fry the pork slices crisp in a dry pan, 8–10 min, pouring off fat as you go. Salt them lightly.', 'Melt the butter, whisk in the flour, then the milk. Simmer 5 min, season with salt and stir in the chopped parsley.'] },
+  { id: 'medister', type: 'dinner', kind: 'treat', name: 'Medister with creamed cabbage', dk: 'Medister med stuvet hvidkål & kartofler', base: 3, time: '35 min', tags: ['Danish classic'],
+    ing: [['medister', 500], ['kartofler', 600], ['kaal', 500], ['floede', 100], ['smor', 15], ['salt', 6], ['sortpeber', 1]],
+    steps: ['Boil the potatoes in salted water. Fry the medister in a little of the butter on medium heat for 20–25 min, turning.', 'Boil the shredded cabbage in salted water for 5 min and drain well.', 'Simmer the rest of the butter with the cream for 3 min, fold in the cabbage and season with salt and pepper.'] },
+  { id: 'carbonara', type: 'dinner', kind: 'treat', name: 'Spaghetti carbonara', dk: 'Pasta carbonara med bacon', base: 3, time: '20 min', tags: ['Quick'], leftovers: false,
+    ing: [['bacon', 150], ['pasta', 300], ['aeg', 180], ['ost', 50], ['salt', 8], ['sortpeber', 1]],
+    steps: ['Boil the pasta in salted water.', 'Fry the bacon crisp. Whisk the eggs with the grated cheese and plenty of pepper.', 'Off the heat, toss the drained pasta with the bacon, then the egg mix and a splash of pasta water until glossy.'] },
+  { id: 'biksemad', type: 'dinner', kind: 'treat', name: 'Biksemad with fried egg', dk: 'Biksemad med pølser & spejlæg', base: 4, time: '40 min', tags: ['Danish classic'], leftovers: false,
+    ing: [['polser|medister|bacon', 400], ['kartofler', 800], ['log', 200], ['aeg', 240], ['olie', 25], ['salt', 5], ['sortpeber', 1]],
+    steps: ['Dice the potatoes small and fry them in most of the oil for 15–20 min until golden and cooked through.', 'Fry the diced meat and onion in another pan, then mix everything and season with salt and pepper.', 'Fry one egg per person in the last of the oil and put it on top.'] },
+  { id: 'burger', type: 'dinner', kind: 'treat', name: 'Burgers with oven fries', dk: 'Burger med ost & ovnfritter', base: 4, time: '45 min', tags: ['Friday'], leftovers: false,
+    ing: [['hkokse|hkblanding', 500], ['burgerboller', 280], ['ost', 80], ['salat', 80], ['tomat', 150], ['log', 100], ['kartofler', 800], ['olie', 25], ['salt', 8], ['sortpeber', 1]],
+    steps: ['Cut the potatoes into fries, toss with the oil and salt and bake at 220°C for 30–35 min, turning once.', 'Shape the mince into 4 patties, season with salt and pepper and fry 3–4 min per side. Put the cheese on for the last minute.', 'Toast the buns and build the burgers with salad, tomato and onion.'] },
+  { id: 'tacos', type: 'dinner', kind: 'treat', name: 'Soft tacos', dk: 'Tortillas med krydret kød, ost & grønt', base: 4, time: '25 min', tags: ['Friday'], leftovers: false,
+    ing: [['hkokse|hkblanding|kyllingfars|hkgris', 400], ['tacokrydderi', 28], ['wraps', 480], ['salat|kaal', 150], ['tomat|peber', 200], ['agurk', 150], ['cremefraiche', 100], ['revetost|ost', 80], ['olie', 5]],
+    steps: ['Brown the meat in the oil, then stir in the tacokrydderi and 1 dl water. Simmer 5 min.', 'Chop the vegetables. Warm the tortillas in a dry pan.', 'Everyone fills their own with meat, vegetables, creme fraiche and cheese.'] },
+  { id: 'hakkeboefbrun', type: 'dinner', kind: 'treat', name: 'Hakkebøf with brown sauce', dk: 'Hakkebøf med bløde løg, brun sovs & kartofler', base: 4, time: '35 min', tags: ['Danish classic'],
+    ing: [['hkokse|hkblanding|hkgris', 500], ['log', 300], ['kartofler', 800], ['brunsauce', 300], ['smor', 25], ['salt', 7], ['sortpeber', 1]],
+    steps: ['Boil the potatoes in salted water.', 'Slice the onions and cook them slowly in half the butter for 15 min until soft and golden.', 'Shape the mince into 4 patties, season and fry in the rest of the butter, 4 min per side.', 'Warm the brown sauce in the pan and serve with the onions and potatoes.'] },
+  { id: 'pastapolse', type: 'dinner', kind: 'treat', name: 'Sausage pasta in tomato sauce', dk: 'Pasta med pølser & tomatsauce', base: 4, time: '25 min', tags: ['Kids like it'],
+    ing: [['polser', 400], ['pasta', 400], ['hakkedetomater', 800], ['log', 150], ['hvidlog', 10], ['olie', 10], ['paprika', 3], ['salt', 8]],
+    steps: ['Fry the chopped onion, garlic and sliced sausages in the oil for 5 min.', 'Add the tomatoes and paprika and simmer 10 min. Season with salt.', 'Boil the pasta in salted water and toss with the sauce.'] },
+  { id: 'bolle', type: 'breakfast', kind: 'treat', name: 'Rolls with butter & cheese', dk: 'Boller med smør & ost', base: 1, time: '5 min', tags: ['Weekend'],
+    ing: [['boller', 124], ['smor', 10], ['ost', 40]],
+    steps: ['Warm the rolls in the oven for 5 min.', 'Split them, butter and add the cheese.'] },
+  { id: 'toastbacon', type: 'breakfast', kind: 'treat', name: 'Eggs & bacon on toast', dk: 'Toast med spejlæg & bacon', base: 1, time: '15 min', tags: ['Weekend'],
+    ing: [['toast', 70], ['aeg', 120], ['bacon', 40], ['smor', 5], ['salt', 0.5]],
+    steps: ['Fry the bacon crisp, then fry the eggs in the same pan.', 'Toast and butter the bread and put the eggs and bacon on top.'] },
+  { id: 'pandekagerklassisk', type: 'breakfast', kind: 'treat', name: 'Danish pancakes with sugar', dk: 'Pandekager med sukker', base: 1, time: '25 min', tags: ['Weekend'],
+    ing: [['mel', 60], ['aeg', 60], ['maelk', 150], ['smor', 15], ['sukker', 20], ['salt', 0.5]],
+    steps: ['Whisk flour, egg, milk, a pinch of salt and a little of the sugar into a smooth batter. Rest 10 min.', 'Fry thin pancakes in a little butter, 1 min per side.', 'Sprinkle with sugar and roll up.'] },
+  { id: 'leverpostejmad', type: 'lunch', kind: 'treat', name: 'Leverpostej with bacon & mushrooms', dk: 'Rugbrød med lun leverpostej, bacon & champignon', base: 1, time: '15 min', tags: ['Danish classic'],
+    ing: [['rugbrod', 90], ['leverpostej', 80], ['bacon', 40], ['champignon', 60]],
+    steps: ['Fry the bacon crisp, then the sliced mushrooms in the same pan.', 'Warm the leverpostej in the oven or pan.', 'Spread on rye and top with bacon and mushrooms.'] },
+  { id: 'toastskinke', type: 'lunch', kind: 'treat', name: 'Ham & cheese toastie', dk: 'Parisertoast med skinke & ost', base: 1, time: '10 min', tags: ['Quick'],
+    ing: [['toast', 140], ['skinke', 40], ['ost', 40], ['smor', 10]],
+    steps: ['Fill the bread with ham and cheese, butter the outsides.', 'Toast in a pan, 3 min per side, until golden and melted.'] },
+  { id: 'tunwrap', type: 'lunch', kind: 'treat', name: 'Tuna wrap', dk: 'Wrap med tun, creme fraiche & grønt', base: 1, time: '5 min', tags: ['Packed lunch'],
+    ing: [['tun', 100], ['wraps', 120], ['salat|kaal', 50], ['agurk|peber|tomat', 80], ['cremefraiche', 40], ['salt', 0.5]],
+    steps: ['Mix the tuna with the creme fraiche and a pinch of salt.', 'Fill the tortillas with greens and the tuna mix, and roll them tight.'] },
 ];

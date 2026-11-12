@@ -11,21 +11,13 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import { INGREDIENTS, RECIPES } from './recipes.mjs';
+import { createPlanner } from '../planner.js';
 import { scrapeApi, scrapeRema, scrapeTjek, scrapeCatalogue, parseProduct, computedWeek, productDetails } from './offers.mjs';
 
 const args = process.argv.slice(2);
 const arg = f => { const i = args.indexOf(f); return i >= 0 ? args[i + 1] : null; };
 const OUT = arg('--out') || 'data/week.json';
 const PRICES_OUT = path.join(path.dirname(OUT), 'prices.json');
-// A week is 7 breakfasts, lunches and dinners. Each slot is one recipe covering that many days:
-// dinners cooked for 2 nights are eaten as leftovers the next evening.
-const SLOTS = { dinner: [2, 2, 1, 1, 1], lunch: [3, 2, 2], breakfast: [3, 2, 2] };
-const PEOPLE = [1, 2, 3, 4, 5, 6, 7, 8];
-// Per-portion sanity range at recipe size (before scaling to the calorie target).
-const KCAL = { dinner: [300, 1100], lunch: [200, 850], breakfast: [200, 700] };
-const TARGET_KCAL = 2000;   // plans are sized and priced for this per person per day; the site rescales
-let SIZE = 1;               // portion scale used while pricing
-const CARBS = ['kartofler', 'ris', 'pasta', 'wraps', 'toast', 'boller', 'rugbrod'];
 
 // ---------- 1. offers
 let offers, week, source, catalogue = [];
@@ -128,130 +120,24 @@ for (const key of USED) {
 console.log(`Priced ${Object.keys(OPTIONS).length} ingredients: ${stats.sale} on offer, ${stats.shelf} at shelf price, ${stats.est} estimated`);
 console.log(`Additives: ${additiveCheck.checked} products checked, ${additiveCheck.flagged} flagged and skipped where possible${stats.unavoidable.length ? `; no clean choice for ${stats.unavoidable.join(', ')}` : ''}`);
 
-// ---------- 3. cost model
-function cover(key, g) {
-  if (g <= 0) return { cost: 0 };
-  const def = INGREDIENTS[key];
-  let best = null;
-  for (const o of OPTIONS[key]) {
-    const n = o.loose ? 1 : Math.max(1, Math.ceil(g / o.pack - 0.03));
-    const cost = o.loose ? o.price * Math.max(g, def.each || 200) / o.pack : n * o.price;
-    if (!best || cost < best.cost - 1e-9) best = { cost, o, n };
-  }
-  return best;
+// ---------- 3. plan (the same planner the website runs live)
+const ing = {};
+for (const k of USED) {
+  const { re, ex, must, cats, subs, stkG, est, ...rest } = INGREDIENTS[k];
+  ing[k] = { ...rest, options: OPTIONS[k] };
 }
-const shopCost = need => Object.entries(need).reduce((s, [k, g]) => s + cover(k, g).cost, 0);
-const nutrition = (ing, portions) => {
-  let k = 0, p = 0; for (const [key, g] of ing) { k += INGREDIENTS[key].kcal * g / 100; p += INGREDIENTS[key].p * g / 100; }
-  return { kcal: k / portions, p: p / portions };
-};
-
-// Resolve 'a|b' lines to whichever adds least to the shop, then price the meal against what's already bought.
-function evaluate(r, need, portions) {
-  const f = portions / r.base * SIZE;
-  const trial = { ...need }, ing = [];
-  let added = 0;
-  for (const [spec, g] of r.ing) {
-    let best = null;
-    for (const k of spec.split('|')) {
-      const before = cover(k, trial[k] || 0).cost, after = cover(k, (trial[k] || 0) + g * f).cost;
-      const d = after - before;
-      if (!best || d < best.d - 1e-9) best = { k, d };
-    }
-    trial[best.k] = (trial[best.k] || 0) + g * f; added += best.d; ing.push([best.k, g]);
-  }
-  const protein = ing.map(([k]) => k).find(k => INGREDIENTS[k].group === 'protein');
-  const carb = ing.map(([k]) => k).find(k => CARBS.includes(k));
-  return { r, ing, portions, added, perPortion: added / portions, trial, protein, carb, ...nutrition(ing, r.base) };
-}
+const recipes = RECIPES.map(r => ({ ...r, kind: r.kind || 'healthy' }));
 const seed = week.year * 100 + week.week;
-const jitter = id => { let h = seed; for (const c of id) h = (h * 31 + c.charCodeAt(0)) >>> 0; return 1 + (h % 1000) / 1000 * 0.06; };
-
-function greedy(people, firstDinner) {
-  let need = {};
-  const chosen = [];
-  for (const type of ['dinner', 'lunch', 'breakfast']) {
-    const usedProtein = new Set(), family = {}, carbs = {};
-    SLOTS[type].forEach((days, i) => {
-      if (chosen.failed) return;
-      const portions = days * people;
-      const pool = RECIPES.filter(r => r.type === type && !chosen.some(c => c.r.id === r.id)
-        && !(days > 1 && r.leftovers === false)).map(r => evaluate(r, need, portions));
-      const ok = c => {
-        const [lo, hi] = KCAL[type];
-        if (c.kcal < lo || c.kcal > hi) return false;
-        if (type === 'dinner') {
-          if (c.protein && (usedProtein.has(c.protein) || (family[INGREDIENTS[c.protein].pg] || 0) >= 2)) return false;
-          if (c.carb && (carbs[c.carb] || 0) >= 2) return false;
-        } else if (c.protein && usedProtein.has(c.protein) && pool.some(o => o.protein !== c.protein)) return false;
-        return true;
-      };
-      const allowed = pool.filter(ok).length ? pool.filter(ok) : pool;
-      const best = type === 'dinner' && i === 0 && firstDinner
-        ? allowed.find(c => c.r.id === firstDinner)
-        : allowed.sort((a, b) => a.perPortion * jitter(a.r.id) - b.perPortion * jitter(b.r.id))[0];
-      if (!best) { chosen.failed = true; return; }
-      chosen.push({ ...best, days }); need = best.trial;
-      if (best.protein) { usedProtein.add(best.protein); const g = INGREDIENTS[best.protein].pg; family[g] = (family[g] || 0) + 1; }
-      if (best.carb) carbs[best.carb] = (carbs[best.carb] || 0) + 1;
-    });
-  }
-  if (chosen.failed) return null;
-  const portions = chosen.reduce((s, c) => s + c.portions, 0);
-  return { chosen, need, total: shopCost(need), portions };
-}
-
-// Lay the week out day by day, starting on the first day of the offer week.
-function schedule(chosen) {
-  const of = t => chosen.filter(c => c.r.type === t);
-  const dinners = of('dinner').flatMap(c => Array.from({ length: c.days }, (_, n) => ({ id: c.r.id, left: n > 0 })));
-  // Round-robin so the same breakfast/lunch isn't eaten three days running.
-  const rotate = t => {
-    const list = of(t), left = Object.fromEntries(list.map(c => [c.r.id, c.days])), out = [];
-    for (let k = 0; out.length < 7 && k < 50; k++) { const id = list[k % list.length].r.id; if (left[id] > 0) { out.push(id); left[id]--; } }
-    return out;
-  };
-  const b = rotate('breakfast'), l = rotate('lunch');
-  const start = Date.parse(week.validFrom + 'T12:00:00Z');
-  return Array.from({ length: 7 }, (_, d) => ({ date: new Date(start + d * 864e5).toISOString().slice(0, 10),
-    b: b[d], l: l[d], d: dinners[d].id, left: dinners[d].left }));
-}
-
-// Pack sizes round differently for 1 person and for 6, so plan each household size on its own.
-const plans = {}, allNeed = {}, recipeIds = new Set();
-const dayKcal = chosen => chosen.reduce((s, c) => s + c.kcal * c.days, 0) / 7;
-for (const people of PEOPLE) {
-  // Price at the size people will actually eat: plan, measure the day's calories, rescale, plan again.
-  let best;
-  SIZE = 1;
-  for (let pass = 0; pass < 3; pass++) {
-    const tries = RECIPES.filter(r => r.type === 'dinner' && r.leftovers !== false).map(r => greedy(people, r.id)).filter(Boolean);
-    best = tries.sort((a, b) => a.total / a.portions - b.total / b.portions)[0];
-    const next = Math.min(2.5, Math.max(0.6, TARGET_KCAL / dayKcal(best.chosen)));
-    if (Math.abs(next - SIZE) < 0.03) break;
-    SIZE = next;
-  }
-  const onSale = Object.entries(best.need).reduce((s, [k, g]) => { const c = cover(k, g); return s + (c.o?.onSale ? c.cost : 0); }, 0);
-  plans[people] = { people, total: +best.total.toFixed(2), portions: best.portions, perPortion: +(best.total / best.portions).toFixed(2),
-    onSale: +onSale.toFixed(2), size: +SIZE.toFixed(3), kcal: TARGET_KCAL, cook: Object.fromEntries(best.chosen.map(c => [c.r.id, c.portions])),
-    pick: Object.fromEntries(best.chosen.map(c => [c.r.id, c.ing.map(([k]) => k)])), days: schedule(best.chosen) };
-  for (const k of Object.keys(best.need)) allNeed[k] = true;
-  best.chosen.forEach(c => recipeIds.add(c.r.id));
-  console.log(`${people} ${people > 1 ? 'people' : 'person '}: ×${SIZE.toFixed(2)} ${best.total.toFixed(2)} kr for ${best.portions} portions (${(best.total / best.portions).toFixed(2)} kr/portion) · `
-    + best.chosen.map(c => `${c.r.id}×${c.days}`).join(' '));
+const planner = createPlanner({ recipes, ing, seed });
+const FRI_SAT = [0, 0, 0, 0, 0, 1, 1].map(Boolean);   // day 0 is Sunday, the first day of the offer week
+for (const [label, people, treat, cheap] of [['1 person', 1], ['2 people', 2], ['4 people', 4], ['2 people, Fri+Sat treat', 2, FRI_SAT], ['2 people, not cheapest', 2, undefined, false]]) {
+  const p = planner.plan(people, treat, 2000, { cheap });
+  if (!p) { console.error(`No plan could be made for ${label}`); process.exit(1); }
+  console.log(`${label.padEnd(24)} ${p.total.toFixed(2).padStart(8)} kr · ${p.kcal} kcal/day · q${p.quality.toFixed(2)} · `
+    + p.days.map(d => `${d.treat ? '*' : ''}${d.d}${d.left ? '(rest)' : ''}`).join(' '));
 }
 
 // ---------- 4. output
-// Each plan resolves 'a|b' lines its own way, so meals carry the raw lines and each plan says what it picked.
-const meals = RECIPES.filter(r => recipeIds.has(r.id)).map(r => ({ id: r.id, type: r.type, name: r.name, dk: r.dk, base: r.base,
-  time: r.time, tags: r.tags, steps: r.steps, ...(r.tip ? { tip: r.tip } : {}), ...(r.leftovers === false ? { leftovers: false } : {}) }));
-const ing = {};
-for (const k of Object.keys(allNeed)) {
-  const { re, ex, cats, subs, group, pg, stkG, est, ...rest } = INGREDIENTS[k];
-  ing[k] = { ...rest, group, options: OPTIONS[k] };
-}
-const grams = Object.fromEntries(RECIPES.filter(r => recipeIds.has(r.id)).map(r => [r.id, r.ing.map(([, g]) => g)]));
-
 const ORDER = ['kod-fisk-fjerkrae', 'kol', 'frugt-gront', 'mejeri', 'ost-mv', 'brod-bavinchi', 'frost', 'kolonial', '*'];
 const offerList = [...offers]
   .sort((a, b) => ORDER.indexOf(a.cat) - ORDER.indexOf(b.cat) || a.name.localeCompare(b.name, 'da'))
@@ -259,8 +145,7 @@ const offerList = [...offers]
     unitPrice: o.unitPrice, per: o.per, cat: o.cat, url: o.url }));
 
 const data = { ...week, source, generatedAt: new Date().toISOString(), shelfPrices: catalogue.length ? 'live' : 'estimated',
-  additives: { checked: additiveCheck.checked, flagged: additiveCheck.flagged },
-  defaultPeople: 2, plans, ing, meals, grams, offers: offerList };
+  additives: { checked: additiveCheck.checked, flagged: additiveCheck.flagged }, seed, defaultPeople: 2, recipes, ing, offers: offerList };
 await fs.mkdir(path.dirname(OUT), { recursive: true });
 await fs.writeFile(OUT, JSON.stringify(data) + '\n');
 await fs.writeFile(PRICES_OUT, JSON.stringify({ week: week.week, catalogueProducts: catalogue.length, additiveCheck,
