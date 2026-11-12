@@ -1,6 +1,6 @@
 {
  "week": 46,
- "catalogueProducts": 1778,
+ "catalogueProducts": 2014,
  "ingredients": {
   "hkokse": [
    "Hk. oksekød, 35% grønt 400 g 29.95 kr",
@@ -51,8 +51,7 @@
    "Røget bacon 67,12 kr/kg 67.12 kr"
   ],
   "polser": [
-   "Bjørnepølse 80 g 12.95 kr",
-   "Kyllingepølse 8% 110 g 14.95 kr",
+   "Jægerpølse 100 g 14.95 kr",
    "Kyllinge pølser 300 g 17.95 kr",
    "Grillpølser 550 g 24.95 kr"
   ],
@@ -80,7 +79,8 @@
    "Tun i vand 168 g 20.27 kr"
   ],
   "aeg": [
-   "Økologiske æg 8 stk 31.95 kr",
+   "Frilandsæg 6 stk 26.15 kr",
+   "Skrabeæg 10 stk 31.95 kr",
    "Skrabeæg 15 stk 45.25 kr"
   ],
   "leverpostej": [
@@ -88,8 +88,9 @@
    "Leverpostej 500 g 13.95 kr"
   ],
   "skyr": [
+   "Skyr airy strawberry 128 g 8.5 kr",
    "Skyr naturel 450 g 18.1 kr",
-   "Skovbær 1 kg 30.95 kr"
+   "Skyr naturel 1 kg 19.95 kr"
   ],
   "yoghurt": [
    "Naturel yoghurt 1 kg 9.95 kr"
@@ -117,7 +118,8 @@
    "Piskefløde 36% fedt 500 ml 14.95 kr"
   ],
   "cremefraiche": [
-   "Cremefraiche 18% 250 g 14.95 kr"
+   "Cremefraiche 18% 250 g 12.95 kr",
+   "Creme fraiche 18% 500 g 18.95 kr"
   ],
   "maelk": [
    "Letmælk 250 ml 3.95 kr",
@@ -126,7 +128,7 @@
   ],
   "smor": [
    "Smør 200 g 7.96 kr",
-   "Arla smør 250 g 32.95 kr"
+   "Becel smørbar 250 g 18.95 kr"
   ],
   "rugbrod": [
    "Schwarzbrød 560 g 5.54 kr",
@@ -148,7 +150,7 @@
    "Limpan 900 g 26.95 kr"
   ],
   "wraps": [
-   "Tortillas hvede 370 g 10.7 kr"
+   "TILBUD Tortillas hvede 370 g 9 kr"
   ],
   "pasta": [
    "Pasta skruer 500 g 5.95 kr",
@@ -236,7 +238,8 @@
    "Clementin land se vare 1 kg 18 kr"
   ],
   "baer": [
-   "Jordbær 400 g 12 kr"
+   "Jordbær 400 g 12 kr",
+   "Flødeis jordbær 750 ml 40.18 kr"
   ],
   "frostgront": [
    "Hakket spinat 750 g 9.95 kr"
@@ -283,10 +286,12 @@
    "Stødt sort peber 100 g 7.5 kr"
   ],
   "paprika": [
+   "Sød paprika 45 g 9.67 kr",
    "Majskiks 120 g 12 kr"
   ],
   "karry": [
-   "Red curry mix 32 g 6.06 kr"
+   "Red curry mix 32 g 6.06 kr",
+   "Karry 35 g 11.17 kr"
   ],
   "tacokrydderi": [
    "Taco spice mix 40 g 5.25 kr"
