@@ -72,7 +72,12 @@ h1 em{font-style:normal;color:var(--sale)}
 .addp{border:1px dashed var(--line);background:none;border-radius:10px;padding:7px 12px;font-weight:600;font-size:13.5px;cursor:pointer;color:var(--ink)}
 .addp:disabled{opacity:.4;cursor:default}
 .whok{font-family:var(--mono);font-size:11px;color:var(--muted);margin-top:4px}
-.serve{font-size:13.5px;margin:0}
+.plates{display:flex;flex-direction:column;gap:6px}
+.pl{display:grid;grid-template-columns:minmax(4.5em,auto) minmax(0,1fr) auto;gap:4px 10px;align-items:baseline;font-size:14px;padding:6px 0;border-bottom:1px solid var(--line)}
+.pl:last-of-type{border-bottom:0}
+.pl small{color:var(--muted);font-size:12px;white-space:nowrap}
+.plhint{margin:0;font-size:12px;color:var(--muted)}
+@media (max-width:420px){.pl{grid-template-columns:1fr auto}.pl span{grid-column:1 / -1;grid-row:2}}
 .switch{display:inline-flex;align-items:center;gap:8px;border:1px solid var(--line);background:var(--paper);border-radius:999px;padding:4px 12px 4px 4px;cursor:pointer;font-weight:700;font-size:13.5px;color:var(--muted);width:max-content}
 .switch .knob{width:30px;height:30px;border-radius:50%;background:var(--soft);transition:background .15s}
 .switch[aria-checked="true"]{background:var(--ink);border-color:var(--ink);color:var(--paper)}
@@ -347,6 +352,44 @@ function weekView(){
   }).join('')}</div>`;
 }
 
+// ---- how much goes on each plate
+// Raw recipe amounts are turned into what's on the plate: rice and pasta swell, meat and
+// vegetables shrink, and the water a method adds ends up in the pot.
+const plain = h => h.replace(/<[^>]+>/g, '');
+const COOKED = { ris: 2.6, pasta: 2.3 };
+const SIDES = ['ris', 'pasta', 'kartofler', 'rugbrod', 'burgerboller', 'wraps', 'boller', 'toast'];
+const SIDE_NAME = { ris: 'rice', pasta: 'pasta', kartofler: 'potatoes' };
+const EACH_NAME = { rugbrod: ['slice of rye', 'slices of rye'], burgerboller: ['bun', 'buns'], wraps: ['tortilla', 'tortillas'],
+  boller: ['roll', 'rolls'], toast: ['slice of toast', 'slices of toast'], aeg: ['egg', 'eggs'] };
+const cookedF = (m, k) => COOKED[k] ?? (k === 'kartofler' ? (m.roast ? 0.75 : 1)
+  : ING[k].group === 'protein' ? (ING[k].pg === 'fish' ? 0.8 : ING[k].pg === 'egg' ? 1 : 0.75) : ING[k].group === 'produce' ? 0.85 : 1);
+const r10 = g => `${Math.max(10, Math.round(g / 10) * 10)} g`;
+const half = n => { const r = Math.max(0.5, Math.round(n * 2) / 2); return (Math.floor(r) || '') + (r % 1 ? '½' : ''); };
+const many = (n, [one, more]) => `${half(n)} ${Math.round(n * 2) / 2 > 1 ? more : one}`;
+function plate(m, i){
+  const lines = ingOf(m.id), f = SCALE * state.members[i].kcal / AVG() / m.base;
+  if (m.base === 1) return lines.filter(([k]) => ING[k].group !== 'spice').map(([k, g]) => `${plain(amount(k, g * f))} ${ING[k].n.toLowerCase()}`);
+  const sides = m.sides || (m.mixed ? [] : SIDES), parts = [], pieceKeys = new Set(m.pieces?.[2] || []);
+  let main = (m.water || 0) * 0.85 * f, piece = 0;
+  for (const [k, g] of lines) {
+    const gi = g * f, i2 = ING[k];
+    if (sides.includes(k)) parts.push(i2.each ? many(gi / i2.each, EACH_NAME[k] || [i2.unit, i2.unit]) : `${r10(gi * cookedF(m, k))} ${SIDE_NAME[k] || i2.n.toLowerCase()}`);
+    else if (m.pieces && (m.mixed || i2.group === 'protein' || pieceKeys.has(k))) piece += gi * cookedF(m, k);
+    else main += gi * cookedF(m, k);
+  }
+  const out = [];
+  if (m.pieces) { const n = m.pieces[1] / m.base * SCALE * state.members[i].kcal / AVG();
+    out.push(n >= 0.75 ? `${many(n, m.pieces[0])} (≈ ${r10(piece)})` : `${r10(piece)} ${m.pieces[0][1]}`); }
+  if (main >= 15) out.push(`${r10(main)} ${m.main || 'of the dish'}${m.soup ? ` (≈ ${Math.max(1, Math.round(main / 100))} dl)` : ''}`);
+  return out.concat(parts);
+}
+function platesHtml(m, s){
+  const one = PEOPLE() === 1, word = m.base === 1 ? (m.type === 'breakfast' ? 'breakfast' : 'lunch') : 'plate';
+  return `<div class="plates"><p class="sub">${one ? `Your ${word}` : `Each ${word}`}</p>
+    ${state.members.map((mm, j) => `<div class="pl"><b>${one ? 'You' : nameOf(j)}</b><span>${plate(m, j).join(' · ')}</span><small class="num">≈ ${num(s.kcal * mm.kcal / AVG())} kcal</small></div>`).join('')}
+    ${m.base > 1 ? `<p class="plhint">Cooked weights, roughly. A kitchen scale makes it easy: put the plate on, tare, and serve.</p>` : ''}</div>`;
+}
+
 function mealCard(m){
   const n = plan().cook[m.id], f = n/m.base*SCALE, open = !!state.open[m.id], s = per(m.id), days = daysOf(m.id);
   const word = m.type === 'breakfast' ? 'mornings' : m.type === 'lunch' ? 'days' : (days > 1 ? 'evenings' : 'evening');
@@ -364,7 +407,7 @@ function mealCard(m){
     </button>
     <div class="meal-body" id="b-${m.id}" ${open?'':'hidden'}>
       <p class="cookfor">${when}</p>
-      ${PEOPLE() > 1 && !sameK() ? `<p class="serve">Each serving: ${state.members.map((mm, j) => `<b>${nameOf(j)}</b> ≈ ${num(s.kcal * mm.kcal / AVG())} kcal (${Math.round(mm.kcal / AVG() / PEOPLE() * 100)}% of the dish)`).join(', ')}.</p>` : ''}
+      ${platesHtml(m, s)}
       <div class="macro"><span>≈ <b class="num">${kr(s.cost)} kr</b> per portion, counting only what the meal uses</span></div>
       <div><p class="sub">Ingredients for ${n} portion${n>1?'s':''}</p><ul class="ings">${ings}</ul></div>
       <div><p class="sub">Method</p><ol class="steps">${m.steps.map(x=>`<li>${x}</li>`).join('')}</ol></div>
