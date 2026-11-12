@@ -24,7 +24,7 @@ export default [
     ing: [['hytteost', 200], ['tomat|peber', 100], ['agurk', 100], ['purloeg|dild|persille', 5], ['olie', 5], ['sortpeber', 0.3], ['rugbrod', 45]],
     steps: ['Spoon the cottage cheese into a bowl and top with diced tomato and cucumber.', 'Scatter over the chopped herbs, drizzle with the oil and season with black pepper.', 'Eat with a slice of rye.'] },
 
-  { id: 'hb-havreboller', type: 'breakfast', main: 'rolls', pieces: [['roll', 'rolls'], 12, ['mel', 'havregryn', 'gaer', 'olie', 'salt']], name: 'Oat rolls with cottage cheese', dk: 'Hjemmebagte havreboller med hytteost & tomat (frys resten)', base: 6, time: '1 t 30 min', tags: ['Weekend', 'Freezes well'],
+  { id: 'hb-havreboller', type: 'breakfast', main: 'cottage cheese & tomato', pieces: [['roll', 'rolls'], 12, ['mel', 'havregryn', 'gaer', 'olie', 'salt']], name: 'Oat rolls with cottage cheese', dk: 'Hjemmebagte havreboller med hytteost & tomat (frys resten)', base: 6, time: '1 t 30 min', tags: ['Weekend', 'Freezes well'],
     ing: [['mel', 400], ['havregryn', 150], ['gaer', 25], ['olie', 15], ['salt', 8], ['hytteost|kvark', 480], ['tomat|agurk|peber', 600]],
     steps: ['Dissolve the yeast in 4 dl lukewarm water, then knead in the oats, oil, salt and flour to a soft dough.', 'Let it rise 45 min, shape into 12 rolls on a baking tray and rise 20 min more.', 'Bake at 220°C for 15 min. Freeze what you will not eat in 2 days.', 'Serve 2 rolls per person with cottage cheese and sliced tomato.'] },
 

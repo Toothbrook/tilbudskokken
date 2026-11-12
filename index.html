@@ -305,6 +305,7 @@ const warn = o => o.additives ? `<span class="warn" title="No product without th
 const tag = o => o.onSale ? `<span class="sticker">${kr(o.price)} kr · ${o.label}</span>` : `<span class="shelf">${o.est?'≈':''}${kr(o.price)} kr · ${o.label}</span>`;
 function amount(key, g){
   const i = ING[key];
+  if (i.each && g < i.each / 4) return `${Math.round(g)} g`;
   if (i.each){ const r = Math.round(g/i.each*2)/2; return `${String(r).replace('.',',')} ${i.unit} <span style="opacity:.7">(${Math.round(g)} g)</span>`; }
   if (i.tsp && g <= 30){ const t = Math.max(.25, Math.round(g/i.tsp*4)/4); return `${String(t).replace('.',',')} tsk`; }
   if (i.spoon && g <= 45){ const sp = Math.max(.5, Math.round(g/i.spoon*2)/2); return `${String(sp).replace('.',',')} spsk`; }
@@ -358,9 +359,9 @@ function weekView(){
 const plain = h => h.replace(/<[^>]+>/g, '');
 const COOKED = { ris: 2.6, pasta: 2.3, bulgur: 2.5, nudler: 2.3, roedelinser: 2.5, lasagne: 1.8 };
 const SIDES = ['ris', 'pasta', 'bulgur', 'kartofler', 'rugbrod', 'burgerboller', 'wraps', 'boller', 'toast'];
-const SIDE_NAME = { ris: 'rice', pasta: 'pasta', bulgur: 'bulgur', kartofler: 'potatoes', salat: 'salad' };
+const SIDE_NAME = { ris: 'rice', pasta: 'pasta', bulgur: 'bulgur', kartofler: 'potatoes', salat: 'salad', rodbeder: 'beetroot', tomat: 'tomatoes' };
 const EACH_NAME = { rugbrod: ['slice of rye', 'slices of rye'], burgerboller: ['bun', 'buns'], wraps: ['tortilla', 'tortillas'],
-  boller: ['roll', 'rolls'], toast: ['slice of toast', 'slices of toast'], aeg: ['egg', 'eggs'] };
+  boller: ['roll', 'rolls'], toast: ['slice of toast', 'slices of toast'], aeg: ['egg', 'eggs'], agurk: ['cucumber', 'cucumbers'] };
 const cookedF = (m, k) => COOKED[k] ?? (k === 'kartofler' ? (m.roast ? 0.75 : 1)
   : ING[k].group === 'protein' ? (ING[k].pg === 'fish' ? 0.8 : ING[k].pg === 'egg' ? 1 : 0.75) : ING[k].group === 'produce' ? 0.85 : 1);
 const r10 = g => `${Math.max(10, Math.round(g / 10) * 10)} g`;
@@ -370,10 +371,12 @@ function plate(m, i){
   const lines = ingOf(m.id), f = SCALE * state.members[i].kcal / AVG() / m.base;
   if (m.base === 1) return lines.filter(([k]) => ING[k].group !== 'spice').map(([k, g]) => `${plain(amount(k, g * f))} ${ING[k].n.toLowerCase()}`);
   const sides = m.sides || (m.mixed ? [] : SIDES), parts = [], pieceKeys = new Set(m.pieces?.[2] || []);
-  let main = (m.water || 0) * 0.85 * f, piece = 0;
+  // Water a method adds ends up in the pot, or in the pieces when the whole dish is pieces (pancakes).
+  const water = (m.water || 0) * 0.85 * f;
+  let main = m.pieces && m.mixed ? 0 : water, piece = m.pieces && m.mixed ? water : 0;
   for (const [k, g] of lines) {
     const gi = g * f, i2 = ING[k];
-    if (sides.includes(k)) parts.push(i2.each ? many(gi / i2.each, EACH_NAME[k] || [i2.unit, i2.unit]) : `${r10(gi * cookedF(m, k))} ${SIDE_NAME[k] || i2.n.toLowerCase()}`);
+    if (sides.includes(k)) parts.push(i2.each ? many(gi / i2.each, EACH_NAME[k] || [`${i2.unit} ${i2.n.toLowerCase()}`, `${i2.unit} ${i2.n.toLowerCase()}`]) : `${r10(gi * cookedF(m, k))} ${SIDE_NAME[k] || i2.n.toLowerCase()}`);
     else if (m.pieces && (m.mixed || i2.group === 'protein' || pieceKeys.has(k))) piece += gi * cookedF(m, k);
     else main += gi * cookedF(m, k);
   }

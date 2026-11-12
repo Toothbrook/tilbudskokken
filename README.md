@@ -30,6 +30,8 @@ When it finishes, the site is at `https://<your-username>.github.io/<repo-name>/
 | `index.html` | The site. Loads `data/week.json` and plans the week live. Portions, ticks and your calorie target are remembered in the visitor's browser. |
 | `scripts/offers.mjs` | Reads every product labelled "Avisvare" from REMA's product API (the one shop.rema1000.dk uses). Falls back to reading the avisvarer pages, then the Tjek / eTilbudsavis API. |
 | `scripts/recipes.mjs` | The ingredient catalogue (nutrition per 100 g + rules for recognising each ingredient in the avis) and the recipe bank. |
+| `scripts/recipes/*.mjs` | The rest of the recipe bank, about 200 recipes in all: healthy dinners, lunches and breakfasts, and treat-day classics. |
+| `scripts/check-recipes.mjs` | Checks the recipe bank: known ingredient keys, sensible calories per portion, no treat-only ingredients on healthy days, and every seasoning, fat or liquid a method mentions is on the ingredient list. |
 | `scripts/build-week.mjs` | Prices every ingredient (cheapest pack on offer or on the shelf), picks the cheapest varied week, writes `data/week.json` and `data/prices.json` (which product each ingredient matched, for checking). |
 | `.github/workflows/weekly.yml` | Runs the build Sunday 06:17 (and Monday as a retry), commits the plan, deploys to Pages. |
 
@@ -39,7 +41,7 @@ If REMA changes their website and the offers can't be read, the run is marked fa
 
 ## Adding recipes
 
-Open `scripts/recipes.mjs` and add an entry to `RECIPES`. Ingredient lines are `[key, grams]` for the whole recipe, and must include everything the method uses (salt, oil, spices). Add `leftovers: false` to dinners that don't keep (fried eggs, fish). `'hkokse|hkgris'` means "whichever is cheapest". Push the change and the next run can pick it.
+Add an entry to one of the files in `scripts/recipes/` (or `RECIPES` in `scripts/recipes.mjs`). Ingredient lines are `[key, grams]` for the whole recipe, and must include everything the method uses (salt, oil, spices). Add `leftovers: false` to dinners that don't keep (fried eggs, fish). `'hkokse|hkgris'` means "whichever is cheapest". Run `node scripts/check-recipes.mjs` and fix what it reports, then push and the next run can pick it.
 
 ## Run it locally
 

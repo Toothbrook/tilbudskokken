@@ -11,6 +11,7 @@ const CARBS = ['kartofler', 'ris', 'pasta', 'bulgur', 'nudler', 'sodkartoffel', 
 const TYPES = ['dinner', 'lunch', 'breakfast'];
 const MAX_PAIRS = 2;            // dinners cooked once and eaten two nights running
 const ROTATE = { healthy: 3, treat: 2 };   // distinct breakfasts/lunches per kind of day
+const OPENERS = 12;             // first dinners re-tried while the portion size settles
 
 // Cheapest way to buy g grams: n packs of one option (loose produce by weight).
 export function cover(def, g) {
@@ -31,29 +32,30 @@ export function createPlanner({ recipes, ing, seed = 0 }) {
   const kindOf = r => r.kind || 'healthy';
 
   // Resolve 'a|b' lines to whichever adds least, then price the meal against what's already bought.
+  const alts = new Map(recipes.map(r => [r.id, r.ing.map(([spec, g]) => [spec.split('|').filter(k => ing[k]), g])]));
   function evaluate(r, need, portions, size) {
-    const f = portions / r.base * size, trial = { ...need }, lines = [];
+    const f = portions / r.base * size, add = {}, lines = [];
     let added = 0, kcal = 0, veg = 0, prot = 0, saved = 0;
-    for (const [spec, g] of r.ing) {
+    for (const [keys, g] of alts.get(r.id)) {
       let best = null;
-      for (const k of spec.split('|')) {
-        if (!ing[k]) continue;
-        const have = trial[k] || 0, d = coverK(k, have + g * f).cost - coverK(k, have).cost;
+      for (const k of keys) {
+        const have = (need[k] || 0) + (add[k] || 0), d = coverK(k, have + g * f).cost - coverK(k, have).cost;
         if (!best || d < best.d - 1e-9) best = { k, d };
       }
       if (!best) return null;
-      trial[best.k] = (trial[best.k] || 0) + g * f; added += best.d; lines.push(best.k);
-      const o = coverK(best.k, trial[best.k]).o;
+      const k = best.k;
+      add[k] = (add[k] || 0) + g * f; added += best.d; lines.push(k);
+      const o = coverK(k, (need[k] || 0) + add[k]).o;
       if (o?.onSale && o.normal) saved += g * f * (o.normal - o.price) / o.pack;
-      kcal += ing[best.k].kcal * g / 100; prot += ing[best.k].p * g / 100;
-      if (ing[best.k].group === 'produce') veg += g;
+      kcal += ing[k].kcal * g / 100; prot += ing[k].p * g / 100;
+      if (ing[k].group === 'produce') veg += g;
     }
     const protein = lines.find(k => ing[k].group === 'protein');
     // Quality per 600 kcal (so small and big meals compare fairly): vegetables, protein, fish.
     const per600 = 600 / Math.max(kcal, 1);
     const quality = 1 + Math.min(veg * per600 / 350, 1) * 0.7 + Math.min(prot * per600 / 40, 1) * 0.7
       + (protein && ing[protein].pg === 'fish' ? 0.35 : 0);
-    return { r, lines, portions, added, saved, perPortion: added / portions, savedPP: saved / portions, trial, protein, quality,
+    return { r, lines, portions, added, saved, perPortion: added / portions, savedPP: saved / portions, add, protein, quality,
       carb: lines.find(k => CARBS.includes(k)), kcal: kcal / r.base };
   }
 
@@ -90,7 +92,7 @@ export function createPlanner({ recipes, ing, seed = 0 }) {
     const chosen = [], used = new Set(), protein = new Set(), family = {}, carbs = {};
     for (const [i, slot] of slots.entries()) {
       const portions = slot.days.length * people;
-      const pool = recipes.filter(r => r.type === slot.type && kindOf(r) === slot.kind && !used.has(r.id)
+      const pool = recipes.filter(r => (i > 0 || !opener || r.id === opener) && r.type === slot.type && kindOf(r) === slot.kind && !used.has(r.id)
         && !(slot.days.length > 1 && r.leftovers === false)).map(r => evaluate(r, need, portions, size)).filter(Boolean);
       const ok = c => {
         const [lo, hi] = KCAL[slot.type];
@@ -105,7 +107,8 @@ export function createPlanner({ recipes, ing, seed = 0 }) {
       const best = i === 0 && opener ? allowed.find(c => c.r.id === opener)
         : allowed.sort((a, b) => rank(a) - rank(b))[0];
       if (!best) return null;
-      chosen.push({ ...best, slot }); need = best.trial; used.add(best.r.id);
+      chosen.push({ ...best, slot });
+      need = { ...need }; for (const k in best.add) need[k] = (need[k] || 0) + best.add[k]; used.add(best.r.id);
       if (slot.type === 'dinner') {
         if (best.protein) { protein.add(best.protein); const g = ing[best.protein].pg; family[g] = (family[g] || 0) + 1; }
         if (best.carb) carbs[best.carb] = (carbs[best.carb] || 0) + 1;
@@ -122,12 +125,15 @@ export function createPlanner({ recipes, ing, seed = 0 }) {
   function plan(people, treat = Array(7).fill(false), kcal = 2000, opts = {}) {
     cheap = opts.cheap !== false;
     const slots = slotsFor(treat);
-    const openers = recipes.filter(r => r.type === 'dinner' && kindOf(r) === slots[0].kind && !(slots[0].days.length > 1 && r.leftovers === false));
     const dayKcal = chosen => chosen.reduce((s, c) => s + c.kcal * c.slot.days.length, 0) / 7;
     let best, size = 1;
+    // Try opening the week with every possible first dinner, then re-run only the best few while the
+    // portion size settles (packs bought for the opener shape the rest of the week).
+    let openers = recipes.filter(r => r.type === 'dinner' && kindOf(r) === slots[0].kind && !(slots[0].days.length > 1 && r.leftovers === false)).map(r => r.id);
     for (let pass = 0; pass < 3; pass++) {
-      best = openers.map(r => greedy(people, slots, size, r.id)).filter(Boolean).sort((a, b) => score(a) - score(b))[0]
-        || greedy(people, slots, size);
+      const plans = openers.map(id => greedy(people, slots, size, id)).filter(Boolean).sort((a, b) => score(a) - score(b));
+      openers = plans.slice(0, opts.openers || OPENERS).map(p => p.chosen[0].r.id);
+      best = plans[0] || greedy(people, slots, size);
       if (!best) return null;
       const next = Math.min(2.6, Math.max(0.5, kcal / dayKcal(best.chosen)));
       if (Math.abs(next - size) < 0.02) break;

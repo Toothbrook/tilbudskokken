@@ -19,6 +19,11 @@
 // potatoes and bread), water = ml the method adds, roast = oven potatoes, pieces = [[one, many], count
 // in the base recipe, keys that go into the pieces], soup = also show decilitres.
 
+import healthyDinners from './recipes/healthy-dinners.mjs';
+import healthyLunches from './recipes/healthy-lunches.mjs';
+import healthyBreakfasts from './recipes/healthy-breakfasts.mjs';
+import treats from './recipes/treats.mjs';
+
 const KOD = ['kod-fisk-fjerkrae'], FRUGT = ['frugt-gront'], KOL = ['kolonial'], MEJERI = ['mejeri'];
 const W = '(?<![A-ZÆØÅ])', E = '(?![A-ZÆØÅ])';
 
@@ -147,7 +152,7 @@ const MINCE = 'hkokse|hkblanding|hkgris';
 // Recipes have kind 'healthy' (the default) or 'treat'; each day of the week is one or the other.
 // Healthy by design: no processed meat (sausages, bacon, medister, leverpostej), no ready-made
 // sauces or spice mixes, whole-grain pasta and rye bread, plenty of vegetables, fish and beans.
-export const RECIPES = [
+const CORE = [
   // ================= dinners =================
   { id: 'chili', type: 'dinner', main: 'chili', name: 'Chili con carne', dk: 'Chili med hakket kød, bønner & ris', base: 4, time: '45 min', tags: ['Meal prep', 'Freezes well'],
     ing: [[MINCE, 400], ['log', 150], ['peber', 150], ['gulerod', 150], ['hakkedetomater', 800], ['bonner', 400], ['ris', 280], ['olie', 15], ['hvidlog', 10], ['paprika', 8], ['spidskommen', 5], ['salt', 6], ['skyr', 100]],
@@ -393,3 +398,6 @@ export const RECIPES = [
     ing: [['wraps', 120], ['ost', 50], ['bonner', 80], ['peber', 60], ['cremefraiche', 30]],
     steps: ['Fill the tortillas with grated cheese, beans and diced pepper and fold them.', 'Toast in a dry pan, 2 min per side, until the cheese melts. Serve with creme fraiche.'] },
 ];
+
+// The core bank above plus the batches in ./recipes/ (check them with scripts/check-recipes.mjs).
+export const RECIPES = [...CORE, ...healthyDinners, ...healthyLunches, ...healthyBreakfasts, ...treats];
