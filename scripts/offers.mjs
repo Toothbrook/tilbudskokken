@@ -264,3 +264,54 @@ export async function scrapeTjek(log = console.log) {
   const week = from ? computedWeek(new Date(from)) : computedWeek();
   return { offers, week, source: 'Tjek / eTilbudsavis' };
 }
+
+// ---- additives -------------------------------------------------------------------
+// E-numbers that are harmless (vitamins C/E, citric/lactic/acetic acid, pectin, plant gums,
+// lecithin, baking soda, carotene/paprika colour, CO2...) are allowed; every other E-number is
+// flagged, as are additives written out by name.
+const OK_E = new Set([100, 101, 140, 160, 162, 163, 170, 260, 262, 270, 290, 296, 297, 300, 301, 302, 304, 306, 307, 308, 309,
+  322, 325, 326, 327, 330, 331, 332, 333, 334, 335, 336, 400, 401, 406, 410, 412, 414, 415, 440, 500, 501, 503, 504, 516, 524,
+  551, 575, 920, 938, 941, 948]);
+const NAMED = /nitrit|nitrat|sorbat|benzoat|sulfit|disulfit|fosfat|phosphat|glutamat|carrageenan|karragenan|aspartam|sucralose|acesulfam|polysorbat|modificeret (?:majs|kartoffel|tapioka)?stivelse|hærdet|glukose-fruktosesirup|glucose-fructose/gi;
+function allText(v, out = []) {
+  if (typeof v === 'string') out.push(v);
+  else if (Array.isArray(v)) v.forEach(x => allText(x, out));
+  else if (v && typeof v === 'object') Object.values(v).forEach(x => allText(x, out));
+  return out;
+}
+export function findAdditives(text) {
+  const found = new Set();
+  const negated = i => /(?:uden|fri for|ingen|free from|without)[^.;]{0,25}$/i.test(text.slice(Math.max(0, i - 40), i));
+  for (const m of text.matchAll(/(?<![A-Za-zÆØÅæøå])E ?-?(\d{3,4})[a-f]?(?!\d)/g)) {
+    const n = +m[1];
+    if (n >= 100 && n < 1600 && !OK_E.has(n) && !negated(m.index)) found.add(`E${m[1]}`);
+  }
+  for (const m of text.matchAll(NAMED)) if (!negated(m.index)) found.add(m[0].toLowerCase());
+  return [...found];
+}
+
+// Product details (ingredient declaration and more) for REMA product ids. Unknown or failing ids
+// map to null, which means "not checked".
+export async function productDetails(ids, log = console.log) {
+  const H = { ...HEADERS, accept: 'application/json', origin: BASE, referer: `${BASE}/` };
+  const out = {}, queue = [...new Set(ids)];
+  let failed = 0, probe = null;
+  async function one(id) {
+    for (const q of ['?include=declaration,nutrition_info', '?include=nutrition_info', '']) {
+      try {
+        const r = await fetch(`${API}/v3/products/${id}${q}`, { headers: H });
+        if (r.status >= 400 && r.status < 500 && q) continue;
+        if (!r.ok) throw new Error(`HTTP ${r.status}`);
+        const d = (await r.json()).data || {};
+        const text = allText(d).join(' \n ');
+        if (!probe) probe = { keys: Object.keys(d), query: q, declarationLike: Object.entries(d).filter(([, v]) => /ngrediens|E\s?\d{3}/i.test(JSON.stringify(v))).map(([k]) => k) };
+        return out[id] = { additives: findAdditives(text) };
+      } catch (e) { if (!q) break; }
+    }
+    failed++; out[id] = null;
+  }
+  const workers = Array.from({ length: 6 }, async () => { while (queue.length) { await one(queue.shift()); await sleep(60); } });
+  await Promise.all(workers);
+  log(`  product details: ${Object.keys(out).length} checked, ${failed} failed`);
+  return { details: out, failed, probe };
+}

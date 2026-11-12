@@ -11,7 +11,7 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import { INGREDIENTS, RECIPES } from './recipes.mjs';
-import { scrapeApi, scrapeRema, scrapeTjek, scrapeCatalogue, parseProduct, computedWeek } from './offers.mjs';
+import { scrapeApi, scrapeRema, scrapeTjek, scrapeCatalogue, parseProduct, computedWeek, productDetails } from './offers.mjs';
 
 const args = process.argv.slice(2);
 const arg = f => { const i = args.indexOf(f); return i >= 0 ? args[i + 1] : null; };
@@ -21,7 +21,10 @@ const PRICES_OUT = path.join(path.dirname(OUT), 'prices.json');
 // dinners cooked for 2 nights are eaten as leftovers the next evening.
 const SLOTS = { dinner: [2, 2, 1, 1, 1], lunch: [3, 2, 2], breakfast: [3, 2, 2] };
 const PEOPLE = [1, 2, 3, 4, 5, 6, 7, 8];
-const KCAL = { dinner: [400, 1100], lunch: [300, 850], breakfast: [250, 700] };
+// Per-portion sanity range at recipe size (before scaling to the calorie target).
+const KCAL = { dinner: [300, 1100], lunch: [200, 850], breakfast: [200, 700] };
+const TARGET_KCAL = 2000;   // plans are sized and priced for this per person per day; the site rescales
+let SIZE = 1;               // portion scale used while pricing
 const CARBS = ['kartofler', 'ris', 'pasta', 'wraps', 'toast', 'boller', 'rugbrod'];
 
 // ---------- 1. offers
@@ -62,7 +65,7 @@ function matches(def, o) {
   if (def.cats && o.cat !== '*' && !def.cats.includes(o.cat)) return false;
   if (def.subs && o.cat !== '*' && !def.subs.includes(o.sub)) return false;
   const t = textOf(o);
-  return def.re.test(t) && !(def.ex && def.ex.test(t));
+  return def.re.test(t) && !(def.ex && def.ex.test(t)) && !(def.must && !def.must.test(t));
 }
 function toOption(def, o, onSale) {
   const pack = packGrams(def, o);
@@ -78,16 +81,52 @@ function frontier(opts) {
     && (b.pack > a.pack || b.price < a.price || (b.onSale && !a.onSale) || opts.indexOf(b) < opts.indexOf(a))));
   return out.sort((a, b) => a.pack - b.pack).slice(0, 6);
 }
-const OPTIONS = {}, stats = { sale: 0, shelf: 0, est: 0 };
-for (const [key, def] of Object.entries(INGREDIENTS)) {
-  let opts = offers.filter(o => matches(def, o)).map(o => toOption(def, o, true)).filter(Boolean);
-  const shelf = catalogue.filter(o => matches(def, o)).map(o => toOption(def, o, false)).filter(Boolean);
-  opts.push(...shelf);
-  if (!shelf.length) opts.push({ price: def.est[0], pack: def.est[1], label: def.est[2], product: def.n, desc: '', onSale: false, est: true });
+// Only ingredients some recipe uses.
+const USED = new Set(RECIPES.flatMap(r => r.ing.flatMap(([spec]) => spec.split('|'))));
+const CANDIDATES = {};
+for (const key of USED) {
+  const def = INGREDIENTS[key];
+  CANDIDATES[key] = [
+    ...offers.filter(o => matches(def, o)).map(o => toOption(def, o, true)),
+    ...catalogue.filter(o => matches(def, o)).map(o => toOption(def, o, false)),
+  ].filter(Boolean);
+}
+
+// Skip products with additives worth avoiding whenever the same ingredient has a clean product.
+// Details are fetched only for packs that would otherwise be picked, a few rounds deep.
+const DETAILS = {};
+let additiveCheck = { checked: 0, failed: 0, probe: null };
+const flagged = o => !!(o.id && DETAILS[o.id]?.additives?.length);
+if (!arg('--offers') || arg('--details')) {
+  try {
+    for (let round = 0; round < 6; round++) {
+      const want = new Set();
+      for (const key of USED) {
+        const clean = CANDIDATES[key].filter(o => !flagged(o));
+        for (const o of frontier(clean.length ? clean : CANDIDATES[key])) if (/^\d+$/.test(o.id || '') && !(o.id in DETAILS)) want.add(o.id);
+      }
+      if (!want.size) break;
+      const r = await productDetails([...want]);
+      Object.assign(DETAILS, r.details);
+      additiveCheck.failed += r.failed; additiveCheck.probe ||= r.probe;
+      if (r.failed === want.size) { console.warn('  product details unavailable, additives not checked'); break; }
+    }
+  } catch (e) { console.warn(`Additive check failed: ${e.message}`); }
+}
+additiveCheck.checked = Object.values(DETAILS).filter(Boolean).length;
+additiveCheck.flagged = Object.entries(DETAILS).filter(([, d]) => d?.additives?.length).length;
+
+const OPTIONS = {}, stats = { sale: 0, shelf: 0, est: 0, unavoidable: [] };
+for (const key of USED) {
+  const def = INGREDIENTS[key], all = CANDIDATES[key], clean = all.filter(o => !flagged(o));
+  let opts = (clean.length ? clean : all).map(o => DETAILS[o.id]?.additives?.length ? { ...o, additives: DETAILS[o.id].additives } : o);
+  if (all.length && !clean.length) stats.unavoidable.push(key);
+  if (!all.some(o => !o.onSale)) opts.push({ price: def.est[0], pack: def.est[1], label: def.est[2], product: def.n, desc: '', onSale: false, est: true });
   OPTIONS[key] = frontier(opts);
-  if (OPTIONS[key].some(o => o.onSale)) stats.sale++; else if (shelf.length) stats.shelf++; else stats.est++;
+  if (OPTIONS[key].some(o => o.onSale)) stats.sale++; else if (OPTIONS[key].some(o => !o.est)) stats.shelf++; else stats.est++;
 }
 console.log(`Priced ${Object.keys(OPTIONS).length} ingredients: ${stats.sale} on offer, ${stats.shelf} at shelf price, ${stats.est} estimated`);
+console.log(`Additives: ${additiveCheck.checked} products checked, ${additiveCheck.flagged} flagged and skipped where possible${stats.unavoidable.length ? `; no clean choice for ${stats.unavoidable.join(', ')}` : ''}`);
 
 // ---------- 3. cost model
 function cover(key, g) {
@@ -109,7 +148,7 @@ const nutrition = (ing, portions) => {
 
 // Resolve 'a|b' lines to whichever adds least to the shop, then price the meal against what's already bought.
 function evaluate(r, need, portions) {
-  const f = portions / r.base;
+  const f = portions / r.base * SIZE;
   const trial = { ...need }, ing = [];
   let added = 0;
   for (const [spec, g] of r.ing) {
@@ -180,16 +219,25 @@ function schedule(chosen) {
 
 // Pack sizes round differently for 1 person and for 6, so plan each household size on its own.
 const plans = {}, allNeed = {}, recipeIds = new Set();
+const dayKcal = chosen => chosen.reduce((s, c) => s + c.kcal * c.days, 0) / 7;
 for (const people of PEOPLE) {
-  const tries = RECIPES.filter(r => r.type === 'dinner' && r.leftovers !== false).map(r => greedy(people, r.id)).filter(Boolean);
-  const best = tries.sort((a, b) => a.total / a.portions - b.total / b.portions)[0];
+  // Price at the size people will actually eat: plan, measure the day's calories, rescale, plan again.
+  let best;
+  SIZE = 1;
+  for (let pass = 0; pass < 3; pass++) {
+    const tries = RECIPES.filter(r => r.type === 'dinner' && r.leftovers !== false).map(r => greedy(people, r.id)).filter(Boolean);
+    best = tries.sort((a, b) => a.total / a.portions - b.total / b.portions)[0];
+    const next = Math.min(2.5, Math.max(0.6, TARGET_KCAL / dayKcal(best.chosen)));
+    if (Math.abs(next - SIZE) < 0.03) break;
+    SIZE = next;
+  }
   const onSale = Object.entries(best.need).reduce((s, [k, g]) => { const c = cover(k, g); return s + (c.o?.onSale ? c.cost : 0); }, 0);
   plans[people] = { people, total: +best.total.toFixed(2), portions: best.portions, perPortion: +(best.total / best.portions).toFixed(2),
-    onSale: +onSale.toFixed(2), cook: Object.fromEntries(best.chosen.map(c => [c.r.id, c.portions])),
+    onSale: +onSale.toFixed(2), size: +SIZE.toFixed(3), kcal: TARGET_KCAL, cook: Object.fromEntries(best.chosen.map(c => [c.r.id, c.portions])),
     pick: Object.fromEntries(best.chosen.map(c => [c.r.id, c.ing.map(([k]) => k)])), days: schedule(best.chosen) };
   for (const k of Object.keys(best.need)) allNeed[k] = true;
   best.chosen.forEach(c => recipeIds.add(c.r.id));
-  console.log(`${people} ${people > 1 ? 'people' : 'person '}: ${best.total.toFixed(2)} kr for ${best.portions} portions (${(best.total / best.portions).toFixed(2)} kr/portion) · `
+  console.log(`${people} ${people > 1 ? 'people' : 'person '}: ×${SIZE.toFixed(2)} ${best.total.toFixed(2)} kr for ${best.portions} portions (${(best.total / best.portions).toFixed(2)} kr/portion) · `
     + best.chosen.map(c => `${c.r.id}×${c.days}`).join(' '));
 }
 
@@ -211,9 +259,11 @@ const offerList = [...offers]
     unitPrice: o.unitPrice, per: o.per, cat: o.cat, url: o.url }));
 
 const data = { ...week, source, generatedAt: new Date().toISOString(), shelfPrices: catalogue.length ? 'live' : 'estimated',
+  additives: { checked: additiveCheck.checked, flagged: additiveCheck.flagged },
   defaultPeople: 2, plans, ing, meals, grams, offers: offerList };
 await fs.mkdir(path.dirname(OUT), { recursive: true });
 await fs.writeFile(OUT, JSON.stringify(data) + '\n');
-await fs.writeFile(PRICES_OUT, JSON.stringify({ week: week.week, catalogueProducts: catalogue.length,
-  ingredients: Object.fromEntries(Object.entries(OPTIONS).map(([k, o]) => [k, o.map(x => `${x.onSale ? 'TILBUD ' : x.est ? 'EST ' : ''}${x.product} ${x.label} ${x.price} kr`)])) }, null, 1) + '\n');
+await fs.writeFile(PRICES_OUT, JSON.stringify({ week: week.week, catalogueProducts: catalogue.length, additiveCheck,
+  flaggedProducts: Object.fromEntries(Object.entries(DETAILS).filter(([, d]) => d?.additives?.length).map(([id, d]) => [id, d.additives])),
+  ingredients: Object.fromEntries(Object.entries(OPTIONS).map(([k, o]) => [k, o.map(x => `${x.onSale ? 'TILBUD ' : x.est ? 'EST ' : ''}${x.product} ${x.label} ${x.price} kr${x.additives ? ' ⚠ ' + x.additives.join(',') : ''}`)])) }, null, 1) + '\n');
 console.log(`Week ${week.week} (${week.validFrom} → ${week.validTo}), shelf prices ${data.shelfPrices}. Wrote ${OUT}`);
