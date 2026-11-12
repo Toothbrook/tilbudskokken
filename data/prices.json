@@ -29,7 +29,7 @@
    "query": "?include=declaration,nutrition_info",
    "declarationLike": []
   },
-  "flagged": 30
+  "flagged": 28
  },
  "flaggedProducts": {
   "28824": [
@@ -68,21 +68,13 @@
   "72609": [
    "E339"
   ],
-  "93605": [
-   "E535"
-  ],
-  "93612": [
-   "E535"
-  ],
   "100028": [
    "E407"
   ],
   "107912": [
-   "E509",
    "modificeret stivelse"
   ],
   "107913": [
-   "E509",
    "E385"
   ],
   "107914": [
@@ -206,8 +198,8 @@
    "Spidskommen 33 g 21.39 kr"
   ],
   "salt": [
-   "Salt m/jod 800 g 4.4 kr ⚠ E535",
-   "Salt m/ jod 1 kg 4.75 kr ⚠ E535"
+   "Salt m/jod 800 g 4.4 kr",
+   "Salt m/ jod 1 kg 4.75 kr"
   ],
   "skyr": [
    "Skyr airy strawberry 128 g 8.5 kr",
