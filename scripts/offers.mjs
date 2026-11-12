@@ -270,7 +270,7 @@ export async function scrapeTjek(log = console.log) {
 // lecithin, baking soda, carotene/paprika colour, CO2...) are allowed; every other E-number is
 // flagged, as are additives written out by name.
 const OK_E = new Set([100, 101, 140, 160, 162, 163, 170, 260, 262, 270, 290, 296, 297, 300, 301, 302, 304, 306, 307, 308, 309,
-  322, 325, 326, 327, 330, 331, 332, 333, 334, 335, 336, 400, 401, 406, 410, 412, 414, 415, 440, 500, 501, 503, 504, 516, 524,
+  322, 325, 326, 327, 330, 331, 332, 333, 334, 335, 336, 400, 401, 406, 410, 412, 414, 415, 440, 500, 501, 503, 504, 509, 516, 524, 535, 536,
   551, 575, 920, 938, 941, 948]);
 const NAMED = /nitrit|nitrat|sorbat|benzoat|sulfit|disulfit|fosfat|phosphat|glutamat|carrageenan|karragenan|aspartam|sucralose|acesulfam|polysorbat|modificeret (?:majs|kartoffel|tapioka)?stivelse|hærdet|glukose-fruktosesirup|glucose-fructose/gi;
 function allText(v, out = []) {
