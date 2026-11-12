@@ -2,7 +2,7 @@
  "week": 46,
  "catalogueProducts": 2014,
  "additiveCheck": {
-  "checked": 210,
+  "checked": 213,
   "failed": 0,
   "probe": {
    "keys": [
@@ -421,7 +421,7 @@
    "Hk. oksekød 8-12% 800 g 76.95 kr"
   ],
   "hkblanding": [
-   "EST Hakket gris & okse 500 g 40 kr"
+   "TILBUD Hk. gris & kalv 8-12% 500 g 25 kr"
   ],
   "hkgris": [
    "Hk. grisekød 8-12% 500 g 24.95 kr"
@@ -512,7 +512,7 @@
    "Havregryn grovvalsede 1 kg 7.95 kr"
   ],
   "kartofler": [
-   "Øko. kartofler 1 kg 10 kr",
+   "TILBUD Sanderumgaard kart. 1 kg 7 kr",
    "Skrælle kartofler 2 kg 18 kr"
   ],
   "aeble": [
@@ -533,6 +533,7 @@
    "Hvedemel 2 kg 9.95 kr"
   ],
   "flaeskesteg": [
+   "TILBUD Ribbenssteg ovnklar 1 kg 50 kr",
    "Flæskesteg 1,5-1,8 kg 1,5 kg 125 kr"
   ],
   "rodkaal": [
@@ -549,7 +550,8 @@
   ],
   "kyllingelaar": [
    "TILBUD Kyllingeoverlår 800 g 29 kr",
-   "Lår m/havsalt & peber 825 g 32.95 kr"
+   "Lår m/havsalt & peber 825 g 32.95 kr",
+   "TILBUD Hele kyllingelår 1,25 kg 35 kr"
   ],
   "kokosmaelk": [
    "Kokosmælk light 165 ml 3.69 kr",
