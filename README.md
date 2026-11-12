@@ -6,6 +6,10 @@ The recipes are healthy by design: whole ingredients, no processed meat (sausage
 
 Any day can be switched to a **treat day**, which uses a separate set of comfort-food classics (`kind: 'treat'` in `recipes.mjs`). A **Cheapest week** switch picks the lowest price when on, and favours vegetables, protein and fish when off.
 
+Any meal can be **swapped**: the site lists every other recipe that fits those days, with exactly what the week's shop would cost with it (the rest of the week stays as it is), filterable by fish, chicken, pork, beef or vegetarian. Picks are remembered for the week, and changing the household, calories or treat days re-plans around them.
+
+The **shopping list** follows a walk through the store: fruit & veg, bread, meat, fish & cold cuts, dairy, cheese & eggs, dry goods, spices, oil & sauces, and frozen. Each product goes under REMA's own department where that says frozen, fresh or bread, so frozen fish ends up with the frozen food. Offers are marked TILBUD.
+
 The planning runs in the visitor's browser (`planner.js`, shared with the weekly build), so changing who's eating, their calories, treat days or the cheap switch re-plans the week instantly.
 
 Nothing is assumed to be in the cupboard. Every ingredient, salt, oil and spices included, is priced at REMA (offer price or normal shelf price) and bought in whole packs. Meals are picked by how little they add to the total shop, purely on price when "Cheapest week" is on, so packs bought for one meal get used up by the others. Pack sizes round differently for 1 person and for 6, so the build makes a separate cheapest plan for each household size.

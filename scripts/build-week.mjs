@@ -65,7 +65,7 @@ function toOption(def, o, onSale) {
   const estPerKg = def.est[0] / def.est[1] * 1000, perKg = o.price / pack * 1000;
   if (perKg > estPerKg * 4 || perKg < estPerKg / 4) return null;   // almost certainly a wrong match
   return { price: o.price, pack, label: o.loose ? `${String(o.price).replace('.', ',')} kr/kg` : sizeLabel(o.qty, o.unit),
-    product: sentence(o.name), desc: o.desc ? sentence(o.desc) : '', onSale, id: o.id, url: o.url || '', ...(o.loose ? { loose: true } : {}) };
+    product: sentence(o.name), desc: o.desc ? sentence(o.desc) : '', onSale, id: o.id, url: o.url || '', ...(o.cat && o.cat !== '*' ? { cat: o.cat } : {}), ...(o.loose ? { loose: true } : {}) };
 }
 // Keep only packs nothing beats: drop A if some B is at least as big and no dearer.
 function frontier(opts) {

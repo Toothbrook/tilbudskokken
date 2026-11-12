@@ -90,6 +90,7 @@ h1 em{font-style:normal;color:var(--sale)}
 .totals b{font-family:var(--display);font-size:26px;font-weight:800}
 .totals small{color:var(--muted);font-size:13px}
 .totals .note{flex-basis:100%;font-size:12.5px;color:var(--muted)}
+.totals .note b{font:inherit;font-weight:700;color:var(--ink)}
 
 .tabs{display:flex;gap:6px;position:sticky;top:0;z-index:5;background:var(--paper);padding-block:calc(8px + env(safe-area-inset-top,0px)) 8px;margin-top:calc(-1 * env(safe-area-inset-top,0px));overflow-x:auto;scrollbar-width:none}
 .tab{border:1px solid var(--line);background:var(--card);padding:8px 14px;border-radius:999px;cursor:pointer;font-weight:600;font-size:14px;white-space:nowrap;display:flex;gap:6px;align-items:center}
@@ -184,6 +185,24 @@ h1 em{font-style:normal;color:var(--sale)}
 .orow .p{text-align:right;font-variant-numeric:tabular-nums}
 .orow .p b{font-family:var(--mono)}
 .orow .p small{white-space:nowrap}
+.offer{font-family:var(--mono);font-size:10px;font-weight:600;background:var(--tag);color:var(--sale);padding:0 5px;border-radius:3px;margin-left:6px;vertical-align:1px}
+.aisle{font-size:11px;letter-spacing:.1em;color:var(--muted);margin:12px 0 2px;padding-bottom:2px;border-bottom:1px dashed var(--line)}
+.aisle:first-of-type{margin-top:4px}
+.swaprow{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center;font-size:13px;color:var(--muted)}
+.picked{font-size:11px;font-weight:700;background:var(--ink);color:var(--paper);padding:1px 6px;border-radius:3px}
+.swap{background:var(--soft);border-radius:10px;padding:12px;display:flex;flex-direction:column;gap:10px}
+.swap p{margin:0;font-size:12.5px;color:var(--muted)}
+.fam{display:flex;gap:6px;flex-wrap:wrap}
+.fam button{border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:999px;padding:3px 10px;font:inherit;font-size:12px;font-weight:600;cursor:pointer}
+.fam button[aria-pressed="true"]{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+.alts{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:2px}
+.alts li{display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:10px;align-items:center;background:var(--card);border-radius:8px;padding:8px 10px}
+.alts b{font-size:14px;display:block}
+.alts small{color:var(--muted);font-size:12px;display:block}
+.alts .d{font-family:var(--mono);font-size:12.5px;text-align:right;white-space:nowrap}
+.alts .d small{font-family:var(--body);font-size:11px}
+.alts .btn{padding:5px 12px}
+.go + .mini{margin-left:8px}
 .inplan{font-size:10.5px;background:var(--ink);color:var(--paper);padding:1px 6px;border-radius:3px;margin-left:6px;font-weight:600;vertical-align:1px}
 
 .loading{color:var(--muted);text-align:center;padding:40px 0}
@@ -250,7 +269,7 @@ const BASICS = ['salt', 'sortpeber', 'olie'];
 const DOT = { breakfast:'var(--b1)', lunch:'var(--b2)', dinner:'var(--sale)' };
 const CAT = {'kod-fisk-fjerkrae':'Meat, fish & poultry','kol':'Chilled','frugt-gront':'Fruit & veg','mejeri':'Dairy','ost-mv':'Cheese','brod-bavinchi':'Bread','frost':'Frozen','kolonial':'Groceries','*':'Other'};
 let DATA, ING, MEALS = {}, KEY, SHOP, PLANNER, PLAN, PLAN_KEY = '';
-let state = { tab:'week', open:{}, got:{}, have:{}, cheap:true, treatW:[false,false,false,false,false,false,false], members:[{ name:'', kcal:2000 }, { name:'', kcal:2000 }], types:{ breakfast:true, lunch:true, dinner:true } };
+let state = { tab:'week', open:{}, got:{}, have:{}, picks:{}, lock:null, swapOpen:{}, swapF:{}, swapMore:{}, cheap:true, treatW:[false,false,false,false,false,false,false], members:[{ name:'', kcal:2000 }, { name:'', kcal:2000 }], types:{ breakfast:true, lunch:true, dinner:true } };
 
 const kr = v => v.toFixed(2).replace('.', ',');
 const plural = n => `${n} ${n === 1 ? 'person' : 'people'}`;
@@ -268,7 +287,8 @@ const fmtDate = (a, b) => {
 };
 function save(){
   try{ localStorage.setItem('ugeplan:prefs', JSON.stringify({ members:state.members, treatW:state.treatW, cheap:state.cheap, types:state.types, tab:state.tab, have:state.have }));
-       localStorage.setItem(KEY, JSON.stringify(state.got)); }catch(e){}
+       localStorage.setItem(KEY, JSON.stringify(state.got));
+       localStorage.setItem(KEY.replace(':got', ':picks'), JSON.stringify({ picks:state.picks, lock:state.lock })); }catch(e){}
 }
 function load(){
   try{ const p = JSON.parse(localStorage.getItem('ugeplan:prefs')||'null');
@@ -276,6 +296,7 @@ function load(){
       else if (p.people) state.members = Array.from({ length: Math.min(10, p.people) }, () => ({ name: '', kcal: clampK(+p.kcal || 2000) }));
       if (p.types) state.types = { ...state.types, ...p.types }; if (p.tab) state.tab = p.tab; if (p.have) state.have = p.have; if (typeof p.cheap === 'boolean') state.cheap = p.cheap; if (Array.isArray(p.treatW) && p.treatW.length === 7) state.treatW = p.treatW; } }catch(e){}
   try{ state.got = JSON.parse(localStorage.getItem(KEY)||'{}') || {}; }catch(e){ state.got = {}; }
+  try{ const s = JSON.parse(localStorage.getItem(KEY.replace(':got', ':picks'))||'null'); if (s){ state.picks = s.picks || {}; state.lock = s.lock || null; } }catch(e){}
 }
 
 // ---- the current plan, made live in the browser by the shared planner
@@ -283,9 +304,14 @@ function load(){
 const startW = () => new Date(DATA.validFrom + 'T12:00:00Z').getUTCDay();
 const dayDate = d => new Date(Date.parse(DATA.validFrom + 'T12:00:00Z') + d * 864e5);
 const treatPattern = () => Array.from({ length: 7 }, (_, d) => !!state.treatW[(startW() + d) % 7]);
+// Meals the visitor swapped in are kept in their slot. Right after a swap the rest of the week is
+// held as it was too (the lock), so a swap changes that one meal and the price shown is the price
+// paid. Changing the household, calories, treat days or the cheapest switch re-plans around the picks.
+const settings = () => `${PEOPLE()}|${Math.round(AVG())}|${state.cheap}|${treatPattern().join()}`;
+const fixedMeals = () => ({ ...(state.lock && state.lock.sig === settings() ? state.lock.fixed : {}), ...state.picks });
 function plan(){
-  const key = `${PEOPLE()}|${Math.round(AVG())}|${state.cheap}|${treatPattern().join()}`;
-  if (key !== PLAN_KEY) { PLAN = PLANNER.plan(PEOPLE(), treatPattern(), Math.round(AVG()), { cheap: state.cheap }); PLAN_KEY = key; }
+  const fixed = fixedMeals(), key = settings() + JSON.stringify(fixed);
+  if (key !== PLAN_KEY) { PLAN = PLANNER.plan(PEOPLE(), treatPattern(), Math.round(AVG()), { cheap: state.cheap, fixed }); PLAN_KEY = key; }
   return PLAN;
 }
 const ingOf = id => plan().pick[id].map((k, i) => [k, MEALS[id].ing[i][1]]);
@@ -314,6 +340,18 @@ function amount(key, g){
   return `${Math.round(g)} ${u}`;
 }
 
+// ---- where things are in the shop, so the list follows a walk through the store
+const AISLES = [['produce','Fruit & veg'], ['bread','Bread'], ['meat','Meat, fish & cold cuts'], ['dairy','Dairy, cheese & eggs'],
+  ['dry','Pasta, rice, tins & baking'], ['spices','Spices, oil & sauces'], ['frozen','Frozen']];
+const AISLE_OF = { aeg:'dairy', gaer:'dairy', pizzadej:'dairy', taertedej:'dairy', tun:'dry', makreltomat:'dry', wraps:'dry',
+  frostgront:'frozen', baer:'frozen', olie:'spices', soja:'spices', eddike:'spices', sennep:'spices', fond:'spices', brunsauce:'spices',
+  bearnaise:'spices', tacokrydderi:'spices', bagepulver:'dry', rugbrod:'bread', toast:'bread', boller:'bread', burgerboller:'bread' };
+const BY_GROUP = { produce:'produce', protein:'meat', dairy:'dairy', grain:'dry', pantry:'dry', spice:'spices' };
+// The product's own REMA department wins where it says frozen, fresh produce or bread (frozen fish, fresh berries).
+const DEPT = { frost:'frozen', 'frugt-gront':'produce', 'brod-bavinchi':'bread' };
+const aisleOf = (key, o) => DEPT[o?.cat] || AISLE_OF[key] || BY_GROUP[ING[key].group] || 'dry';
+const AISLE_RANK = Object.fromEntries(AISLES.map(([k], i) => [k, i]));
+
 function shopping(){
   const need = {}, P = plan(), plain = s => s.replace(/<[^>]+>/g,'');
   let portions = 0;
@@ -329,10 +367,10 @@ function shopping(){
     const q = o.loose ? `≈ ${plain(amount(key,g)).replace(/ \(.*$/,'')} à ${o.label}`
       : `${c.n} × ${o.label} à ${o.est?'≈':''}${kr(o.price)}${o.onSale && o.normal ? ` (normally ${kr(o.normal)})` : ''} · need ${plain(amount(key,g))}`;
     const qa = o.additives ? `${q} · contains ${o.additives.join(', ')}` : q;
-    lines.push({ key, name: o.est ? ING[key].n : o.product, q: qa, short: o.loose ? `ca. ${plain(amount(key,g))}` : `${c.n} × ${o.label}`,
+    lines.push({ key, aisle: aisleOf(key, o), name: o.est ? ING[key].n : o.product, q: qa, short: o.loose ? `ca. ${plain(amount(key,g))}` : `${c.n} × ${o.label}`,
       price: c.cost, onSale: !!o.onSale, est: !!o.est, id: o.id, n: o.loose ? 1 : c.n });
   }
-  lines.sort((a, b) => b.price - a.price);
+  lines.sort((a, b) => AISLE_RANK[a.aisle] - AISLE_RANK[b.aisle] || a.name.localeCompare(b.name, 'da'));
   home.sort((a, b) => a.name.localeCompare(b.name, 'da'));
   return { lines, home, total, offer, saved, dealSave, deals, portions, byKey };
 }
@@ -342,13 +380,15 @@ function weekView(){
   const keys = Object.keys(TYPES).filter(t => state.types[t]);
   if (!keys.length) return `<p class="empty">Pick at least one of breakfast, lunch or dinner above.</p>`;
   const treats = plan().days.filter(d => d.treat).length;
-  return `<p class="weekhint">Tap <b>Healthy</b> on a day to make it a treat day with comfort-food classics instead. ${treats ? `${treats} treat day${treats > 1 ? 's' : ''} this week.` : ''}</p>
+  const picks = Object.values(plan().fixed).filter(id => Object.values(state.picks).includes(id)).length;
+  return `<p class="weekhint">Tap <b>Healthy</b> on a day to make it a treat day with comfort-food classics instead, or <b>swap</b> to pick another meal. ${treats ? `${treats} treat day${treats > 1 ? 's' : ''} this week.` : ''}
+    ${picks ? `${picks} meal${picks > 1 ? 's' : ''} picked by you. <button class="mini" id="resetPicks">Go back to the suggested week</button>` : ''}</p>
   <div class="days">${plan().days.map((d, i) => {
     const dt = dayDate(i), kcal = keys.reduce((s, t) => s + per(d[SLOT[t]]).kcal, 0), w = dt.getUTCDay();
     return `<div class="day${d.treat ? ' treat' : ''}"><div class="date">${DAYS[w]}<small>${dt.getUTCDate()}. ${MONTHS[dt.getUTCMonth()].slice(0,3)}</small>${sameK() ? `<span class="k num">${num(kcal)} kcal</span>` : ''}
       <button class="kind" data-treat="${w}" aria-pressed="${d.treat}" aria-label="${DAYS[w]}: ${d.treat ? 'treat day, tap to make it healthy' : 'healthy day, tap to make it a treat day'}">${d.treat ? 'Treat' : 'Healthy'}</button></div>
       <div class="slots">${keys.map(t => { const id = d[SLOT[t]]; return `<div class="slot"><span><i style="background:${DOT[t]}"></i>${TYPES[t]}</span>
-        <div><button class="go" data-go="${id}">${MEALS[id].name}</button>${t === 'dinner' && d.left ? '<span class="left">leftovers</span>' : ''}</div></div>`; }).join('')}
+        <div><button class="go" data-go="${id}">${MEALS[id].name}</button>${t === 'dinner' && d.left ? '<span class="left">leftovers</span>' : ''}${t === 'dinner' && d.left ? '' : `<button class="mini" data-swapgo="${id}" aria-label="Swap ${MEALS[id].name}">swap</button>`}</div></div>`; }).join('')}
         ${sameK() ? '' : `<div class="whok num">${state.members.map((m, j) => `${nameOf(j)} ${num(kcal * m.kcal / AVG())}`).join(' · ')} kcal</div>`}</div></div>`;
   }).join('')}</div>`;
 }
@@ -393,6 +433,28 @@ function platesHtml(m, s){
     ${m.base > 1 ? `<p class="plhint">Cooked weights, roughly. A kitchen scale makes it easy: put the plate on, tare, and serve.</p>` : ''}</div>`;
 }
 
+// ---- swapping a meal for another recipe that fits the same days
+const FAMILY = { all:'All', fish:'Fish', chicken:'Chicken', pork:'Pork', beef:'Beef', veg:'Vegetarian' };
+const famOf = f => f === 'sausage' ? 'pork' : f === 'egg' ? 'veg' : f;
+const signKr = d => Math.abs(d) < 0.5 ? 'same price' : `${d > 0 ? '+' : '−'}${kr(Math.abs(d))} kr`;
+const slotOf = id => plan().slots[id];
+function swapHtml(m){
+  const key = slotOf(m.id), picked = state.picks[key] === m.id, open = !!state.swapOpen[m.id];
+  const head = `<div class="swaprow">${picked ? '<span class="picked">Your pick</span>' : ''}<button class="btn" data-swapopen="${m.id}" aria-expanded="${open}" aria-controls="sw-${m.id}">${open ? 'Close' : 'Swap this meal'}</button>${picked ? `<button class="mini" data-unpick="${key}">let the planner choose again</button>` : ''}</div>`;
+  if (!open) return head;
+  const all = PLANNER.alternatives(plan(), m.id).map(a => ({ ...a, fam: famOf(a.family) }));
+  const f = state.swapF[m.id] || 'all', list = all.filter(a => f === 'all' || a.fam === f), n = state.swapMore[m.id] || 8;
+  const fams = m.type === 'dinner' ? Object.keys(FAMILY).filter(k => k === 'all' || all.some(a => a.fam === k)) : [];
+  const days = daysOf(m.id), when = m.type === 'dinner' ? (days > 1 ? 'these two evenings' : 'this evening') : `these ${days} days`;
+  return head + `<div class="swap" id="sw-${m.id}">
+    <p>${all.length} other ${m.kind === 'treat' ? 'treat-day ' : ''}${TYPES[m.type].toLowerCase()}s fit ${when}. The price is how much the week's shop changes, with the rest of the week kept as it is.</p>
+    ${fams.length > 2 ? `<div class="fam" role="group" aria-label="Main ingredient">${fams.map(k => `<button data-fam="${m.id}|${k}" aria-pressed="${f === k}">${FAMILY[k]}</button>`).join('')}</div>` : ''}
+    <ul class="alts">${list.slice(0, n).map(a => { const r = MEALS[a.id];
+      return `<li><div><b>${r.name}</b><small>${r.dk}</small></div><span class="d num">${signKr(a.delta)}<small>${num(a.kcal)} kcal</small></span><button class="btn" data-pick="${m.id}|${a.id}" aria-label="Pick ${r.name}">Pick</button></li>`; }).join('')}</ul>
+    ${list.length > n ? `<div><button class="mini" data-more="${m.id}">show ${Math.min(8, list.length - n)} more (${list.length - n} left)</button></div>` : ''}
+  </div>`;
+}
+
 function mealCard(m){
   const n = plan().cook[m.id], f = n/m.base*SCALE, open = !!state.open[m.id], s = per(m.id), days = daysOf(m.id);
   const word = m.type === 'breakfast' ? 'mornings' : m.type === 'lunch' ? 'days' : (days > 1 ? 'evenings' : 'evening');
@@ -410,6 +472,7 @@ function mealCard(m){
     </button>
     <div class="meal-body" id="b-${m.id}" ${open?'':'hidden'}>
       <p class="cookfor">${when}</p>
+      ${swapHtml(m)}
       ${platesHtml(m, s)}
       <div class="macro"><span>≈ <b class="num">${kr(s.cost)} kr</b> per portion, counting only what the meal uses</span></div>
       <div><p class="sub">Ingredients for ${n} portion${n>1?'s':''}</p><ul class="ings">${ings}</ul></div>
@@ -421,17 +484,16 @@ function mealCard(m){
 function shopView(){
   const { lines, home, total, offer, portions } = SHOP;
   if (!lines.length && !home.length) return `<div class="receipt"><p class="empty">Pick at least one of breakfast, lunch or dinner above.</p></div>`;
-  const row = l => `<div class="line"><label class="check" for="g-${l.key}"><input type="checkbox" id="g-${l.key}" data-got="${l.key}" ${state.got[l.key]?'checked':''}><span>${l.name}<span class="q">${l.q}</span></span></label><span class="r"><span class="num">${l.est?'≈':''}${kr(l.price)}</span><button class="mini" data-have="${l.key}" aria-label="I already have ${ING[l.key].n}">have it</button></span></div>`;
+  const row = l => `<div class="line"><label class="check" for="g-${l.key}"><input type="checkbox" id="g-${l.key}" data-got="${l.key}" ${state.got[l.key]?'checked':''}><span>${l.name}${l.onSale ? '<span class="offer">TILBUD</span>' : ''}<span class="q">${l.q}</span></span></label><span class="r"><span class="num">${l.est?'≈':''}${kr(l.price)}</span><button class="mini" data-have="${l.key}" aria-label="I already have ${ING[l.key].n}">have it</button></span></div>`;
   const basics = BASICS.filter(k => lines.some(l => l.key === k));
-  const on = lines.filter(l => l.onSale), full = lines.filter(l => !l.onSale);
   const which = Object.keys(TYPES).filter(t => state.types[t]).map(t => TYPES[t].toLowerCase()).join(', ');
   return `<div class="receipt" id="receipt">
     <h2>REMA 1000 · UGE ${DATA.week}</h2>
     <p class="c">${plural(PEOPLE())} · 7 days · ${which}</p>
     <p class="c">Offers ${DATA.validFrom.split('-').reverse().join('.')} – ${DATA.validTo.split('-').reverse().join('.')}</p>
     <div class="dash"></div>
-    ${on.length ? `<p class="sect">ON OFFER</p>${on.map(row).join('')}` : ''}
-    ${full.length ? `<p class="sect">NORMAL PRICE</p>${full.map(row).join('')}` : ''}
+    ${AISLES.map(([k, label]) => { const here = lines.filter(l => l.aisle === k);
+      return here.length ? `<p class="aisle">${label.toUpperCase()}</p>${here.map(row).join('')}` : ''; }).join('')}
     <div class="dash"></div>
     <div class="line sub"><span>On offer</span><span class="num">${kr(offer)}</span></div>
     <div class="line sub"><span>Normal price</span><span class="num">${kr(total - offer)}</span></div>
@@ -599,6 +661,25 @@ view.addEventListener('click', e => {
     const el = document.getElementById('m-' + id);
     if (el) el.scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'start' });
     return; }
+  const sg = e.target.closest('[data-swapgo]');
+  if (sg){ const id = sg.dataset.swapgo; state.tab = MEALS[id].type; state.open[id] = true; state.swapOpen[id] = true; save(); render();
+    const el = document.getElementById('m-' + id);
+    if (el) el.scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'start' });
+    return; }
+  const so = e.target.closest('[data-swapopen]'); if (so){ const id = so.dataset.swapopen; state.swapOpen[id] = !state.swapOpen[id]; render(); return; }
+  const fm = e.target.closest('[data-fam]'); if (fm){ const [id, f] = fm.dataset.fam.split('|'); state.swapF[id] = f; state.swapMore[id] = 8; render();
+    const again = view.querySelector(`[data-fam="${id}|${f}"]`); if (again) again.focus(); return; }
+  const mo = e.target.closest('[data-more]'); if (mo){ const id = mo.dataset.more; state.swapMore[id] = (state.swapMore[id] || 8) + 8; render(); return; }
+  const pk = e.target.closest('[data-pick]');
+  if (pk){ const [cur, next] = pk.dataset.pick.split('|'), key = slotOf(cur);
+    // Hold the rest of the week as it is now, and put the new meal in this one's place.
+    state.lock = { sig: settings(), fixed: { ...Object.fromEntries(Object.entries(plan().slots).map(([id, k]) => [k, id])), [key]: next } };
+    state.picks[key] = next; delete state.swapOpen[cur]; state.open[next] = true; save(); render();
+    const el = document.getElementById('m-' + next);
+    if (el){ el.scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'start' }); el.querySelector('.meal-top').focus({ preventScroll: true }); }
+    return; }
+  const up = e.target.closest('[data-unpick]'); if (up){ const key = up.dataset.unpick; delete state.picks[key]; if (state.lock) delete state.lock.fixed[key]; save(); render(); return; }
+  if (e.target.id === 'resetPicks'){ state.picks = {}; state.lock = null; save(); render(); return; }
   const t = e.target.closest('[data-toggle]'); if (t){ const id = t.dataset.toggle; state.open[id] = !state.open[id]; render(); return; }
   if (e.target.id === 'reset'){ state.got = {}; save(); render(); return; }
   const hv = e.target.closest('[data-have]'); if (hv){ state.have[hv.dataset.have] = true; save(); render(); return; }
@@ -613,7 +694,8 @@ view.addEventListener('click', e => {
   }
   if (e.target.id === 'copy'){
     const { lines, total } = SHOP;
-    const txt = `REMA 1000 uge ${DATA.week} · ${plural(PEOPLE())} · 7 dage\n` + lines.map(l => `☐ ${l.name} – ${l.short}${l.onSale ? ' (tilbud)' : ''}`).join('\n') + `\nTotal ≈ ${kr(total)} kr`;
+    const txt = `REMA 1000 uge ${DATA.week} · ${plural(PEOPLE())} · 7 dage\n` + AISLES.map(([k, label]) => { const here = lines.filter(l => l.aisle === k);
+      return here.length ? `\n${label}\n` + here.map(l => `☐ ${l.name} – ${l.short}${l.onSale ? ' (tilbud)' : ''}`).join('\n') : ''; }).join('') + `\n\nTotal ≈ ${kr(total)} kr`;
     const msg = $('#copyMsg');
     const fallback = () => { msg.textContent = 'Copy is blocked here. Select the list and copy it manually.'; const r = document.createRange(); r.selectNodeContents($('#receipt')); const sel = getSelection(); sel.removeAllRanges(); sel.addRange(r); };
     try { navigator.clipboard.writeText(txt).then(() => msg.textContent = 'Copied to clipboard', fallback); } catch(err){ fallback(); }
