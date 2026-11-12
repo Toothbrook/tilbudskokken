@@ -127,9 +127,17 @@ function parseSize(str) {
   return u === 'GR' ? [n, 'g'] : u === 'KG' ? [n * 1000, 'g'] : u === 'ML' ? [n, 'ml'] : u === 'CL' ? [n * 10, 'ml']
     : (u === 'LTR' || u === 'L') ? [n * 1000, 'ml'] : [n, 'stk'];
 }
-export function fromApi(p) {
+// mode 'offer': the advertised price. mode 'regular': the normal shelf price valid today.
+export function fromApi(p, mode = 'offer', now = new Date()) {
   const prices = Array.isArray(p.prices) ? p.prices : [];
-  const pr = prices.find(x => x.is_advertised) || prices.find(x => x.is_campaign);
+  let pr;
+  if (mode === 'offer') pr = prices.find(x => x.is_advertised) || prices.find(x => x.is_campaign);
+  else {
+    const today = iso(now), d = s => (s ? String(s).slice(0, 10) : '');
+    const normal = prices.filter(x => !x.is_advertised && !x.is_campaign && x.price);
+    pr = normal.find(x => (!x.starting_at || d(x.starting_at) <= today) && (!x.ending_at || d(x.ending_at) >= today))
+      || normal.sort((a, b) => String(a.starting_at).localeCompare(String(b.starting_at)))[0];
+  }
   if (!pr || !pr.price) return null;
   const [sizePart, ...rest] = String(p.underline || '').split('/');
   const per = ({ kg: 'kg', l: 'ltr', ltr: 'ltr', stk: 'stk' })[String(pr.compare_unit || '').toLowerCase()] || 'stk';
@@ -141,7 +149,38 @@ export function fromApi(p) {
   return { id: String(p.id), name: String(p.name || '').trim(), desc: rest.join('/').trim(), qty: Math.round(qty * 100) / 100, unit,
     price: +pr.price, unitPrice: +(pr.compare_unit_price || 0) || Math.round(pr.price / perQty(qty, unit, per) * 100) / 100, per,
     cat: p.department?.slug || '', sub: p.category?.slug || '', url: `${BASE}/varer/${p.id}`,
-    from: day(pr.starting_at), to: day(pr.ending_at) };
+    from: day(pr.starting_at), to: day(pr.ending_at), ...(p.is_weight_item ? { loose: true } : {}) };
+}
+
+// Every food product with its normal shelf price, so non-offer ingredients can be priced too.
+export async function scrapeCatalogue(log = console.log, now = new Date()) {
+  const H = { ...HEADERS, accept: 'application/json', origin: BASE, referer: `${BASE}/` };
+  const getJson = async url => { const r = await fetch(url, { headers: H }); if (!r.ok) throw new Error(`HTTP ${r.status} ${url}`); return r.json(); };
+  let deps = [];
+  try {
+    const j = await getJson(`${API}/v3/departments?per_page=100`);
+    deps = (j.data || []).filter(d => FOOD_CATS.includes(d.slug)).map(d => ({ id: d.id, slug: d.slug }));
+  } catch (e) { log(`  departments: ${e.message}`); }
+  const runs = deps.length ? deps.map(d => `filter%5Bdepartments%5D=${d.id}&`) : [''];
+  const raw = [];
+  for (const f of runs) {
+    for (let page = 1; page <= 60; page++) {
+      const j = await getJson(`${API}/search/products?${f}per_page=100&page=${page}&sort=department`);
+      const data = Array.isArray(j.data) ? j.data : [];
+      raw.push(...data);
+      const pg = j.meta?.pagination || j.meta || {};
+      if (!data.length || (pg.last_page && page >= pg.last_page)) break;
+      await sleep(200);
+    }
+  }
+  const seen = new Set(), products = [];
+  for (const p of raw) {
+    if (seen.has(p.id)) continue; seen.add(p.id);
+    const o = fromApi(p, 'regular', now);
+    if (o && FOOD_CATS.includes(o.cat)) products.push(o);
+  }
+  log(`  catalogue: ${raw.length} rows, ${products.length} food products priced (${deps.length} departments)`);
+  return products;
 }
 
 export async function scrapeApi(log = console.log, now = new Date()) {

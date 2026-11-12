@@ -1,8 +1,10 @@
 # Tilbudskøkken
 
-A free website with a weekly meal plan built from REMA 1000's offers: 4 dinners, 3 breakfasts and 3 lunches, with calories, protein, a shopping list priced at offer prices, and a list of every food offer that week.
+A free website with a weekly meal plan built from REMA 1000's offers: 4 dinners, 3 breakfasts and 3 lunches, with calories, protein, a full shopping list, and a list of every food offer that week.
 
-Every Sunday morning a GitHub Action reads the new REMA 1000 avis, works out which ingredients are on offer, picks the recipes from the recipe bank that use the most of them, and redeploys the site. Anyone with the link can open it, no login.
+Nothing is assumed to be in the cupboard. Every ingredient, salt, oil and spices included, is priced at REMA (offer price or normal shelf price) and bought in whole packs. Meals are picked by how little they add to the total shop, so packs bought for one meal get used up by the others.
+
+Every Sunday morning a GitHub Action reads the new REMA 1000 avis, reads REMA's normal shelf prices, and picks the combination of recipes from the recipe bank that makes the whole week's shop cheapest per portion. Then it redeploys the site. Anyone with the link can open it, no login.
 
 ## Set it up (about 5 minutes)
 
@@ -21,7 +23,7 @@ When it finishes, the site is at `https://<your-username>.github.io/<repo-name>/
 | `index.html` | The site. Loads `data/week.json`. Portions, ticks and your calorie target are remembered in the visitor's browser. |
 | `scripts/offers.mjs` | Reads every product labelled "Avisvare" from REMA's product API (the one shop.rema1000.dk uses). Falls back to reading the avisvarer pages, then the Tjek / eTilbudsavis API. |
 | `scripts/recipes.mjs` | The ingredient catalogue (nutrition per 100 g + rules for recognising each ingredient in the avis) and the recipe bank. |
-| `scripts/build-week.mjs` | Matches offers to ingredients, scores every recipe by how much of it is on offer, picks a varied set, writes `data/week.json`. |
+| `scripts/build-week.mjs` | Prices every ingredient (cheapest pack on offer or on the shelf), picks the cheapest varied week, writes `data/week.json` and `data/prices.json` (which product each ingredient matched, for checking). |
 | `.github/workflows/weekly.yml` | Runs the build Sunday 06:17 (and Monday as a retry), commits the plan, deploys to Pages. |
 
 To refetch offers outside the Sunday schedule, use **Run workflow** in the Actions tab, or put `[rebuild]` in a commit message.
@@ -30,7 +32,7 @@ If REMA changes their website and the offers can't be read, the run is marked fa
 
 ## Adding recipes
 
-Open `scripts/recipes.mjs` and add an entry to `RECIPES`. Ingredient lines are `[key, grams]` for the whole recipe; `'hkokse|hkgris'` means "whichever of these is on offer". Push the change and the next run can pick it.
+Open `scripts/recipes.mjs` and add an entry to `RECIPES`. Ingredient lines are `[key, grams]` for the whole recipe, and must include everything the method uses (salt, oil, spices). `'hkokse|hkgris'` means "whichever is cheapest". Push the change and the next run can pick it.
 
 ## Run it locally
 

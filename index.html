@@ -94,7 +94,13 @@ h1 em{font-style:normal;color:var(--sale)}
 .ings .prod{display:block;font-size:12px;color:var(--muted)}
 .ings .amt{color:var(--muted);font-size:13px;text-align:right;white-space:nowrap}
 .sticker{display:inline-block;background:var(--tag);color:var(--sale);font-family:var(--mono);font-weight:600;font-size:11px;padding:1px 6px;border-radius:3px;margin-left:6px;transform:rotate(-2deg);white-space:nowrap}
-.basis{display:inline-block;font-size:11px;color:var(--muted);margin-left:6px;border:1px solid var(--line);padding:0 5px;border-radius:3px}
+.shelf{display:inline-block;font-family:var(--mono);font-size:11px;color:var(--muted);margin-left:6px;border:1px solid var(--line);padding:0 5px;border-radius:3px;white-space:nowrap}
+.weekcost{display:flex;gap:6px 18px;flex-wrap:wrap;align-items:baseline;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px 14px}
+.weekcost b{font-family:var(--display);font-size:24px;font-weight:800}
+.weekcost small{color:var(--muted);font-size:13px}
+.weekcost .note{flex-basis:100%;font-size:12.5px;color:var(--muted)}
+.sect{font-size:11px;letter-spacing:.1em;color:var(--muted);margin:4px 0 2px}
+.line.sub{color:var(--muted);font-size:12.5px}
 .steps{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:6px;font-size:14px;max-width:62ch}
 .macro{display:flex;gap:16px;flex-wrap:wrap;font-size:13px;color:var(--muted)}
 .macro b{color:var(--ink)}
@@ -135,7 +141,8 @@ footer p{margin:0}
   <header>
     <div class="week" id="weekline"><b>REMA 1000</b> Loading this week's offers…</div>
     <h1>Eat the <em>tilbud</em>.</h1>
-    <p class="lede">Dinners, breakfasts and lunches picked from this week's REMA 1000 offers, with calories and protein per portion. Choose your portions and the receipt adds up what to buy. A new plan arrives every Sunday morning.</p>
+    <p class="lede">The cheapest good week of dinners, breakfasts and lunches from this week's REMA 1000 offers. Nothing is assumed to be in your cupboard: salt, oil and spices are on the list too, and packs bought for one meal get used up by the next. A new plan arrives every Sunday morning.</p>
+    <div class="weekcost" id="weekcost" hidden></div>
     <div class="banner" id="stale" hidden></div>
   </header>
 
@@ -170,7 +177,7 @@ footer p{margin:0}
 
   <footer>
     <p>Offer prices are read from REMA 1000's weekly avis every Sunday. Some items aren't stocked in every store, and prices can change, so check the shelf label. Calories are estimates from typical nutrition values, so check the pack if you track closely.</p>
-    <p>Items marked <span class="basis">basis</span> are pantry staples not on offer this week. <span id="updated"></span></p>
+    <p>Yellow tags are this week's offer prices. Grey tags are REMA's normal shelf prices, and a ≈ means the price is an estimate because the shop's price couldn't be read. <span id="updated"></span></p>
   </footer>
 </div>
 
@@ -193,14 +200,27 @@ function load(){
   try{ const s = JSON.parse(localStorage.getItem(KEY)||'null'); if(s) Object.assign(state, s); }catch(e){}
 }
 
+// Cheapest way to buy g grams of an ingredient: n packs of one option (loose items by weight).
+function cover(key, g){
+  const i = ING[key]; let best = null;
+  for (const o of i.options){
+    const n = o.loose ? 1 : Math.max(1, Math.ceil(g/o.pack - 0.03));
+    const cost = o.loose ? o.price * Math.max(g, i.each || 200) / o.pack : n * o.price;
+    if (!best || cost < best.cost - 1e-9) best = { cost, o, n, left: o.loose ? 0 : n*o.pack - g };
+  }
+  return best;
+}
+const cheapest = key => ING[key].options.reduce((a, o) => (o.price/o.pack < a.price/a.pack ? o : a));
 const per = m => {
-  let k=0,p=0,cost=0;
-  m.ing.forEach(([key,g]) => { const i=ING[key]; k+=i.kcal*g/100; p+=i.p*g/100; if(i.sale) cost+=i.sale.price*g/i.sale.pack; });
-  return { kcal:Math.round(k/m.base), p:Math.round(p/m.base), cost:cost/m.base, onSale:m.ing.filter(([k])=>ING[k].sale).length };
+  let k=0,p=0,cost=0,onSale=0;
+  m.ing.forEach(([key,g]) => { const i=ING[key], o=cheapest(key); k+=i.kcal*g/100; p+=i.p*g/100; cost+=o.price*g/o.pack; if(o.onSale) onSale++; });
+  return { kcal:Math.round(k/m.base), p:Math.round(p/m.base), cost:cost/m.base, onSale };
 };
+const tag = o => o.onSale ? `<span class="sticker">${kr(o.price)} kr · ${o.label}</span>` : `<span class="shelf">${o.est?'≈':''}${kr(o.price)} kr · ${o.label}</span>`;
 function amount(key, g){
   const i = ING[key];
   if (i.each){ const r = Math.round(g/i.each*2)/2; return `${String(r).replace('.',',')} ${i.unit} <span style="opacity:.7">(${Math.round(g)} g)</span>`; }
+  if (i.tsp && g <= 30){ const t = Math.max(.25, Math.round(g/i.tsp*4)/4); return `${String(t).replace('.',',')} tsk`; }
   if (i.spoon && g <= 45){ const sp = Math.max(.5, Math.round(g/i.spoon*2)/2); return `${String(sp).replace('.',',')} spsk`; }
   const u = i.unitLabel || 'g';
   if (g >= 1000) return `${String(+(g/1000).toFixed(2)).replace('.',',')} ${u==='g'?'kg':'l'}`;
@@ -209,9 +229,10 @@ function amount(key, g){
 
 function mealCard(m){
   const s = per(m), n = state.portions[m.id], f = n/m.base, open = !!state.open[m.id];
-  const ings = m.ing.map(([key,g]) => { const i = ING[key];
-    const badge = i.sale ? `<span class="sticker">${kr(i.sale.price)} kr · ${i.sale.label}</span>` : `<span class="basis">basis</span>`;
-    const prod = i.sale ? `<span class="prod">${i.sale.product}${i.sale.desc ? ', '+i.sale.desc.toLowerCase() : ''}</span>` : '';
+  const plan = shopping().byKey;
+  const ings = m.ing.map(([key,g]) => { const i = ING[key], o = (plan[key] || cover(key, g*f)).o;
+    const badge = tag(o);
+    const prod = o.est ? '' : `<span class="prod">${o.product}${o.desc ? ', '+o.desc.toLowerCase() : ''}</span>`;
     return `<li><span>${i.n}${badge}${prod}</span><span class="amt num">${amount(key, g*f)}</span></li>`; }).join('');
   return `<article class="meal">
     <button class="meal-top" data-toggle="${m.id}" aria-expanded="${open}" aria-controls="b-${m.id}">
@@ -224,7 +245,7 @@ function mealCard(m){
         <div class="stepper"><button data-step="${m.id}" data-d="-1" aria-label="Fewer portions">−</button><output class="num">${n} portion${n>1?'s':''}</output><button data-step="${m.id}" data-d="1" aria-label="More portions">+</button></div>
         <button class="btn" data-add="${m.id}" aria-pressed="${!!state.chosen[m.id]}">${state.chosen[m.id] ? '✓ On shopping list' : 'Add to shopping list'}</button>
       </div>
-      <div class="macro"><span>Offer items ≈ <b class="num">${kr(s.cost)} kr</b> per portion</span><span>Recipe base: ${m.base} portion${m.base>1?'s':''}</span></div>
+      <div class="macro"><span>≈ <b class="num">${kr(s.cost)} kr</b> per portion, counting only what the meal uses</span><span>Recipe base: ${m.base} portion${m.base>1?'s':''}</span></div>
       <div><p class="sub">Ingredients for ${n}</p><ul class="ings">${ings}</ul></div>
       <div><p class="sub">Method</p><ol class="steps">${m.steps.map(x=>`<li>${x}</li>`).join('')}</ol></div>
       ${m.tip ? `<p class="tip">${m.tip}</p>` : ''}
@@ -232,28 +253,40 @@ function mealCard(m){
 }
 
 function shopping(){
-  const sale = {}, basis = {};
+  const need = {};
   MEALS.filter(m => state.chosen[m.id]).forEach(m => { const f = state.portions[m.id]/m.base;
-    m.ing.forEach(([key,g]) => { const t = ING[key].sale ? sale : basis; t[key] = (t[key]||0) + g*f; }); });
-  let total = 0;
-  const lines = Object.entries(sale).map(([key,g]) => { const i = ING[key], s = i.sale;
-    const packs = Math.max(1, Math.ceil(g/s.pack - 0.12)), price = packs*s.price; total += price;
-    return { key, name:s.product, q:`${packs} × ${s.label} à ${kr(s.price)} · need ${amount(key,g).replace(/<[^>]+>/g,'')}`, short:`${packs} × ${s.label}`, price }; });
-  return { lines, total, basis:Object.keys(basis).map(k => ING[k].n) };
+    m.ing.forEach(([key,g]) => { need[key] = (need[key]||0) + g*f; }); });
+  const byKey = {}, lines = [];
+  let total = 0, offer = 0, portions = 0;
+  MEALS.filter(m => state.chosen[m.id]).forEach(m => portions += state.portions[m.id]);
+  for (const [key, g] of Object.entries(need)){
+    const c = cover(key, g), o = c.o, plain = s => s.replace(/<[^>]+>/g,'');
+    byKey[key] = c; total += c.cost; if (o.onSale) offer += c.cost;
+    const q = o.loose ? `≈ ${amount(key,g).replace(/ <span.*$/,'')} à ${o.label}`
+      : `${c.n} × ${o.label} à ${o.est?'≈':''}${kr(o.price)} · need ${plain(amount(key,g))}`;
+    lines.push({ key, name: o.est ? ING[key].n : o.product, q, short: o.loose ? `ca. ${plain(amount(key,g))}` : `${c.n} × ${o.label}`,
+      price: c.cost, onSale: !!o.onSale, est: !!o.est });
+  }
+  lines.sort((a, b) => b.price - a.price);
+  return { lines, total, offer, portions, byKey };
 }
 
 function shopView(){
-  const { lines, total, basis } = shopping();
+  const { lines, total, offer } = shopping();
+  const row = l => `<div class="line"><label class="check" for="g-${l.key}"><input type="checkbox" id="g-${l.key}" data-got="${l.key}" ${state.got[l.key]?'checked':''}><span>${l.name}<span class="q">${l.q}</span></span></label><span class="num">${l.est?'≈':''}${kr(l.price)}</span></div>`;
+  const onSale = lines.filter(l => l.onSale), full = lines.filter(l => !l.onSale);
   if (!lines.length) return `<div class="receipt"><p class="empty">Nothing on the list yet. Open a meal and tap “Add to shopping list”.</p></div>`;
   const chosen = MEALS.filter(m => state.chosen[m.id]);
   return `<div class="receipt" id="receipt">
     <h2>REMA 1000 · UGE ${DATA.week}</h2><p class="c">Offers ${DATA.validFrom.split('-').reverse().join('.')} – ${DATA.validTo.split('-').reverse().join('.')}</p>
     <div class="dash"></div>
-    ${lines.map(l => `<div class="line"><label class="check" for="g-${l.key}"><input type="checkbox" id="g-${l.key}" data-got="${l.key}" ${state.got[l.key]?'checked':''}><span>${l.name}<span class="q">${l.q}</span></span></label><span class="num">${kr(l.price)}</span></div>`).join('')}
+    ${onSale.length ? `<p class="sect">ON OFFER</p>${onSale.map(row).join('')}` : ''}
+    ${full.length ? `<p class="sect">NORMAL PRICE</p>${full.map(row).join('')}` : ''}
     <div class="dash"></div>
-    <div class="line total"><span>TOTAL ON OFFER</span><span class="num">${kr(total)}</span></div>
+    <div class="line sub"><span>On offer</span><span class="num">${kr(offer)}</span></div>
+    <div class="line sub"><span>Normal price</span><span class="num">${kr(total - offer)}</span></div>
+    <div class="line total"><span>TOTAL</span><span class="num">${kr(total)}</span></div>
     <div class="dash"></div>
-    ${basis.length ? `<p class="c l">From the pantry:</p><p style="margin:4px 0 0;font-size:12.5px">${basis.join(' · ')}</p><div class="dash"></div>` : ''}
     <p class="c l">Covers ${chosen.map(m => `${m.name} ×${state.portions[m.id]}`).join(', ')}</p>
     <div class="dash"></div>
     <div class="actions"><button class="btn" id="copy">Copy list</button><button class="btn" id="reset">Clear ticks</button></div>
@@ -276,6 +309,9 @@ function render(){
   view.innerHTML = state.tab === 'shop' ? shopView() : state.tab === 'offers' ? offersView()
     : `<div class="list">${MEALS.filter(m => m.type === state.tab).map(mealCard).join('')}</div>`;
   renderDay();
+  const s = shopping(), wc = $('#weekcost');
+  wc.hidden = !s.portions;
+  wc.innerHTML = `<span><b class="num">${kr(s.total)} kr</b> <small>whole shop</small></span><span><b class="num">${s.portions}</b> <small>portions</small></span><span><b class="num">${kr(s.portions ? s.total/s.portions : 0)} kr</b> <small>per portion</small></span><span class="note">Everything on the list, salt and oil included. ${kr(s.offer)} kr of it is on offer.${DATA.shelfPrices === 'estimated' ? ' Normal prices are estimates this week.' : ''}</span>`;
 }
 
 function fillSelect(id, type, val){
@@ -323,8 +359,8 @@ view.addEventListener('click', e => {
   const a = e.target.closest('[data-add]'); if (a){ const id = a.dataset.add; state.chosen[id] = !state.chosen[id]; save(); render(); return; }
   if (e.target.id === 'reset'){ state.got = {}; save(); render(); return; }
   if (e.target.id === 'copy'){
-    const { lines, total, basis } = shopping();
-    const txt = `REMA 1000 uge ${DATA.week}\n` + lines.map(l => `☐ ${l.name} – ${l.short}`).join('\n') + `\nTotal on offer: ${kr(total)} kr` + (basis.length ? `\n\nPantry: ${basis.join(', ')}` : '');
+    const { lines, total } = shopping();
+    const txt = `REMA 1000 uge ${DATA.week}\n` + lines.map(l => `☐ ${l.name} – ${l.short}${l.onSale ? ' (tilbud)' : ''}`).join('\n') + `\nTotal ≈ ${kr(total)} kr`;
     const msg = $('#copyMsg');
     const fallback = () => { msg.textContent = 'Copy is blocked here. Select the list and copy it manually.'; const r = document.createRange(); r.selectNodeContents($('#receipt')); const sel = getSelection(); sel.removeAllRanges(); sel.addRange(r); };
     try { navigator.clipboard.writeText(txt).then(() => msg.textContent = 'Copied to clipboard', fallback); } catch(err){ fallback(); }
