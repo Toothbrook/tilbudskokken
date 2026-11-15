@@ -1,8 +1,8 @@
 {
- "week": 46,
- "catalogueProducts": 2014,
+ "week": 47,
+ "catalogueProducts": 2018,
  "additiveCheck": {
-  "checked": 256,
+  "checked": 264,
   "failed": 0,
   "probe": {
    "keys": [
@@ -29,9 +29,15 @@
    "query": "?include=declaration,nutrition_info",
    "declarationLike": []
   },
-  "flagged": 96
+  "flagged": 100
  },
  "flaggedProducts": {
+  "20152": [
+   "carrageenan"
+  ],
+  "21810": [
+   "carrageenan"
+  ],
   "28824": [
    "modificeret kartoffelstivelse"
   ],
@@ -65,6 +71,12 @@
    "hærdet",
    "modificeret stivelse"
   ],
+  "43086": [
+   "E451",
+   "E452",
+   "E1420",
+   "modificeret stivelse"
+  ],
   "60009": [
    "E471",
    "E472"
@@ -72,9 +84,6 @@
   "60089": [
    "E471",
    "E472"
-  ],
-  "60106": [
-   "E471"
   ],
   "60112": [
    "E471",
@@ -103,9 +112,17 @@
    "E471",
    "E472"
   ],
+  "60151": [
+   "E472",
+   "E200"
+  ],
   "60153": [
    "E472",
    "E471"
+  ],
+  "60157": [
+   "E471",
+   "E472"
   ],
   "61541": [
    "E472",
@@ -200,6 +217,15 @@
    "E471",
    "E450",
    "E481",
+   "E211",
+   "modificeret stivelse"
+  ],
+  "360868": [
+   "E472",
+   "E471",
+   "E475",
+   "E1422",
+   "E202",
    "E211",
    "modificeret stivelse"
   ],
@@ -309,9 +335,6 @@
    "nitrit",
    "carrageenan"
   ],
-  "411349": [
-   "E250"
-  ],
   "411670": [
    "E261",
    "E451",
@@ -328,6 +351,10 @@
   ],
   "411823": [
    "E250"
+  ],
+  "411988": [
+   "E250",
+   "hærdet"
   ],
   "411997": [
    "E451",
@@ -407,12 +434,6 @@
    "E250",
    "modificeret stivelse"
   ],
-  "414792": [
-   "E250",
-   "E202",
-   "E211",
-   "modificeret stivelse"
-  ],
   "416609": [
    "E200"
   ],
@@ -441,25 +462,25 @@
    "Hk. oksekød 8-12% 800 g 76.95 kr"
   ],
   "hkblanding": [
-   "TILBUD Hk. gris & kalv 8-12% 500 g 25 kr"
+   "TILBUD Hk. gris & kalv 4-7% 400 g 25 kr",
+   "Hk. gris & kalv 8-12% 500 g 29.95 kr"
   ],
   "hkgris": [
    "Hk. grisekød 8-12% 500 g 24.95 kr"
   ],
   "log": [
-   "Rødløg 500 g 8 kr",
-   "Løg 1 kg 12 kr"
+   "TILBUD Løg 1 kg 7 kr"
   ],
   "peber": [
    "Rød peber 1 stk 9 kr"
   ],
   "gulerod": [
-   "TILBUD Gulerødder 1 kg 5 kr"
+   "Gulerødder 1 kg 12 kr"
   ],
   "hakkedetomater": [
    "Hakkede tomater 400 g 6.37 kr",
    "Tomat passata 500 g 8.69 kr",
-   "Passata di pomodoro 680 g 15.95 kr"
+   "TILBUD Passata di pomodoro 680 g 14 kr"
   ],
   "bonner": [
    "Sorte bønner 252 g 7.78 kr",
@@ -492,27 +513,26 @@
    "Skyr naturel 1 kg 19.95 kr"
   ],
   "squash": [
-   "TILBUD Squash 1 stk 6 kr"
+   "Squash 1 stk 7 kr"
   ],
   "pasta": [
    "Spaghetti fuldkorn 500 g 9.08 kr"
   ],
   "sortpeber": [
-   "Stødt sort peber 100 g 7.5 kr"
+   "Hele sorte peberkorn 100 g 8.95 kr"
   ],
   "kyllingfars": [
-   "Hk. kyllingekød 7-10% 400 g 29.95 kr"
+   "TILBUD Hk. kyllingekød 4-7% 400 g 25 kr"
   ],
   "salat": [
-   "TILBUD Øko. rucola 75 g 8 kr",
-   "Iceberg salat 1 stk 13 kr"
+   "TILBUD Iceberg salat 1 stk 10 kr"
   ],
   "kaal": [
    "Hvidkål 7 kr/kg 7 kr"
   ],
   "tomat": [
    "Cherryblommetomat 250 g 13 kr",
-   "Øko. tomater 400 g 17 kr"
+   "Øko. tomater 400 g 16 kr"
   ],
   "agurk": [
    "Agurk 1 stk 10 kr"
@@ -531,7 +551,8 @@
    "Havregryn grovvalsede 1 kg 7.95 kr"
   ],
   "kartofler": [
-   "TILBUD Sanderumgaard kart. 1 kg 7 kr",
+   "TILBUD Små kartofler 650 g 7 kr",
+   "Øko. kartofler 1 kg 10 kr",
    "Skrælle kartofler 2 kg 18 kr"
   ],
   "aeble": [
@@ -552,38 +573,40 @@
    "Hvedemel 2 kg 9.95 kr"
   ],
   "flaeskesteg": [
-   "TILBUD Ribbenssteg ovnklar 1 kg 50 kr",
+   "TILBUD Flæskesteg 1,45 kg 57.86 kr",
    "Flæskesteg 1,5-1,8 kg 1,5 kg 125 kr"
   ],
   "rodkaal": [
    "Rødkål 7 kr/kg 7 kr"
   ],
   "svinestrimler": [
-   "TILBUD Koteletter 400 g 25 kr",
+   "TILBUD Herregårds koteletter 340 g 29 kr",
+   "Koteletter 400 g 29.95 kr",
+   "TILBUD Nakkefilet 1 kg 39.9 kr",
    "Nakkefilet 1100-1400g 1,1 kg 89 kr"
   ],
   "kyllingebryst": [
    "Kyllingebrystfilet 280 g 27.95 kr",
-   "TILBUD Kyllingeinderfilet 350 g 29 kr",
-   "Kyllingebrystfilet 450 g 34.95 kr"
+   "Kyllingeinderfilet 350 g 29.95 kr",
+   "Kyllingebrystfilet 450 g 34.95 kr",
+   "TILBUD Kyllingebrystfilet 650 g 49 kr"
   ],
   "kyllingelaar": [
-   "TILBUD Kyllingeoverlår 800 g 29 kr",
+   "Kyllingeoverlår 800 g 29.95 kr",
    "Lår m/havsalt & peber 825 g 32.95 kr",
-   "TILBUD Hele kyllingelår 1,25 kg 35 kr"
+   "Hele kyllingelår 1,25 kg 44.95 kr"
   ],
   "kokosmaelk": [
    "Kokosmælk light 165 ml 3.69 kr",
    "Kokosmælk 400 ml 8.95 kr"
   ],
   "blomkaal": [
-   "Blomkål 1 stk 17 kr"
+   "TILBUD Blomkål 1 stk 14 kr"
   ],
   "karry": [
    "Karry 35 g 11.17 kr"
   ],
   "moerbrad": [
-   "TILBUD Grisemørbrad 600 g 30 kr",
    "Grisemørbrad 47,94 kr/kg 47.94 kr",
    "Kalvemørbrad 1,4 kg 399 kr"
   ],
@@ -600,12 +623,12 @@
    "Piskefløde 36% fedt 500 ml 14.95 kr"
   ],
   "ost": [
-   "Cheddar ost 100 g 14.95 kr",
+   "TILBUD Port gudhjem 100 g 12 kr",
    "Røgeost 175 g 16.95 kr",
    "Xl skiveost 45+ 200 g 19.95 kr",
-   "TILBUD Cheddar mature 250 g 20 kr",
    "Gouda skiveost 48+ 300 g 22.46 kr",
-   "Havarti 60+ 400 g 29.95 kr"
+   "Havarti 60+ 400 g 29.95 kr",
+   "Kronekilde 30+ mild mk 651 g 42.95 kr"
   ],
   "porre": [
    "Porrer 1 stk 6 kr"
@@ -614,19 +637,20 @@
    "Persille 1 stk 10 kr"
   ],
   "laks": [
-   "Laksefileter 225 g 43.95 kr",
-   "Lakseportioner 400 g 63.96 kr"
+   "TILBUD Danske laksefileter 225 g 39 kr",
+   "Lakseportioner 400 g 63.96 kr",
+   "TILBUD Dansk hel laksefilet 600 g 99 kr"
   ],
   "hvidfisk": [
    "Torskefileter 225 g 49.95 kr",
-   "Kullerloins 300 g 59 kr",
+   "TILBUD Danske rødspættefileter 400 g 59 kr",
    "Store vesterhavs rødspætter 500 g 59.95 kr"
   ],
   "soja": [
    "Sojasauce 250 ml 34.03 kr"
   ],
   "rejer": [
-   "TILBUD Ekstra store rejer 200 g 25 kr"
+   "Vannamei rejer rå 200 g 29.95 kr"
   ],
   "roedelinser": [
    "Røde splitlinser 400 g 16.95 kr"
@@ -650,7 +674,7 @@
   "rugbrod": [
    "Schwarzbrød 560 g 5.54 kr",
    "Solsikkerugbrød 600 g 9.75 kr",
-   "TILBUD Herkules 1 kg 10 kr",
+   "TILBUD Solsikkerugbrød 950 g 10 kr",
    "Groft rugbrød 1,12 kg 18 kr"
   ],
   "nudler": [
@@ -678,7 +702,7 @@
    "Jordbær 400 g 12 kr"
   ],
   "citrus": [
-   "Clementin spanien kl.1 1 stk 3 kr",
+   "TILBUD Clementin spanien kl.1 1 stk 1.5 kr",
    "Øko. clementiner 500 g 15 kr",
    "Clementin land se vare 1 kg 18 kr"
   ],
@@ -691,7 +715,7 @@
   ],
   "noedder": [
    "Mandler 100 g 8.95 kr",
-   "Mandler m/ røgsmag 150 g 22.03 kr",
+   "TILBUD Frugtpålæg 160 g 10 kr",
    "Grønne oliven 180 g 22.95 kr",
    "Pistacienødder 200 g 24.05 kr",
    "Hasselnøddecreme 400 g 29.3 kr"
@@ -705,7 +729,8 @@
   "rogetfisk": [
    "Ørredfilet 80 g 12.77 kr",
    "Varmrøget makrel 100 g 24.75 kr",
-   "Varmrøget laks 125 g 29.95 kr"
+   "Varmrøget laks 125 g 29.95 kr",
+   "TILBUD Røget norsk laks 140 g 45 kr"
   ],
   "tun": [
    "Tun i vand 140 g 9.95 kr",
@@ -715,7 +740,8 @@
    "Findelt makrel 125 g 14.95 kr"
   ],
   "flaesk": [
-   "TILBUD Stegeflæsk i skiver 400 g 20 kr"
+   "TILBUD Stegeflæsk 300 g 29 kr",
+   "Stegeflæsk i skiver 400 g 29.95 kr"
   ],
   "medister": [
    "Medister 500 g 24.95 kr ⚠ modificeret stivelse"
@@ -744,11 +770,10 @@
    "Brun sauce 410 g 16.95 kr ⚠ E150,E202,modificeret stivelse"
   ],
   "boller": [
-   "TILBUD Boller økologisk 375 g 12 kr",
    "Græskarkerneboller 438 g 14.95 kr"
   ],
   "toast": [
-   "TILBUD Grov cafesandwich 400 g 10 kr",
+   "Grov cafesandwich 400 g 22.5 kr",
    "Fuldkornsklemmer 420 g 24.75 kr",
    "Limpan 900 g 26.95 kr"
   ],
@@ -761,7 +786,6 @@
    "Stor leverpostej 400 g 15.95 kr"
   ],
   "skinke": [
-   "Sennpsmarin.skinke 90 g 16.8 kr",
    "Italiensk skinke 100 g 18.13 kr"
   ],
   "pizzadej": [
@@ -777,7 +801,7 @@
    "Fuldk. lasagneplade 500 g 9.95 kr"
   ],
   "taertedej": [
-   "TILBUD Tærtedej 275 g 9 kr ⚠ E471,E450,hærdet"
+   "Tærtedej 275 g 11.95 kr ⚠ E471,E450,hærdet"
   ],
   "dild": [
    "Dild 1 stk 10 kr"
