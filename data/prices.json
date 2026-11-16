@@ -1,8 +1,8 @@
 {
  "week": 47,
- "catalogueProducts": 2018,
+ "catalogueProducts": 1795,
  "additiveCheck": {
-  "checked": 264,
+  "checked": 243,
   "failed": 0,
   "probe": {
    "keys": [
@@ -29,7 +29,7 @@
    "query": "?include=declaration,nutrition_info",
    "declarationLike": []
   },
-  "flagged": 100
+  "flagged": 82
  },
  "flaggedProducts": {
   "20152": [
@@ -144,14 +144,6 @@
    "E471",
    "E472"
   ],
-  "63861": [
-   "E471",
-   "E472"
-  ],
-  "64746": [
-   "E472",
-   "E471"
-  ],
   "71284": [
    "E450",
    "E471",
@@ -168,28 +160,6 @@
   ],
   "100028": [
    "E407"
-  ],
-  "102802": [
-   "E422",
-   "E471",
-   "E282"
-  ],
-  "102806": [
-   "modificeret stivelse"
-  ],
-  "102831": [
-   "E422",
-   "E471",
-   "E282"
-  ],
-  "107912": [
-   "modificeret stivelse"
-  ],
-  "107913": [
-   "E385"
-  ],
-  "107914": [
-   "modificeret majsstivelse"
   ],
   "110496": [
    "E150",
@@ -335,57 +305,12 @@
    "nitrit",
    "carrageenan"
   ],
-  "411670": [
-   "E261",
-   "E451",
-   "E250"
-  ],
-  "411820": [
-   "E451",
-   "E450",
-   "E407",
-   "E250"
-  ],
-  "411822": [
-   "E250"
-  ],
-  "411823": [
+  "411987": [
    "E250"
   ],
   "411988": [
    "E250",
    "hærdet"
-  ],
-  "411997": [
-   "E451",
-   "E250",
-   "E261"
-  ],
-  "412010": [
-   "E451",
-   "E250"
-  ],
-  "412371": [
-   "E250",
-   "E252"
-  ],
-  "412380": [
-   "E471",
-   "E450",
-   "hærdet"
-  ],
-  "412385": [
-   "E450"
-  ],
-  "412387": [
-   "E471",
-   "E450",
-   "hærdet"
-  ],
-  "412391": [
-   "E450",
-   "E471",
-   "E481"
   ],
   "412516": [
    "E202"
@@ -478,7 +403,7 @@
    "Gulerødder 1 kg 12 kr"
   ],
   "hakkedetomater": [
-   "Hakkede tomater 400 g 6.37 kr",
+   "Flåede tomater 400 g 6.37 kr",
    "Tomat passata 500 g 8.69 kr",
    "TILBUD Passata di pomodoro 680 g 14 kr"
   ],
@@ -690,7 +615,7 @@
    "Bulgur 400 g 15.16 kr"
   ],
   "oregano": [
-   "Oregano 10 g 6.55 kr"
+   "EST Oregano (tørret) 10 g 12 kr"
   ],
   "feta": [
    "Salatost i tern 45+ 200 g 15.95 kr"
@@ -716,7 +641,6 @@
   "noedder": [
    "Mandler 100 g 8.95 kr",
    "TILBUD Frugtpålæg 160 g 10 kr",
-   "Grønne oliven 180 g 22.95 kr",
    "Pistacienødder 200 g 24.05 kr",
    "Hasselnøddecreme 400 g 29.3 kr"
   ],
@@ -727,9 +651,7 @@
    "Peanut butter 300 g 25.95 kr"
   ],
   "rogetfisk": [
-   "Ørredfilet 80 g 12.77 kr",
-   "Varmrøget makrel 100 g 24.75 kr",
-   "Varmrøget laks 125 g 29.95 kr",
+   "Varmrøget makrel 100 g 24.95 kr",
    "TILBUD Røget norsk laks 140 g 45 kr"
   ],
   "tun": [
@@ -747,7 +669,11 @@
    "Medister 500 g 24.95 kr ⚠ modificeret stivelse"
   ],
   "bacon": [
-   "Bacon skiver 100 g 19.95 kr"
+   "Bacon i skiver 150 g 9.97 kr ⚠ E250",
+   "Bacon i tern 200 g 12.95 kr ⚠ E250",
+   "Baconmix 300 g 19.11 kr ⚠ E451,E250",
+   "Bacon i skiver 3 pk. 375 g 34.95 kr ⚠ E250",
+   "Røget bacon 67,12 kr/kg 67.12 kr ⚠ E451,E250"
   ],
   "polser": [
    "Grillpølser 300 g 25 kr",
@@ -757,7 +683,7 @@
    "Burgerboller 330 g 15 kr"
   ],
   "tacokrydderi": [
-   "Taco spice mix 40 g 5.25 kr ⚠ modificeret stivelse"
+   "EST Tacokrydderi 1 pose 8 kr"
   ],
   "wraps": [
    "Øko tortilla, medium 320 g 15.95 kr"
@@ -770,7 +696,7 @@
    "Brun sauce 410 g 16.95 kr ⚠ E150,E202,modificeret stivelse"
   ],
   "boller": [
-   "Græskarkerneboller 438 g 14.95 kr"
+   "TILBUD Græskarkerneboller 438 g 12 kr"
   ],
   "toast": [
    "Grov cafesandwich 400 g 22.5 kr",
@@ -786,13 +712,12 @@
    "Stor leverpostej 400 g 15.95 kr"
   ],
   "skinke": [
-   "Italiensk skinke 100 g 18.13 kr"
+   "Parmaskinke 70 g 26.95 kr"
   ],
   "pizzadej": [
    "Pizzadej 275 g 9.95 kr"
   ],
   "mozzarella": [
-   "Mozzarella 125 g 6.95 kr",
    "Mini mozzarella 150 g 14.34 kr",
    "Mozzarella 200 g 14.36 kr",
    "Mozzarella 400 g 23.96 kr"
@@ -801,13 +726,15 @@
    "Fuldk. lasagneplade 500 g 9.95 kr"
   ],
   "taertedej": [
-   "Tærtedej 275 g 11.95 kr ⚠ E471,E450,hærdet"
+   "EST Tærtedej 275 g 12 kr"
   ],
   "dild": [
    "Dild 1 stk 10 kr"
   ],
   "honning": [
-   "Honning 425 g 19.09 kr"
+   "Hverdagshonning 250 g 25.5 kr",
+   "Blomster honning 400 g 32.5 kr",
+   "Dansk honning 425 g 34.95 kr"
   ],
   "basilikum": [
    "Øko. basilikum 1 stk 15 kr"
