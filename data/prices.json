@@ -1,8 +1,8 @@
 {
  "week": 47,
- "catalogueProducts": 1812,
+ "catalogueProducts": 1873,
  "additiveCheck": {
-  "checked": 313,
+  "checked": 314,
   "failed": 0,
   "probe": {
    "keys": [
@@ -29,7 +29,7 @@
    "query": "?include=declaration,nutrition_info",
    "declarationLike": []
   },
-  "flagged": 125
+  "flagged": 117
  },
  "flaggedProducts": {
   "20152": [
@@ -163,20 +163,6 @@
    "E471",
    "E472"
   ],
-  "63861": [
-   "E471",
-   "E472"
-  ],
-  "64746": [
-   "E472",
-   "E471"
-  ],
-  "72032": [
-   "modificeret majsstivelse"
-  ],
-  "72609": [
-   "E339"
-  ],
   "90534": [
    "E471",
    "E466",
@@ -186,6 +172,15 @@
   "90984": [
    "phosphat"
   ],
+  "100028": [
+   "E407"
+  ],
+  "101832": [
+   "E422",
+   "E471",
+   "E281",
+   "modificeret stivelse"
+  ],
   "102802": [
    "E422",
    "E471",
@@ -193,9 +188,6 @@
   ],
   "102806": [
    "modificeret stivelse"
-  ],
-  "102816": [
-   "E150"
   ],
   "102831": [
    "E422",
@@ -210,29 +202,6 @@
   ],
   "107914": [
    "modificeret majsstivelse"
-  ],
-  "110156": [
-   "E224",
-   "sulfit"
-  ],
-  "110326": [
-   "E202",
-   "modificeret majsstivelse"
-  ],
-  "110496": [
-   "E150",
-   "E202",
-   "modificeret stivelse"
-  ],
-  "110764": [
-   "E407",
-   "E150",
-   "E202",
-   "glukose-fruktosesirup",
-   "modificeret stivelse"
-  ],
-  "120053": [
-   "E202"
   ],
   "360809": [
    "E475",
@@ -559,14 +528,14 @@
    "free · Burger boller 250 g 25 kr · 31 % stivelser (tapioka, kartoffel, majs), 23 % rismel, 20 % majsmel, 8 % sukker, 7 % loppefrøpulver, 6 % inulinpulver, 3 % emulgator (E 471 vegetabilsk), 2 % s"
   ],
   "burgerboller": [],
-  "wraps": [],
+  "wraps": [
+   "free · Glutenfri tortillas 160 g 25.95 kr · 43 % vand, 32 % majsmel, 8 % rismel, 7 % modificeret stivelse (majs), 4 % stabilisatorer (E 422 vegetabilsk, E 412, E 415), 3 % kartoffelstivelse, emulgator (E "
+  ],
   "pasta": [
    "free · Majspasta fusilli 500 g 12.95 kr · Majsmel"
   ],
   "lasagne": [],
-  "havregryn": [
-   "free · Havregryn 1 kg 21.95 kr · <b>Havregryn</b> af uafskallede, varmebehandlede, økologiske glutenfri <b>havrekerner</b>."
-  ],
+  "havregryn": [],
   "mel": [],
   "nudler": [
    "clean · Risnudler 200 g 10.14 kr · Rismel, tapiokastivelse, salt."
@@ -674,7 +643,11 @@
    "clean · Røget hamburgerryg 88,1 kr/kg 88.1 kr · 88 % kam af gris, 9 % vand, salt,<br>stabilisator (E 451), sukker, antioxidant (E 301),<br>konserveringsmiddel (E 250), røgaroma fremstillet af bøg.",
    "clean · Røget bacon 67,12 kr/kg 67.12 kr · 97 % brystflæsk af gris, 2 % salt, stabilisator (E 451), sukker, antioxidant (E 301), konserveringsmiddel (E 250), røgaroma fremstillet af bøg."
   ],
-  "makreltomat": [],
+  "makreltomat": [
+   "clean · Makrelfilet i tomat 125 g 19.95 kr · <b>MAKRELFILET</b> (Scomber scombrus Fao 27) 64 %, vand, økologisk tomatkoncentrat 11,6 %, økologisk kartoffelmel 0,6 %, salt (økologiske ingredienser udgør 12,",
+   "clean · Makrelfilet i tomat 125 g 17.95 kr · 64 % <b>makrelfilet</b> (Scomber scombrus), vand, 12 % tomatpasta, salt.",
+   "clean · Findelt makrel 125 g 14.95 kr · 60 % findelt <b>makrel</b> (Scomber scombrus), vand, 14 % tomatpasta, salt."
+  ],
   "revetost": [
    "clean · Revet vegan topping 150 g 14.95 kr · Vand, modificeret stivelse, kokos- og rapsolie, kartoffelstivelse, salt, farve(beta-caroten), konserveringsmiddel (kaliumsorbat), surhedsregulerende middel (mæl",
    "clean · Revet hård ost 100 g 15.95 kr · <b>MÆLK</b>, salt, <b>osteløbe</b>, konserveringsmiddel (lysozym fra <b>ÆG</b>).",
@@ -700,6 +673,9 @@
    "clean · Piskefløde 36% fedt 500 ml 14.95 kr · <b>FLØDE</b> 36% fedt"
   ],
   "bonner": [
+   "clean · Kikærter 240 g 7.86 kr · 60 % økologiske udblødte og blancherede kikærter, 39,99 % vand, antioxidant (E 300).",
+   "clean · Kidneybønner 252 g 7.86 kr · Red kidney beans* (60%), vand (36,20%), ascorbinsyre (0,08%) *Økologiske",
+   "clean · Sorte bønner 252 g 7.78 kr · 60 % økologiske sorte bønner, 40 % vand.",
    "trace · Hvide bønner 400 g 16.95 kr · Økologiske hvide bønner. Kan indeholde spor af <b>hvede</b>, <b>rug</b>, <b>byg</b> og <b>havre</b>.",
    "trace · Røde splitlinser 400 g 16.95 kr · Økologiske røde splitlinser.<br><br>Kan indeholde spor af <b>hvede</b>, <b>rug</b>, <b>byg</b> og <b>havre</b>.",
    "trace · Grønne linser 400 g 16.95 kr · Økologiske grønne linser. Kan indeholde spor af <b>hvede</b>, <b>rug</b>, <b>byg</b> og <b>havre</b>.",
@@ -712,36 +688,34 @@
    "trace · Røde splitlinser 400 g 16.95 kr · Økologiske røde splitlinser.<br><br>Kan indeholde spor af <b>hvede</b>, <b>rug</b>, <b>byg</b> og <b>havre</b>.",
    "trace · Grønne linser 400 g 16.95 kr · Økologiske grønne linser. Kan indeholde spor af <b>hvede</b>, <b>rug</b>, <b>byg</b> og <b>havre</b>."
   ],
-  "sennep": [
-   "clean · Sennep 400 g 9.15 kr · Vand 43%, eddike 30%, gule <b>sennepsfrø</b> 16%, brune <b>sennepsfrø</b> 5%, sukker 3%, salt 20%, gurkemejerod, allehånde.",
-   "clean · Dijon sennep 370 g 12.95 kr · Vand, <b>SENNEPSFRØ</b>, eddike, salt, ANTIOXIDANT : kaliumsulfit, (E224) surhedsregulerende middel, citronsyre (E330)",
-   "clean · Sød fransk sennep 400 g 9.7 kr · 58 % vand, 19 % <b>sennep</b> (vand, eddike, sukker, <b>sennepsfrø</b>, salt, krydderier (gurkemeje, karry, allehånde, peber, paprika, løg)), 12 % sukker, 4 % m",
-   "clean · Arfmanns sennep 250 g 24.09 kr · Vand, 22% formalede <b>SENNEPsfrø</b>, eddike, salt.",
-   "clean · Taffel sennep 250 g 24.2 kr · Vand, eddike, 16% formalede <b>SENNEPsfrø</b>, salt, sukker, gurkemejerod, surhedsregulerende middel (citronsyre)."
-  ],
+  "sennep": [],
   "peanutbutter": [
    "clean · Peanut butter 300 g 25.95 kr · 99,5 % <b>jordnødder</b>, salt.<br><br>Kan indeholde spor af <b>mandler</b>, <b>hasselnødder</b>, <b>valnødder</b>, <b>cashewnødder</b>, <b>pekannødder</b>, <b>"
   ],
   "noedder": [
    "clean · Frugtpålæg 160 g 10 kr · Tørrede/ tørket/torkade dadler/dadlar 89% (ikke-EU), <b>JORDNØDDER</b>/<b>PEANØTTER</b>/ <b>JORDNÖTTER</b> 5% (EU og ikke-EU), <b>HASSELNØDDER</b>/<b>HASSELNØTT",
-   "clean · Hasselnøddecreme 400 g 29.3 kr · 47 % sukker, 26 % palmeolie, 13 % <b>hasselnødder</b>, 7 % fedtfattigt kakaopulver*, 3 % <b>laktose</b> (af <b>mælk</b>), 3 % <b>vallepulver</b> (af <b>mælk</b>",
    "clean · Mandler 100 g 8.95 kr · 100 % <b>mandler</b> (Kan indeholde spor af <b>jordnødder</b>, <b>hasselnødder</b>, <b>valnødder</b>, <b>cashewnødder</b>, <b>pekannødder</b>, <b>paranødder</b>",
    "clean · Valnøddekerner 100 g 13.95 kr · 100% <b>VALNØDDEKERNER</b>. Kan indeholde spor af <b>sesam</b>, <b>hassel-</b>, <b>cashew-</b>, para-, pekan- pistacie-, <b>jordnødder</b>.",
    "clean · Hasselnøddeflager 40 g 9.5 kr · <b>Hasselnøddeflager</b>. Kan indeholde spor af <b>jordnødder</b>, <b>mandler</b>, <b>valnødder</b>, <b>cashewnødder</b>, <b>pekannødder</b>, <b>pistacienødder<",
    "clean · Hasselnøddekerner 100 g 18.95 kr · <b>Hasselnøddekerner</b>.Kan indeholde spor af <b>jordnødder</b>, <b>mandler</b>, <b>valnødder</b>, <b>cashewnødder</b>, <b>pekannødder</b>, <b>pistacienødder</",
+   "clean · Valnødder 70 g 12 kr · Økologiske <b>VALNØDDER</b>. Kan indeholde spor af <b>jordnødder</b>, <b>mandel</b>, <b>hassel-</b>, <b>cashew-</b>, pekan-, para-, og <b>pistacienødder</b>. <b",
+   "clean · Cashewnødder 45 g 12 kr · Økologiske <b>CASHEWNØDDER</b>. Kan indeholde spor af <b>jordnødder</b>, <b>mandler</b>, <b>hassel-</b>, para-, pekan-, val-, og <b>pistacienødder</b>.",
+   "clean · Mandler 90 g 12 kr · <b>MANDLER</b>, salt (0,8%). Kan indeholde spor af <b>cashewnødder</b>, <b>pistacienødder</b> og <b>jordnødder</b>.",
    "clean · Grønne oliven 180 g 22.95 kr · 60% grønne oliven uden sten, vand, 9% <b>MANDLER</b>, havsalt, surhedsregulerende middel (E 330). Kan indeholde sten eller rester af sten.",
-   "clean · Pistacienødder 200 g 24.05 kr · 98 % <b>pistacienødder</b> med skal, 2 % salt. Kan indeholde spor af <b>jordnødder</b> og <b>queenslandnødder</b> (<b>macadamianødder</b>)."
+   "clean · Pistacienødder 200 g 24.05 kr · 98 % <b>pistacienødder</b> med skal, 2 % salt. Kan indeholde spor af <b>jordnødder</b> og <b>queenslandnødder</b> (<b>macadamianødder</b>).",
+   "clean · Hasselnøddecreme 400 g 29.3 kr · 47 % sukker, 26 % palmeolie, 13 % <b>hasselnødder</b>, 7 % fedtfattigt kakaopulver*, 3 % <b>laktose</b> (af <b>mælk</b>), 3 % <b>vallepulver</b> (af <b>mælk</b>"
   ],
-  "rosiner": [],
+  "rosiner": [
+   "clean · Rosiner 250 g 12.95 kr · 99,5 % rosiner, solsikkeolie",
+   "clean · Rosiner 250 g 13.95 kr · 99,5 % økologiske rosiner (kan indeholde rester af druestilke), økologisk solsikkeolie.Kan indeholde spor af <b>jordnødder</b>, <b>mandler</b>, <b>hasselnødder<",
+   "clean · Salat rosiner 450 g 22.5 kr · 99,5 % rosiner, solsikkeolie"
+  ],
   "gaer": [
    "clean · Tør gær 11.8 g 2.5 kr · Tørret bagegær, emulgator (E491).",
    "clean · Gær 50 g 1.5 kr · Gær",
-   "gluten · Gær 50 g 5.75 kr · Malteserkors. Økologisk gær. Pakket vægt 50 g. Kan indeholde spor af <b>SOJA</b>."
+   "clean · Gær 50 g 5.75 kr · Malteserkors. Økologisk gær. Pakket vægt 50 g. Kan indeholde spor af <b>SOJA</b>."
   ],
   "paprika": [
-   "gluten · Wasa crackers 150 g 20 kr · <b>HVEDEMEL</b>, kartoffelstivelse, solsikkeolie, modificeret majsstivelse, aroma (<b>MÆLK</b>), sukker, salt, paprika (1,3 %*), hævemiddel: ammoniumhydrogencar",
-   "trace · Mini majskiks 60 g 10 kr · 78% majsmel*, 12% smagsblanding (tørrede grøntsager (18% røget paprika, løg, hvidløg, tomat), salt, <b>vallepulver</b> (<b>MÆLK</b>), sukker, fruktose, <b>OSTEP",
-   "trace · Majskiks 120 g 12 kr · 78% majsmel, 10% rapsolie, 2% røget paprika, salt, <b>vallepulver</b> (af <b>MÆLK</b>), sukker, løgpulver, hvidløgspulver, tomatpulver, fruktose, gærekstrakt, <",
    "clean · Sød paprika 60 g 12.75 kr · Sød paprikapulver (97,9%), solsikkeolie (2%), rosmarin ekstrakt (0,1%)."
   ],
   "karry": [],
@@ -788,10 +762,10 @@
   ],
   "hakkedetomater": [
    "Hakkede tomater 400 g 6.37 kr",
-   "Tomat passata 500 g 8.69 kr",
    "TILBUD Passata di pomodoro 680 g 14 kr"
   ],
   "bonner": [
+   "Sorte bønner 252 g 7.78 kr",
    "Kikærter 400 g 14.95 kr"
   ],
   "ris": [
@@ -799,14 +773,14 @@
    "Parboiled ris 1 kg 11.95 kr"
   ],
   "olie": [
-   "Solsikkeolie 1 l 19.09 kr"
+   "Koldpresset rapsolie 700 ml 32.75 kr"
   ],
   "hvidlog": [
    "Øko. hvidløg 1 stk 4 kr",
    "Hvidløg i net 90 g 6 kr"
   ],
   "paprika": [
-   "Mini majskiks 60 g 10 kr"
+   "Sød paprika 60 g 12.75 kr"
   ],
   "spidskommen": [
    "Spidskommen 33 g 21.39 kr"
@@ -855,7 +829,7 @@
    "Skummetmælk 1 l 9.95 kr"
   ],
   "havregryn": [
-   "Havregryn grovvalsede 1 kg 7.95 kr"
+   "EST Havregryn 1 kg 12 kr"
   ],
   "kartofler": [
    "TILBUD Små kartofler 650 g 7 kr",
@@ -877,7 +851,7 @@
    "Becel smørbar 250 g 18.95 kr"
   ],
   "mel": [
-   "Hvedemel 2 kg 9.95 kr"
+   "Bage hvedemel 2 kg 9.95 kr"
   ],
   "flaeskesteg": [
    "TILBUD Flæskesteg 1,45 kg 57.86 kr",
@@ -905,8 +879,7 @@
    "Hele kyllingelår 1,25 kg 44.95 kr"
   ],
   "kokosmaelk": [
-   "Kokosmælk light 165 ml 3.69 kr",
-   "Kokosmælk 400 ml 8.95 kr"
+   "EST Kokosmælk 400 ml 12 kr"
   ],
   "blomkaal": [
    "TILBUD Blomkål 1 stk 14 kr"
@@ -954,7 +927,7 @@
    "Store vesterhavs rødspætter 500 g 59.95 kr"
   ],
   "soja": [
-   "Sojasauce 250 ml 34.03 kr"
+   "EST Sojasauce 150 ml 15 kr"
   ],
   "rejer": [
    "Vannamei rejer rå 200 g 29.95 kr"
@@ -1003,7 +976,7 @@
    "Salatost i tern 45+ 200 g 15.95 kr"
   ],
   "banan": [
-   "EST Bananer 1 kg 15 kr"
+   "Banan 1 stk 2.5 kr"
   ],
   "baer": [
    "Jordbær 400 g 12 kr"
@@ -1041,10 +1014,11 @@
    "Røget ørred 500 g 99 kr"
   ],
   "tun": [
-   "Yellowfin tun i olie 140 g 15.11 kr"
+   "Tun i vand 140 g 9.95 kr",
+   "Tun i vand 168 g 20.27 kr"
   ],
   "makreltomat": [
-   "EST Makrel i tomat 125 g 10 kr"
+   "Findelt makrel 125 g 14.95 kr"
   ],
   "flaesk": [
    "TILBUD Stegeflæsk 300 g 29 kr",
@@ -1066,17 +1040,17 @@
    "Taco spice mix 40 g 5.25 kr ⚠ modificeret stivelse"
   ],
   "wraps": [
-   "Tortillas hvede 370 g 10.7 kr ⚠ E422,E471,E282"
+   "Øko tortilla, medium 320 g 15.95 kr"
   ],
   "revetost": [
    "Mozzarella 200 g 14.36 kr",
    "Mozzarella 400 g 23.96 kr"
   ],
   "brunsauce": [
-   "Brun sauce 410 g 16.95 kr ⚠ E150,E202,modificeret stivelse"
+   "EST Brun sauce 410 g 20 kr"
   ],
   "boller": [
-   "TILBUD Græskarkerneboller 438 g 12 kr"
+   "Græskarkerneboller 438 g 14.95 kr"
   ],
   "toast": [
    "Grov cafesandwich 400 g 22.5 kr",
@@ -1095,7 +1069,7 @@
    "Italiensk skinke 70 g 18.38 kr"
   ],
   "pizzadej": [
-   "TILBUD Pizzadej 275 g 6 kr"
+   "Pizzadej 275 g 9.95 kr"
   ],
   "mozzarella": [
    "Mozzarella 125 g 6.95 kr",
@@ -1119,10 +1093,10 @@
    "Øko. basilikum 1 stk 15 kr"
   ],
   "sennep": [
-   "Sennep 400 g 9.15 kr"
+   "EST Sennep 200 g 15 kr"
   ],
   "eddike": [
-   "Æblecider eddike 500 ml 25.45 kr"
+   "Klar eddike 1 l 6.5 kr"
   ],
   "tomatpure": [
    "Tomatpuré 200 g 12.95 kr"
@@ -1135,13 +1109,17 @@
    "Stødt kanel 45 g 11.95 kr"
   ],
   "majs": [
-   "EST Majs (dåse) 340 g 8 kr"
+   "Majs 140 g 7.14 kr",
+   "Majs 285 g 7.91 kr",
+   "TILBUD Mini fras 350 g 22 kr",
+   "Majs 420 g 36.5 kr"
   ],
   "timian": [
    "EST Timian (tørret) 10 g 12 kr"
   ],
   "rosiner": [
-   "EST Rosiner 250 g 12 kr"
+   "Rosiner 250 g 12.95 kr",
+   "Salat rosiner 450 g 22.5 kr"
   ],
   "purloeg": [
    "Purløg 1 stk 10 kr"
