@@ -293,7 +293,7 @@ export function findAdditives(text) {
 // Gluten from a product's details: 'free' when it is labelled gluten-free, otherwise from its
 // ingredient list: 'gluten' (wheat, rye, barley, oats, spelt and their products, malt),
 // 'trace' (may contain traces), 'clean', or 'unknown' when REMA shows no ingredient list.
-const GLUTEN_RE = /(?<!bog)hvede|(?<![a-zæøå])(?:rug|byg|kamut|emmer|enkorn|semulje|couscous|bulgur|seitan|durum)|fuldkornsrug|havre|spelt|(?<![a-zæøå])malt(?![oi])|(?<![a-zæøå])gluten(?!\s*fri)/i;
+const GLUTEN_RE = /(?<!bog)hvede|(?<![a-zæøå])(?:rug|byg|kamut|emmer|enkorn|semulje|couscous|bulgur|seitan|durum)|fuldkornsrug|havre|spelt|(?<![a-zæøå])malt(?:ekstrakt|sirup|eddike|mel|pulver|byg)?(?![a-zæøå])|(?<![a-zæøå])gluten(?!\s*fri)/i;
 const TRACE_RE = /(?:spor|kan indeholde)[^.]{0,100}?(?:gluten|hvede|rug|byg|havre|spelt)/i;
 const GF_LABEL = /gluten\s*-?fri|gluten[- ]?free|uden gluten/i;
 export function glutenOf(d) {
