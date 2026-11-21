@@ -229,6 +229,9 @@ footer p{margin:0}
       <div class="ctl"><span id="cheapLbl">Cheapest week</span>
         <button class="switch" id="cheap" role="switch" aria-checked="true" aria-labelledby="cheapLbl"><span class="knob"></span><span class="txt">On</span></button>
         <small class="hint" id="cheapHint">Off picks more vegetables, protein and fish, at a higher price.</small></div>
+      <div class="ctl" id="gfCtl"><span id="gfLbl">Gluten-free</span>
+        <button class="switch" id="gf" role="switch" aria-checked="false" aria-labelledby="gfLbl" aria-describedby="gfHint"><span class="knob"></span><span class="txt">Off</span></button>
+        <small class="hint" id="gfHint">Only meals and products without gluten.</small></div>
       <div class="ctl"><span id="typesLbl">Plan for</span>
         <div class="toggles" role="group" aria-labelledby="typesLbl">
           <button class="tg" data-type="breakfast" aria-pressed="true">Breakfast</button>
@@ -258,7 +261,7 @@ footer p{margin:0}
 </div>
 
 <script type="module">
-import { createPlanner, cover as coverDef } from './planner.js';
+import { createPlanner, glutenFree, cover as coverDef } from './planner.js';
 const $ = s => document.querySelector(s);
 const view = $('#view');
 const MONTHS = ['januar','februar','marts','april','maj','juni','juli','august','september','oktober','november','december'];
@@ -269,7 +272,7 @@ const BASICS = ['salt', 'sortpeber', 'olie'];
 const DOT = { breakfast:'var(--b1)', lunch:'var(--b2)', dinner:'var(--sale)' };
 const CAT = {'kod-fisk-fjerkrae':'Meat, fish & poultry','kol':'Chilled','frugt-gront':'Fruit & veg','mejeri':'Dairy','ost-mv':'Cheese','brod-bavinchi':'Bread','frost':'Frozen','kolonial':'Groceries','*':'Other'};
 let DATA, ING, MEALS = {}, KEY, SHOP, PLANNER, PLAN, PLAN_KEY = '';
-let state = { tab:'week', open:{}, got:{}, have:{}, picks:{}, lock:null, swapOpen:{}, swapF:{}, swapMore:{}, cheap:true, treatW:[false,false,false,false,false,false,false], members:[{ name:'', kcal:2000 }, { name:'', kcal:2000 }], types:{ breakfast:true, lunch:true, dinner:true } };
+let state = { tab:'week', open:{}, got:{}, have:{}, picks:{}, lock:null, swapOpen:{}, swapF:{}, swapMore:{}, cheap:true, gf:false, treatW:[false,false,false,false,false,false,false], members:[{ name:'', kcal:2000 }, { name:'', kcal:2000 }], types:{ breakfast:true, lunch:true, dinner:true } };
 
 const kr = v => v.toFixed(2).replace('.', ',');
 const plural = n => `${n} ${n === 1 ? 'person' : 'people'}`;
@@ -286,7 +289,7 @@ const fmtDate = (a, b) => {
   return m1 === m2 ? `${d1}.–${d2}. ${MONTHS[m2-1]} ${y2}` : `${d1}. ${MONTHS[m1-1].slice(0,3)} – ${d2}. ${MONTHS[m2-1].slice(0,3)} ${y2}`;
 };
 function save(){
-  try{ localStorage.setItem('ugeplan:prefs', JSON.stringify({ members:state.members, treatW:state.treatW, cheap:state.cheap, types:state.types, tab:state.tab, have:state.have }));
+  try{ localStorage.setItem('ugeplan:prefs', JSON.stringify({ members:state.members, treatW:state.treatW, cheap:state.cheap, gf:state.gf, types:state.types, tab:state.tab, have:state.have }));
        localStorage.setItem(KEY, JSON.stringify(state.got));
        localStorage.setItem(KEY.replace(':got', ':picks'), JSON.stringify({ picks:state.picks, lock:state.lock })); }catch(e){}
 }
@@ -294,7 +297,7 @@ function load(){
   try{ const p = JSON.parse(localStorage.getItem('ugeplan:prefs')||'null');
     if (p){ if (Array.isArray(p.members) && p.members.length) state.members = p.members.slice(0, 10).map(m => ({ name: String(m.name || '').slice(0, 24), kcal: clampK(+m.kcal) }));
       else if (p.people) state.members = Array.from({ length: Math.min(10, p.people) }, () => ({ name: '', kcal: clampK(+p.kcal || 2000) }));
-      if (p.types) state.types = { ...state.types, ...p.types }; if (p.tab) state.tab = p.tab; if (p.have) state.have = p.have; if (typeof p.cheap === 'boolean') state.cheap = p.cheap; if (Array.isArray(p.treatW) && p.treatW.length === 7) state.treatW = p.treatW; } }catch(e){}
+      if (p.types) state.types = { ...state.types, ...p.types }; if (p.tab) state.tab = p.tab; if (p.have) state.have = p.have; if (typeof p.cheap === 'boolean') state.cheap = p.cheap; if (typeof p.gf === 'boolean') state.gf = p.gf; if (Array.isArray(p.treatW) && p.treatW.length === 7) state.treatW = p.treatW; } }catch(e){}
   try{ state.got = JSON.parse(localStorage.getItem(KEY)||'{}') || {}; }catch(e){ state.got = {}; }
   try{ const s = JSON.parse(localStorage.getItem(KEY.replace(':got', ':picks'))||'null'); if (s){ state.picks = s.picks || {}; state.lock = s.lock || null; } }catch(e){}
 }
@@ -307,11 +310,13 @@ const treatPattern = () => Array.from({ length: 7 }, (_, d) => !!state.treatW[(s
 // Meals the visitor swapped in are kept in their slot. Right after a swap the rest of the week is
 // held as it was too (the lock), so a swap changes that one meal and the price shown is the price
 // paid. Changing the household, calories, treat days or the cheapest switch re-plans around the picks.
-const settings = () => `${PEOPLE()}|${Math.round(AVG())}|${state.cheap}|${treatPattern().join()}`;
+const settings = () => `${PEOPLE()}|${Math.round(AVG())}|${state.cheap}|${state.gf}|${treatPattern().join()}`;
 const fixedMeals = () => ({ ...(state.lock && state.lock.sig === settings() ? state.lock.fixed : {}), ...state.picks });
 function plan(){
   const fixed = fixedMeals(), key = settings() + JSON.stringify(fixed);
   if (key !== PLAN_KEY) { PLAN = PLANNER.plan(PEOPLE(), treatPattern(), Math.round(AVG()), { cheap: state.cheap, fixed }); PLAN_KEY = key; }
+  // No gluten-free week possible from this week's shop: drop the mode rather than show nothing.
+  if (!PLAN && state.gf) { state.gf = false; GF_NONE = true; setMode(); return plan(); }
   return PLAN;
 }
 const ingOf = id => plan().pick[id].map((k, i) => [k, MEALS[id].ing[i][1]]);
@@ -596,6 +601,11 @@ function renderMembers(){
 function renderHouse(){
   renderMembers();
   $('#cheap').setAttribute('aria-checked', state.cheap); $('#cheap .txt').textContent = state.cheap ? 'On' : 'Off';
+  $('#gfCtl').hidden = !GF_READY;
+  $('#gf').setAttribute('aria-checked', state.gf); $('#gf .txt').textContent = state.gf ? 'On' : 'Off';
+  $('#gfHint').textContent = state.gf
+    ? `${GF.recipes.length} of ${DATA.recipes.length} recipes can be made gluten-free this week. Only products labelled gluten-free, or whose ingredient list at REMA shows no gluten and no "may contain traces", go on the list. Always check the packet.`
+    : 'Only meals and products without gluten.';
   $('#cheapHint').textContent = state.cheap ? 'Off picks more vegetables, protein and fish, at a higher price.' : 'Picking for vegetables, protein and fish. Turn on for the lowest price.';
   document.querySelectorAll('.tg').forEach(b => b.setAttribute('aria-pressed', !!state.types[b.dataset.type]));
   const s = SHOP, all = Object.values(state.types).every(Boolean);
@@ -619,12 +629,26 @@ function render(){
   renderHouse();
 }
 
+// Gluten-free mode swaps in its own ingredients (gluten-free packs only) and recipe set. Older
+// data without gluten information hides the switch.
+let GF = null, GF_READY = false, GF_NONE = false;
+const PLANNERS = {};
+function setMode(){
+  GF_READY = !GF_NONE && Object.values(DATA.ing).some(d => d.gluten);
+  if (!GF_READY) state.gf = false;
+  if (GF_READY && !GF) GF = glutenFree(DATA);
+  const src = state.gf ? GF : DATA, mode = state.gf ? 'gf' : 'all';
+  for (const k of Object.keys(MEALS)) delete MEALS[k];
+  src.recipes.forEach(m => MEALS[m.id] = m);
+  ING = src.ing;
+  PLANNER = PLANNERS[mode] ||= createPlanner({ recipes: src.recipes, ing: src.ing, seed: DATA.seed });
+  PLAN_KEY = null;
+}
+
 function init(){
   KEY = `ugeplan:${DATA.year}-${DATA.week}:got`;
-  DATA.recipes.forEach(m => MEALS[m.id] = m);
-  ING = DATA.ing;
-  PLANNER = createPlanner({ recipes: DATA.recipes, ing: ING, seed: DATA.seed });
   load();
+  setMode();
   $('#weekline').innerHTML = `<b>Uge ${DATA.week}</b> REMA 1000 · ${fmtDate(DATA.validFrom, DATA.validTo)}`;
   document.title = `Tilbudskøkken · uge ${DATA.week}`;
   const today = new Date().toISOString().slice(0,10);
@@ -650,6 +674,7 @@ members.addEventListener('focusout', e => { if (e.target.dataset.name !== undefi
 $('#addPerson').addEventListener('click', () => { if (!DATA || PEOPLE() >= 10) return;
   state.members.push({ name: '', kcal: clampK(AVG()) }); save(); render(); const n = document.getElementById(`mn-${PEOPLE() - 1}`); if (n) n.focus(); });
 $('#cheap').addEventListener('click', () => { if (!DATA) return; state.cheap = !state.cheap; save(); render(); });
+$('#gf').addEventListener('click', () => { if (!DATA || !GF_READY) return; state.gf = !state.gf; setMode(); save(); render(); });
 document.querySelectorAll('.tg').forEach(b => b.addEventListener('click', () => { if (!DATA) return; state.types[b.dataset.type] = !state.types[b.dataset.type]; save(); render(); }));
 document.querySelector('.tabs').addEventListener('click', e => { const b = e.target.closest('.tab'); if (!b || !DATA) return; state.tab = b.dataset.tab; save(); render(); });
 view.addEventListener('click', e => {

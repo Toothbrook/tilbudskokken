@@ -97,8 +97,11 @@ export function createPlanner({ recipes, ing, seed = 0 }) {
     const chosen = [], used = new Set(Object.values(fixed)), protein = new Set(), family = {}, carbs = {};
     for (const [i, slot] of slots.entries()) {
       const portions = slot.days.length * people, pinned = fixed[slotKey(slot)];
-      const pool = recipes.filter(r => (pinned ? r.id === pinned : (i > 0 || !opener || r.id === opener) && !used.has(r.id)) && fits(r, slot))
+      const pick = fit => recipes.filter(r => (pinned ? r.id === pinned : (i > 0 || !opener || r.id === opener) && !used.has(r.id)) && fit(r, slot))
         .map(r => evaluate(r, need, portions, size)).filter(Boolean);
+      // A treat day may fall back to a healthy recipe when the treats run out (gluten-free mode).
+      let pool = pick(fits);
+      if (!pool.length && !pinned && slot.kind === 'treat') pool = pick((r, sl) => fits(r, { ...sl, kind: 'healthy' }));
       const ok = c => {
         const [lo, hi] = KCAL[slot.type];
         if (c.kcal < lo || c.kcal > hi) return false;
@@ -187,4 +190,22 @@ export function createPlanner({ recipes, ing, seed = 0 }) {
   }
 
   return { plan, alternatives };
+}
+
+// Gluten-free mode: ingredients that can contain gluten keep only their gluten-free packs (checked
+// products, or a gluten-free stand-in such as gluten-free pasta), and recipes keep only the
+// alternatives still available; a recipe with a line nothing gluten-free can fill is left out.
+export function glutenFree({ recipes, ing }) {
+  const gIng = {};
+  for (const [k, d] of Object.entries(ing)) {
+    if (!d.gluten) gIng[k] = d;
+    else if (d.gfOptions?.length) gIng[k] = { ...d, n: d.gfN || d.n, options: d.gfOptions };
+  }
+  // Some share a stand-in (toast and rye bread are both gluten-free bread), so it's bought once.
+  const swap = k => ing[k]?.gfAs && gIng[ing[k].gfAs] ? ing[k].gfAs : k;
+  const lines = r => r.ing.map(([spec, g]) => [[...new Set(spec.split('|').map(swap))].filter(k => gIng[k]).join('|'), g]);
+  const named = r => r.ing.some(([spec]) => spec.split('|').includes('pasta')) ? {
+    name: r.name.replace(/whole-grain (spaghetti|pasta|penne|fusilli)/i, (m, w) => `${m[0] === 'W' ? 'G' : 'g'}luten-free ${w}`),
+    dk: r.dk.replace(/fuldkorns(pasta|spaghetti)/i, (m, w) => `${m[0] === 'F' ? 'G' : 'g'}lutenfri ${w}`) } : {};
+  return { ing: gIng, recipes: recipes.map(r => ({ ...r, ...named(r), ing: lines(r) })).filter(r => r.ing.every(([spec]) => spec)) };
 }

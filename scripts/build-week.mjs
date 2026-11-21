@@ -10,8 +10,8 @@
 //   node scripts/build-week.mjs --catalogue file.json  # offline: also use a saved catalogue
 import fs from 'node:fs/promises';
 import path from 'node:path';
-import { INGREDIENTS, RECIPES } from './recipes.mjs';
-import { createPlanner, cover } from '../planner.js';
+import { INGREDIENTS, RECIPES, GLUTEN } from './recipes.mjs';
+import { createPlanner, glutenFree, cover } from '../planner.js';
 import { scrapeApi, scrapeRema, scrapeTjek, scrapeCatalogue, parseProduct, computedWeek, productDetails } from './offers.mjs';
 
 const args = process.argv.slice(2);
@@ -105,16 +105,48 @@ if (!arg('--offers') || arg('--details')) {
     }
   } catch (e) { console.warn(`Additive check failed: ${e.message}`); }
 }
+// Gluten-free mode: gluten-free stand-ins for bread, pasta, oats and the like (searched across the
+// whole shop), and the ingredient lists of everything that could hide gluten.
+const GF_CAND = {};
+for (const [key, gf] of Object.entries(GLUTEN.grain)) {
+  if (!gf.re) { GF_CAND[key] = []; continue; }
+  const def = { ...INGREDIENTS[key], est: gf.est || INGREDIENTS[key].est };
+  GF_CAND[key] = [...offers.filter(o => gf.re.test(textOf(o))).map(o => toOption(def, o, true)),
+    ...catalogue.filter(o => gf.re.test(textOf(o))).map(o => toOption(def, o, false))].filter(Boolean);
+}
+const GF_KEYS = new Set([...Object.keys(GLUTEN.grain), ...GLUTEN.check]);
+const glutenCheck = { checked: 0, free: 0 };
+if (!arg('--offers') || arg('--details')) {
+  try {
+    const want = new Set();
+    for (const key of GLUTEN.check) if (USED.has(key)) for (const o of CANDIDATES[key]) if (/^\d+$/.test(o.id || '') && !(o.id in DETAILS)) want.add(o.id);
+    for (const key in GF_CAND) for (const o of GF_CAND[key]) if (/^\d+$/.test(o.id || '') && !(o.id in DETAILS)) want.add(o.id);
+    if (want.size) Object.assign(DETAILS, (await productDetails([...want])).details);
+  } catch (e) { console.warn(`Gluten check failed: ${e.message}`); }
+}
+// A product counts as gluten-free when it is labelled so or its ingredient list shows no gluten
+// and no traces. Unknown counts as not gluten-free.
+const isGF = o => /GLUTENFRI/.test(`${o.product} ${o.desc}`.toUpperCase()) || ['free', 'clean'].includes(DETAILS[o.id]?.gluten);
+
 additiveCheck.checked = Object.values(DETAILS).filter(Boolean).length;
 additiveCheck.flagged = Object.entries(DETAILS).filter(([, d]) => d?.additives?.length).length;
 
-const OPTIONS = {}, stats = { sale: 0, shelf: 0, est: 0, unavoidable: [] };
+const OPTIONS = {}, GF_OPTIONS = {}, stats = { sale: 0, shelf: 0, est: 0, unavoidable: [] };
 for (const key of USED) {
   const def = INGREDIENTS[key], all = CANDIDATES[key], clean = all.filter(o => !flagged(o));
   let opts = (clean.length ? clean : all).map(o => DETAILS[o.id]?.additives?.length ? { ...o, additives: DETAILS[o.id].additives } : o);
   if (all.length && !clean.length) stats.unavoidable.push(key);
   if (!all.some(o => !o.onSale)) opts.push({ price: def.est[0], pack: def.est[1], label: def.est[2], product: def.n, desc: '', onSale: false, est: true });
   OPTIONS[key] = frontier(opts);
+  if (GF_KEYS.has(key) && !GLUTEN.grain[key]?.as) {
+    // The packs gluten-free mode may buy: checked products, or a gluten-free stand-in.
+    const gfAll = (GLUTEN.grain[key] ? GF_CAND[key] : all).filter(isGF), gfClean = gfAll.filter(o => !flagged(o));
+    const gfOpts = (gfClean.length ? gfClean : gfAll).map(o => DETAILS[o.id]?.additives?.length ? { ...o, additives: DETAILS[o.id].additives } : o);
+    const gf = GLUTEN.grain[key];
+    if (gf?.est && !gfOpts.some(o => !o.onSale)) gfOpts.push({ price: gf.est[0], pack: gf.est[1], label: gf.est[2], product: gf.n, desc: '', onSale: false, est: true });
+    GF_OPTIONS[key] = frontier(gfOpts);
+    glutenCheck.checked++; if (GF_OPTIONS[key].length) glutenCheck.free++;
+  }
   if (OPTIONS[key].some(o => o.onSale)) stats.sale++; else if (OPTIONS[key].some(o => !o.est)) stats.shelf++; else stats.est++;
 }
 // What each offer pack costs at normal price: the same product's shelf price when REMA lists it,
@@ -124,7 +156,7 @@ const shelfById = new Map(catalogue.map(o => [String(o.id), o]));
 for (const key of Object.keys(OPTIONS)) {
   const def = INGREDIENTS[key];
   const ref = OPTIONS[key].concat(CANDIDATES[key]).filter(o => !o.onSale).sort((a, b) => a.price / a.pack - b.price / b.pack)[0];
-  for (const o of OPTIONS[key]) {
+  for (const o of [...OPTIONS[key], ...(GF_OPTIONS[key] || [])]) {
     if (!o.onSale) continue;
     const same = shelfById.get(String(o.id));
     const normal = same && !same.loose ? same.price * (o.pack / packGrams(def, same)) : ref ? ref.price / ref.pack * o.pack : def.est[0] / def.est[1] * o.pack;
@@ -132,6 +164,7 @@ for (const key of Object.keys(OPTIONS)) {
   }
 }
 console.log(`Priced ${Object.keys(OPTIONS).length} ingredients: ${stats.sale} on offer, ${stats.shelf} at shelf price, ${stats.est} estimated`);
+console.log(`Gluten: ${glutenCheck.free} of ${glutenCheck.checked} ingredients that can contain gluten have a gluten-free choice`);
 console.log(`Additives: ${additiveCheck.checked} products checked, ${additiveCheck.flagged} flagged and skipped where possible${stats.unavoidable.length ? `; no clean choice for ${stats.unavoidable.join(', ')}` : ''}`);
 
 // ---------- 3. plan (the same planner the website runs live)
@@ -139,6 +172,9 @@ const ing = {};
 for (const k of USED) {
   const { re, ex, must, cats, subs, stkG, est, ...rest } = INGREDIENTS[k];
   ing[k] = { ...rest, options: OPTIONS[k] };
+  if (GLUTEN.grain[k]?.as) Object.assign(ing[k], { gluten: 'grain', gfAs: GLUTEN.grain[k].as });
+  else if (GLUTEN.grain[k]) Object.assign(ing[k], { gluten: 'grain', gfN: GLUTEN.grain[k].n, gfOptions: GF_OPTIONS[k] });
+  else if (GLUTEN.check.includes(k)) Object.assign(ing[k], { gluten: 'check', gfOptions: GF_OPTIONS[k] });
 }
 const recipes = RECIPES.map(r => ({ ...r, kind: r.kind || 'healthy' }));
 const seed = week.year * 100 + week.week;
@@ -150,6 +186,12 @@ for (const [label, people, treat, cheap] of [['1 person', 1], ['2 people', 2], [
   if (!p) { console.error(`No plan could be made for ${label}`); process.exit(1); }
   console.log(`${label.padEnd(24)} ${p.total.toFixed(2).padStart(8)} kr · ${dealsUsed(p).length} offers, saves ${p.saved.toFixed(0)} kr · q${p.quality.toFixed(2)} · `
     + p.days.map(d => `${d.treat ? '*' : ''}${d.d}${d.left ? '(rest)' : ''}`).join(' '));
+}
+
+{ // gluten-free mode, as the site runs it
+  const gf = glutenFree({ recipes, ing }), gp = createPlanner({ recipes: gf.recipes, ing: gf.ing, seed }).plan(2);
+  console.log(`Gluten-free: ${gf.recipes.length} of ${recipes.length} recipes possible · 2 people `
+    + (gp ? `${gp.total.toFixed(2)} kr · ${gp.days.map(d => d.d).join(' ')}` : 'NO PLAN (the switch will be hidden)'));
 }
 
 // ---------- 4. output
@@ -165,5 +207,7 @@ await fs.mkdir(path.dirname(OUT), { recursive: true });
 await fs.writeFile(OUT, JSON.stringify(data) + '\n');
 await fs.writeFile(PRICES_OUT, JSON.stringify({ week: week.week, catalogueProducts: catalogue.length, additiveCheck,
   flaggedProducts: Object.fromEntries(Object.entries(DETAILS).filter(([, d]) => d?.additives?.length).map(([id, d]) => [id, d.additives])),
+  gluten: Object.fromEntries([...GF_KEYS].filter(k => USED.has(k)).map(k => [k, (GLUTEN.grain[k] ? GF_CAND[k] : CANDIDATES[k]).map(o =>
+    `${DETAILS[o.id]?.gluten || 'unknown'} · ${o.product} ${o.label} ${o.price} kr${DETAILS[o.id]?.decl ? ' · ' + DETAILS[o.id].decl.slice(0, 160) : ''}`)])),
   ingredients: Object.fromEntries(Object.entries(OPTIONS).map(([k, o]) => [k, o.map(x => `${x.onSale ? 'TILBUD ' : x.est ? 'EST ' : ''}${x.product} ${x.label} ${x.price} kr${x.additives ? ' ⚠ ' + x.additives.join(',') : ''}`)])) }, null, 1) + '\n');
 console.log(`Week ${week.week} (${week.validFrom} → ${week.validTo}), shelf prices ${data.shelfPrices}. Wrote ${OUT}`);

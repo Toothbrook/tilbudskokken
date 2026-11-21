@@ -51,7 +51,7 @@ export const INGREDIENTS = {
   leverpostej:  { n: 'Leverpostej', kcal: 250, p: 11, group: 'protein', pg: 'pork', cats: ['kol'], re: /LEVERPOSTEJ/, ex: /BACON|SVAMPE|LUKSUS/, est: [15, 500, '500 g'] },
   // ---- dairy
   skyr:         { n: 'Skyr naturel', kcal: 63, p: 11, group: 'dairy', cats: MEJERI, re: /SKYR/, must: /NATUREL|PLAIN/, ex: /VANILJE|JORDBÆR|HINDBÆR|BLÅBÆR|MANGO|DRIK|KAGE|AIRY/, est: [25, 1000, '1 kg'] },
-  yoghurt:      { n: 'Yoghurt naturel', kcal: 60, p: 4, group: 'dairy', cats: MEJERI, re: /YOGHURT|YMER|A38|ACIDO/, ex: /BOLLE|BRØD|DRESSING|SKYR|DRIK|JORDBÆR|HINDBÆR|VANILJE|PÆRE|MANGO|BLÅBÆR|FRUGT|GRÆSK/, est: [18, 1000, '1 l'] },
+  yoghurt:      { n: 'Yoghurt naturel', kcal: 60, p: 4, group: 'dairy', cats: MEJERI, re: /YOGHURT|YMER|A38|ACIDO/, must: /NATUREL|PLAIN|A38|YMER|ACIDO/, ex: /BOLLE|BRØD|DRESSING|SKYR|DRIK|JORDBÆR|HINDBÆR|VANILJE|PÆRE|MANGO|BLÅBÆR|FRUGT|GRÆSK/, est: [18, 1000, '1 l'] },
   hytteost:     { n: 'Hytteost', kcal: 90, p: 12, group: 'dairy', cats: [...MEJERI, 'ost-mv'], re: /HYTTEOST/, ex: /SALAT/, est: [15, 250, '250 g'] },
   ost:          { n: 'Ost', kcal: 350, p: 25, each: 20, unit: 'skiver', group: 'dairy', cats: ['ost-mv'], re: /./, ex: /FLØDEOST|SMØREOST|REVET|DOUBLE CREAM|BRIE|CAMEMBERT|SKIMMEL|FETA|MOZZARELLA|HYTTEOST|PARMESAN|SNACK|STANG|TERN|HALLOUMI|GED|SALATOST|BLÅ|PHILADELPHIA|BUKO|PIKANT|MYSE|SMØRBAR|RIVE|FRISKOST|RICOTTA|MASCARPONE|SKYR|KVARK|DIP|TOAST|SMELTE|COUNTRY|BURGER|LIGHT/, est: [40, 400, '400 g'] },
   revetost:     { n: 'Revet ost', kcal: 340, p: 25, group: 'dairy', cats: ['ost-mv', ...MEJERI], re: /REVET/, est: [15, 175, '175 g'] },
@@ -401,3 +401,35 @@ const CORE = [
 
 // The core bank above plus the batches in ./recipes/ (check them with scripts/check-recipes.mjs).
 export const RECIPES = [...CORE, ...healthyDinners, ...healthyLunches, ...healthyBreakfasts, ...treats];
+
+// ---------- gluten
+// Gluten-free mode on the site. `grain` ingredients contain gluten as they come: there the build
+// looks for a gluten-free product with `re` instead (anywhere in the shop), and `est` is a price
+// to plan with when REMA lists none (staples only; the rest make their recipes unavailable).
+// `check` ingredients are usually gluten-free but can contain it or traces (sausages, spices,
+// sauces, pulses): only products whose REMA ingredient list shows neither are used. Everything
+// else (fresh meat, fish, vegetables, plain dairy, rice, potatoes, oil, salt) is gluten-free.
+const GFBREAD = /GLUTENFRI.*(BRØD|RUGBRØD|LIMPE)|(BRØD|RUGBRØD|LIMPE).*GLUTENFRI/;
+export const GLUTEN = {
+  grain: {
+    rugbrod:      { n: 'Glutenfrit brød', re: GFBREAD, est: [35, 500, '500 g'] },
+    toast:        { as: 'rugbrod' },        // the same gluten-free bread, bought once
+    boller:       { n: 'Glutenfri boller', re: /GLUTENFRI.*(BOLLE|RUNDSTYKKE|BURGER)|(BOLLE|RUNDSTYKKE|BURGER).*GLUTENFRI/ },
+    burgerboller: { as: 'boller' },
+    wraps:        { n: 'Majstortillas', re: /MAJSTORTILLA|MAJS.*TORTILLA|TORTILLA.*MAJS|GLUTENFRI.*(TORTILLA|WRAP)/, est: [22, 300, '8 stk'] },
+    pasta:        { n: 'Glutenfri pasta', re: /GLUTENFRI.*(PASTA|SPAGHETTI|PENNE|FUSILLI|MAKARONI)|(PASTA|SPAGHETTI|PENNE|FUSILLI|MAKARONI).*GLUTENFRI|(LINSE|KIKÆRTE|BØNNE|MAJS|RIS)PASTA/, est: [25, 400, '400 g'] },
+    lasagne:      { n: 'Glutenfri lasagneplader', re: /GLUTENFRI.*LASAGNE|LASAGNE.*GLUTENFRI/ },
+    havregryn:    { n: 'Glutenfri havregryn', re: /GLUTENFRI.*HAVRE|HAVRE.*GLUTENFRI/, est: [30, 500, '500 g'] },
+    muesli:       { n: 'Glutenfri müsli', re: /GLUTENFRI.*(MÜSLI|MUSLI|GRANOLA)|(MÜSLI|MUSLI|GRANOLA).*GLUTENFRI/ },
+    mel:          { n: 'Glutenfri melblanding', re: /GLUTENFRI.*MEL|MEL.*GLUTENFRI/, est: [30, 1000, '1 kg'] },
+    nudler:       { n: 'Risnudler', re: /RISNUDLER|RIS NUDLER|RICE NOODLE|GLASNUDLER/, est: [15, 250, '250 g'] },
+    soja:         { n: 'Tamari (glutenfri soja)', re: /TAMARI|GLUTENFRI.*SOJA|SOJA.*GLUTENFRI/, est: [30, 150, '150 ml'] },
+    pizzadej:     { n: 'Glutenfri pizzadej', re: /GLUTENFRI.*PIZZA|PIZZA.*GLUTENFRI/ },
+    taertedej:    { n: 'Glutenfri tærtedej', re: /GLUTENFRI.*(TÆRTE|BUTTERDEJ)|(TÆRTE|BUTTERDEJ).*GLUTENFRI/ },
+    bulgur:       { n: 'Bulgur', re: null },
+    brunsauce:    { n: 'Glutenfri brun sauce', re: /GLUTENFRI.*SAUCE|SAUCE.*GLUTENFRI/ },
+  },
+  check: ['medister', 'bacon', 'polser', 'leverpostej', 'skinke', 'rogetfisk', 'makreltomat', 'revetost', 'floede',
+    'bonner', 'roedelinser', 'fond', 'bearnaise', 'sennep', 'peanutbutter', 'noedder', 'rosiner', 'gaer',
+    'paprika', 'karry', 'spidskommen', 'chiliflager', 'oregano', 'kanel', 'timian', 'bagepulver', 'tacokrydderi'],
+};

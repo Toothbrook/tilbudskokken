@@ -8,6 +8,8 @@ Any day can be switched to a **treat day**, which uses a separate set of comfort
 
 Any meal can be **swapped**: the site lists every other recipe that fits those days, with exactly what the week's shop would cost with it (the rest of the week stays as it is), filterable by fish, chicken, pork, beef or vegetarian. Picks are remembered for the week, and changing the household, calories or treat days re-plans around them.
 
+A **Gluten-free** switch keeps only meals that can be made without gluten. Bread, pasta, oats, flour, noodles, tortillas and soy sauce are swapped for gluten-free products the build finds at REMA (labelled glutenfri, or rice noodles, corn tortillas and tamari), with an estimated price for staples REMA doesn't list that week. Things that can hide gluten (sausages, cold cuts, spices, stock, sauces, pulses, nuts) are only used when REMA's ingredient list for that product shows no gluten and no "may contain traces". The rules are `GLUTEN` in `scripts/recipes.mjs`; what each product was judged is in `data/prices.json` under `gluten`.
+
 The **shopping list** follows a walk through the store: fruit & veg, bread, meat, fish & cold cuts, dairy, cheese & eggs, dry goods, spices, oil & sauces, and frozen. Each product goes under REMA's own department where that says frozen, fresh or bread, so frozen fish ends up with the frozen food. Offers are marked TILBUD.
 
 The planning runs in the visitor's browser (`planner.js`, shared with the weekly build), so changing who's eating, their calories, treat days or the cheap switch re-plans the week instantly.

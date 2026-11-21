@@ -290,6 +290,22 @@ export function findAdditives(text) {
   return [...found];
 }
 
+// Gluten from a product's details: 'free' when it is labelled gluten-free, otherwise from its
+// ingredient list: 'gluten' (wheat, rye, barley, oats, spelt and their products, malt),
+// 'trace' (may contain traces), 'clean', or 'unknown' when REMA shows no ingredient list.
+const GLUTEN_RE = /(?<!bog)hvede|(?<![a-zæøå])(?:rug|byg|kamut|emmer|enkorn|semulje|couscous|bulgur|seitan|durum)|fuldkornsrug|havre|spelt|(?<![a-zæøå])malt(?![oi])|(?<![a-zæøå])gluten(?!\s*fri)/i;
+const TRACE_RE = /(?:spor|kan indeholde)[^.]{0,100}?(?:gluten|hvede|rug|byg|havre|spelt)/i;
+const GF_LABEL = /gluten\s*-?fri|gluten[- ]?free|uden gluten/i;
+export function glutenOf(d) {
+  if (GF_LABEL.test([d.name, d.underline, ...allText(d.labels)].join(' '))) return 'free';
+  const decl = allText(d.declaration).join(' \n ');
+  if (!decl.trim()) return 'unknown';
+  const body = decl.replace(/(?:kan indeholde|spor af)[^.]*\.?/gi, ' ').replace(/(?:uden|fri for|ingen)\s+gluten/gi, ' ');
+  if (GLUTEN_RE.test(body)) return 'gluten';
+  if (TRACE_RE.test(decl) || TRACE_RE.test(allText(d.info).join(' '))) return 'trace';
+  return 'clean';
+}
+
 // Product details (ingredient declaration and more) for REMA product ids. Unknown or failing ids
 // map to null, which means "not checked".
 export async function productDetails(ids, log = console.log) {
@@ -305,7 +321,8 @@ export async function productDetails(ids, log = console.log) {
         const d = (await r.json()).data || {};
         const text = allText(d).join(' \n ');
         if (!probe) probe = { keys: Object.keys(d), query: q, declarationLike: Object.entries(d).filter(([, v]) => /ngrediens|E\s?\d{3}/i.test(JSON.stringify(v))).map(([k]) => k) };
-        return out[id] = { additives: findAdditives(text) };
+        const decl = allText(d.declaration).join(' ').replace(/\s+/g, ' ').trim();
+        return out[id] = { additives: findAdditives(text), gluten: glutenOf(d), name: d.name, decl: decl.slice(0, 300) };
       } catch (e) { if (!q) break; }
     }
     failed++; out[id] = null;
