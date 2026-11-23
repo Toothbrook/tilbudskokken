@@ -200,7 +200,7 @@ export async function scrapeApi(log = console.log, now = new Date()) {
     if (!data.length || (pg.last_page && page >= pg.last_page)) break;
     await sleep(250);
   }
-  const all = raw.map(fromApi).filter(Boolean);
+  const all = raw.map(p => fromApi(p, 'offer', now)).filter(Boolean);
   const today = iso(now), tomorrow = iso(new Date(now.getTime() + 864e5));
   const live = all.filter(o => (!o.from || o.from <= tomorrow) && (!o.to || o.to >= today));
   // The week's main avis is the most common start date among live offers.
