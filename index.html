@@ -284,7 +284,7 @@ const BASICS = ['salt', 'sortpeber', 'olie'];
 const DOT = { breakfast:'var(--b1)', lunch:'var(--b2)', dinner:'var(--sale)' };
 const CAT = {'kod-fisk-fjerkrae':'Meat, fish & poultry','kol':'Chilled','frugt-gront':'Fruit & veg','mejeri':'Dairy','ost-mv':'Cheese','brod-bavinchi':'Bread','frost':'Frozen','kolonial':'Groceries','*':'Other'};
 let DATA, ING, MEALS = {}, KEY, SHOP, PLANNER, PLAN, PLAN_KEY = '';
-let state = { tab:'week', open:{}, got:{}, have:{}, picks:{}, weeks:{}, swapOpen:{}, swapF:{}, swapMore:{}, cheap:true, gf:false, shopDay:0, peek:false, treatW:[false,false,false,false,false,false,false], members:[{ name:'', kcal:2000 }, { name:'', kcal:2000 }], types:{ breakfast:true, lunch:true, dinner:true } };
+let state = { tab:'week', open:{}, got:{}, have:{}, picks:{}, weeks:{}, swapOpen:{}, swapF:{}, swapMore:{}, cheap:true, gf:false, shopDay:0, early:{}, peek:false, treatW:[false,false,false,false,false,false,false], members:[{ name:'', kcal:2000 }, { name:'', kcal:2000 }], types:{ breakfast:true, lunch:true, dinner:true } };
 
 const kr = v => v.toFixed(2).replace('.', ',');
 const plural = n => `${n} ${n === 1 ? 'person' : 'people'}`;
@@ -301,7 +301,7 @@ const fmtDate = (a, b) => {
   return m1 === m2 ? `${d1}.–${d2}. ${MONTHS[m2-1]} ${y2}` : `${d1}. ${MONTHS[m1-1].slice(0,3)} – ${d2}. ${MONTHS[m2-1].slice(0,3)} ${y2}`;
 };
 function save(){
-  try{ localStorage.setItem('ugeplan:prefs', JSON.stringify({ members:state.members, treatW:state.treatW, cheap:state.cheap, gf:state.gf, shopDay:state.shopDay, types:state.types, tab:state.tab, have:state.have }));
+  try{ localStorage.setItem('ugeplan:prefs', JSON.stringify({ members:state.members, treatW:state.treatW, cheap:state.cheap, gf:state.gf, shopDay:state.shopDay, early:state.early, types:state.types, tab:state.tab, have:state.have }));
        localStorage.setItem(KEY, JSON.stringify(state.got));
        localStorage.setItem(KEY.replace(':got', ':picks'), JSON.stringify({ picks:state.picks, weeks:state.weeks })); }catch(e){}
 }
@@ -309,7 +309,7 @@ function load(){
   try{ const p = JSON.parse(localStorage.getItem('ugeplan:prefs')||'null');
     if (p){ if (Array.isArray(p.members) && p.members.length) state.members = p.members.slice(0, 10).map(m => ({ name: String(m.name || '').slice(0, 24), kcal: clampK(+m.kcal) }));
       else if (p.people) state.members = Array.from({ length: Math.min(10, p.people) }, () => ({ name: '', kcal: clampK(+p.kcal || 2000) }));
-      if (p.types) state.types = { ...state.types, ...p.types }; if (p.tab) state.tab = p.tab; if (p.have) state.have = p.have; if (typeof p.cheap === 'boolean') state.cheap = p.cheap; if (typeof p.gf === 'boolean') state.gf = p.gf; if (Number.isInteger(p.shopDay) && p.shopDay >= 0 && p.shopDay < 7) state.shopDay = p.shopDay; if (Array.isArray(p.treatW) && p.treatW.length === 7) state.treatW = p.treatW; } }catch(e){}
+      if (p.types) state.types = { ...state.types, ...p.types }; if (p.tab) state.tab = p.tab; if (p.have) state.have = p.have; if (typeof p.cheap === 'boolean') state.cheap = p.cheap; if (typeof p.gf === 'boolean') state.gf = p.gf; if (Number.isInteger(p.shopDay) && p.shopDay >= 0 && p.shopDay < 7) state.shopDay = p.shopDay; if (p.early && typeof p.early === 'object') state.early = p.early; if (Array.isArray(p.treatW) && p.treatW.length === 7) state.treatW = p.treatW; } }catch(e){}
   state.got = {}; state.picks = {}; state.weeks = {};
   try{ state.got = JSON.parse(localStorage.getItem(KEY)||'{}') || {}; }catch(e){ state.got = {}; }
   try{ const s = JSON.parse(localStorage.getItem(KEY.replace(':got', ':picks'))||'null'); if (s){ state.picks = s.picks || {}; state.weeks = s.weeks || {}; if (s.lock?.sig) state.weeks[s.lock.sig] ||= s.lock.fixed; } }catch(e){}
@@ -323,16 +323,22 @@ const TODAY = () => { const t = new Date(); return `${t.getFullYear()}-${String(
 const offsetIn = d => (state.shopDay - new Date(d.validFrom + 'T12:00:00Z').getUTCDay() + 7) % 7;
 const shopDate = d => isoDay(new Date(Date.parse(d.validFrom + 'T12:00:00Z') + offsetIn(d) * 864e5));
 const isoDay = dt => dt.toISOString().slice(0, 10);
-const dayDate = d => new Date(Date.parse(DATA.validFrom + 'T12:00:00Z') + (offsetIn(DATA) + d) * 864e5);
-const treatPattern = () => Array.from({ length: 7 }, (_, d) => !!state.treatW[(startW() + offsetIn(DATA) + d) % 7]);
+const addDays = (iso, n) => isoDay(new Date(Date.parse(iso + 'T12:00:00Z') + n * 864e5));
+// "Shop today instead" moves one offer week's start to the day it was pressed.
+const weekId = d => `${d.year}-${d.week}`;
+const startOf = d => state.early[weekId(d)] || shopDate(d);
+const endOf = d => addDays(startOf(d), 6);
+const offsetDays = d => Math.round((Date.parse(startOf(d) + 'T12:00:00Z') - Date.parse(d.validFrom + 'T12:00:00Z')) / 864e5);
+const dayDate = d => new Date(Date.parse(DATA.validFrom + 'T12:00:00Z') + (offsetDays(DATA) + d) * 864e5);
+const treatPattern = () => Array.from({ length: 7 }, (_, d) => !!state.treatW[(startW() + offsetDays(DATA) + d) % 7]);
 // The week is remembered: the meals planned for a set of settings (household, calories, treat
 // days, the two switches) are saved in this browser for the rest of the offer week, so coming back
 // shows the same days even if prices have moved since; only the shop is re-priced. Meals the
 // visitor swapped in (picks) also stay when the settings change, and the week re-plans around them.
-const settings = () => `${PEOPLE()}|${Math.round(AVG())}|${state.cheap}|${state.gf}|${state.shopDay}|${treatPattern().join()}`;
+const settings = () => `${PEOPLE()}|${Math.round(AVG())}|${state.cheap}|${state.gf}|${offsetDays(DATA)}|${treatPattern().join()}`;
 // Weeks saved before the shopping day existed (Sunday start) are keyed without it.
 const oldSig = () => `${PEOPLE()}|${Math.round(AVG())}|${state.cheap}|${state.gf}|${treatPattern().join()}`;
-const fixedMeals = () => ({ ...(state.weeks[settings()] || (state.shopDay === 0 && state.weeks[oldSig()]) || {}), ...state.picks });
+const fixedMeals = () => ({ ...(state.weeks[settings()] || (offsetDays(DATA) === 0 && state.weeks[oldSig()]) || {}), ...state.picks });
 const assignment = p => Object.fromEntries(Object.entries(p.slots).map(([id, k]) => [k, id]));
 function remember(sig, meals){
   delete state.weeks[sig]; state.weeks[sig] = meals;
@@ -691,10 +697,13 @@ function init(){
   document.title = `Tilbudskøkken · uge ${DATA.week}`;
   const today = TODAY(), st = $('#stale'), long = iso => { const t = new Date(iso + 'T12:00:00Z'); return `${LONGDAYS[t.getUTCDay()]} ${t.getUTCDate()} ${MONTHS[t.getUTCMonth()].slice(0, 3)}`; };
   st.hidden = true;
+  const early = `<button class="mini" id="shopEarly">Shop today instead</button>`;
   if (DATA === PREV) { st.hidden = false;
-    st.innerHTML = `You shop on ${LONGDAYS[state.shopDay]}s, so this is still the week you shopped for on ${long(shopDate(PREV))}. The next plan, from week ${NEXT.week}'s offers, starts ${long(shopDate(NEXT))}. <button class="mini" id="peekNext">See it now</button>`; }
-  else if (PREV && state.peek && today < shopDate(NEXT)) { st.hidden = false;
-    st.innerHTML = `This is the plan for your next shopping day, ${long(shopDate(NEXT))}. <button class="mini" id="peekBack">Back to the week you're on</button>`; }
+    st.innerHTML = `You shop on ${LONGDAYS[state.shopDay]}s, so this is still the week you shopped for on ${long(startOf(PREV))}. The next plan, from week ${NEXT.week}'s offers, starts ${long(startOf(NEXT))}. <button class="mini" id="peekNext">See it now</button> ${early}`; }
+  else if (DATA === NEXT && today < startOf(NEXT)) { st.hidden = false;
+    st.innerHTML = `This plan starts on your next shopping day, ${long(startOf(NEXT))}. ${early}${inPrev() ? ` <button class="mini" id="peekBack">Back to the week you're on</button>` : ''}`; }
+  else if (state.early[weekId(DATA)] && today < shopDate(DATA)) { st.hidden = false;
+    st.innerHTML = `You went shopping early, on ${long(startOf(DATA))}, so this week runs to ${long(endOf(DATA))}. <button class="mini" id="undoEarly">Undo</button>`; }
   else if (today > DATA.validTo) { st.hidden = false;
     st.textContent = `These are week ${DATA.week}'s offers, which ended ${DATA.validTo.split('-').reverse().join('.')}. The new plan normally lands Sunday morning.`; }
   $('#shopDay').value = String(state.shopDay);
@@ -778,23 +787,27 @@ view.addEventListener('change', e => { const g = e.target.dataset.got; if (g){ s
 // Last week's data is kept too: someone who shops on Wednesdays is still eating last week's plan
 // on Monday, after the new offers arrived on Sunday.
 let NEXT = null, PREV = null;
-function pick(){
-  const today = TODAY(), useOld = PREV && !state.peek && today < shopDate(NEXT) && shopDate(PREV) <= today;
-  useData(useOld ? PREV : NEXT);
-}
+// Last week's plan is shown while today is still inside it and the next shopping day hasn't come.
+const inPrev = () => { const t = TODAY(); return !!PREV && startOf(PREV) <= t && t <= endOf(PREV) && t < startOf(NEXT); };
+function pick(){ useData(inPrev() && !state.peek ? PREV : NEXT); }
 Promise.all([
   fetch('data/week.json', { cache:'no-cache' }).then(r => { if (!r.ok) throw new Error(r.status); return r.json(); }),
   fetch('data/prev-week.json', { cache:'no-cache' }).then(r => r.ok ? r.json() : null).catch(() => null),
 ]).then(([cur, prev]) => {
     NEXT = cur; PREV = prev && prev.week !== cur.week ? prev : null;
-    try { const p = JSON.parse(localStorage.getItem('ugeplan:prefs') || 'null'); if (Number.isInteger(p?.shopDay)) state.shopDay = p.shopDay; } catch(e){}
+    try { const p = JSON.parse(localStorage.getItem('ugeplan:prefs') || 'null'); if (Number.isInteger(p?.shopDay)) state.shopDay = p.shopDay; if (p?.early && typeof p.early === 'object') state.early = p.early; } catch(e){}
     pick();
   })
   .catch(() => { view.innerHTML = `<p class="loading">Couldn't load this week's plan. Refresh the page to try again.</p>`; });
-$('#shopDay').addEventListener('change', e => { if (!NEXT) return; state.shopDay = +e.target.value; state.peek = false; save(); pick(); });
+$('#shopDay').addEventListener('change', e => { if (!NEXT) return; state.shopDay = +e.target.value; state.peek = false; delete state.early[weekId(NEXT)]; save(); pick(); });
 document.getElementById('stale').addEventListener('click', e => {
   if (e.target.id === 'peekNext'){ state.peek = true; pick(); }
   if (e.target.id === 'peekBack'){ state.peek = false; pick(); }
+  if (e.target.id === 'shopEarly'){
+    // Keep last week's early start (it still decides when that week ends); drop anything older.
+    state.early = Object.fromEntries(Object.entries(state.early).filter(([k]) => PREV && k === weekId(PREV)));
+    state.early[weekId(NEXT)] = TODAY(); state.peek = false; save(); pick(); }
+  if (e.target.id === 'undoEarly'){ delete state.early[weekId(DATA)]; save(); pick(); }
 });
 </script>
 </body>
