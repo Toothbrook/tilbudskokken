@@ -330,7 +330,9 @@ const treatPattern = () => Array.from({ length: 7 }, (_, d) => !!state.treatW[(s
 // shows the same days even if prices have moved since; only the shop is re-priced. Meals the
 // visitor swapped in (picks) also stay when the settings change, and the week re-plans around them.
 const settings = () => `${PEOPLE()}|${Math.round(AVG())}|${state.cheap}|${state.gf}|${state.shopDay}|${treatPattern().join()}`;
-const fixedMeals = () => ({ ...(state.weeks[settings()] || {}), ...state.picks });
+// Weeks saved before the shopping day existed (Sunday start) are keyed without it.
+const oldSig = () => `${PEOPLE()}|${Math.round(AVG())}|${state.cheap}|${state.gf}|${treatPattern().join()}`;
+const fixedMeals = () => ({ ...(state.weeks[settings()] || (state.shopDay === 0 && state.weeks[oldSig()]) || {}), ...state.picks });
 const assignment = p => Object.fromEntries(Object.entries(p.slots).map(([id, k]) => [k, id]));
 function remember(sig, meals){
   delete state.weeks[sig]; state.weeks[sig] = meals;
