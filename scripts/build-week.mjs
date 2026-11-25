@@ -194,7 +194,7 @@ netto = netto.filter(o => (!o.from || o.from.slice(0, 10) <= week.validTo) && (!
 // Tjek's texts are long and often list several products ("A, B eller C"), so for Netto the
 // ingredient has to be in the offer's heading, nothing breaded, cold-cut, sweet or drinkable
 // counts, and per-ingredient nex/nmust tighten it further (frozen veg must say frozen).
-const NETTO_EX = /PÅLÆG|SPEGEPØLSE|INDBAG|PANER|SNACK|SLIK|MALACO|HARIBO|VINGUMMI|LAKRIDS|\bVIN\b|RØDVIN|HVIDVIN|ROSÉ|\bØL\b|ACTIMEL|DANONINO|DRIK|JUICE|SMOOTHIE|SAFT|BRØDBLANDING|GLUTEN ?MEL|KAGE|KIKS|CHIPS|GRANATÆBLE|BACON|FÆRDIGRET|MARINERET|SALATMESTEREN/;
+const NETTO_EX = /PÅLÆG|SPEGEPØLSE|INDBAG|PANER|SNACK|SLIK|MALACO|HARIBO|VINGUMMI|LAKRIDS|\bVIN\b|RØDVIN|HVIDVIN|ROSÉ|\bØL\b|ACTIMEL|DANONINO|DRIK|JUICE|SMOOTHIE|SAFT|BRØDBLANDING|GLUTEN ?MEL|KAGE|KIKS|CHIPS|GRANATÆBLE|BACON|FÆRDIGRET|MARINERET|SALATMESTEREN|COCA|FANTA|SCHWEPPES|TUBORG|PEPSI|FAXE|SODAVAND|CIDER/;
 const nettoMatches = (def, o) => {
   const t = textOf(o);
   return def.re.test(o.name.toUpperCase()) && !NETTO_EX.test(t) && !(def.ex && def.ex.test(t)) && !(def.nex && def.nex.test(t))
