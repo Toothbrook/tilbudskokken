@@ -192,6 +192,11 @@ h1 em{font-style:normal;color:var(--sale)}
 .orow .p b{font-family:var(--mono)}
 .orow .p small{white-space:nowrap}
 .offer{font-family:var(--mono);font-size:10px;font-weight:600;background:var(--tag);color:var(--sale);padding:0 5px;border-radius:3px;margin-left:6px;vertical-align:1px}
+.addbox{background:var(--card);border-radius:14px;padding:14px;margin:0 0 14px;display:flex;flex-direction:column;gap:6px}
+.addbox p{margin:0}
+.addbox input{font:inherit;font-size:16px;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:var(--paper);color:var(--ink);width:100%;box-sizing:border-box}
+.addbox .alts li{background:var(--soft)}
+.line .qty{display:inline-flex;gap:2px}
 .store{font-family:var(--mono);font-size:13px;font-weight:700;letter-spacing:.06em;margin:14px 0 0;display:flex;justify-content:space-between;gap:8px}
 .store + .aisle{margin-top:6px}
 .aisle{font-size:11px;letter-spacing:.1em;color:var(--muted);margin:12px 0 2px;padding-bottom:2px;border-bottom:1px dashed var(--line)}
@@ -289,7 +294,7 @@ const BASICS = ['salt', 'sortpeber', 'olie'];
 const DOT = { breakfast:'var(--b1)', lunch:'var(--b2)', dinner:'var(--sale)' };
 const CAT = {'kod-fisk-fjerkrae':'Meat, fish & poultry','kol':'Chilled','frugt-gront':'Fruit & veg','mejeri':'Dairy','ost-mv':'Cheese','brod-bavinchi':'Bread','frost':'Frozen','kolonial':'Groceries','*':'Other'};
 let DATA, ING, MEALS = {}, KEY, SHOP, PLANNER, PLAN, PLAN_KEY = '';
-let state = { tab:'week', open:{}, got:{}, have:{}, picks:{}, weeks:{}, usedUp:{}, swapOpen:{}, swapF:{}, swapMore:{}, cheap:true, gf:false, netto:false, shopDay:0, early:{}, peek:false, treatW:[false,false,false,false,false,false,false], members:[{ name:'', kcal:2000 }, { name:'', kcal:2000 }], types:{ breakfast:true, lunch:true, dinner:true } };
+let state = { tab:'week', open:{}, got:{}, have:{}, picks:{}, weeks:{}, usedUp:{}, extras:null, staples:[], addQ:'', swapOpen:{}, swapF:{}, swapMore:{}, cheap:true, gf:false, netto:false, shopDay:0, early:{}, peek:false, treatW:[false,false,false,false,false,false,false], members:[{ name:'', kcal:2000 }, { name:'', kcal:2000 }], types:{ breakfast:true, lunch:true, dinner:true } };
 
 const kr = v => v.toFixed(2).replace('.', ',');
 const plural = n => `${n} ${n === 1 ? 'person' : 'people'}`;
@@ -306,18 +311,18 @@ const fmtDate = (a, b) => {
   return m1 === m2 ? `${d1}.–${d2}. ${MONTHS[m2-1]} ${y2}` : `${d1}. ${MONTHS[m1-1].slice(0,3)} – ${d2}. ${MONTHS[m2-1].slice(0,3)} ${y2}`;
 };
 function save(){
-  try{ localStorage.setItem('ugeplan:prefs', JSON.stringify({ members:state.members, treatW:state.treatW, cheap:state.cheap, gf:state.gf, netto:state.netto, shopDay:state.shopDay, early:state.early, types:state.types, tab:state.tab, have:state.have }));
+  try{ localStorage.setItem('ugeplan:prefs', JSON.stringify({ members:state.members, treatW:state.treatW, cheap:state.cheap, gf:state.gf, netto:state.netto, staples:state.staples, shopDay:state.shopDay, early:state.early, types:state.types, tab:state.tab, have:state.have }));
        localStorage.setItem(KEY, JSON.stringify(state.got));
-       localStorage.setItem(KEY.replace(':got', ':picks'), JSON.stringify({ picks:state.picks, weeks:state.weeks, usedUp:state.usedUp })); }catch(e){}
+       localStorage.setItem(KEY.replace(':got', ':picks'), JSON.stringify({ picks:state.picks, weeks:state.weeks, usedUp:state.usedUp, extras:state.extras })); }catch(e){}
 }
 function load(){
   try{ const p = JSON.parse(localStorage.getItem('ugeplan:prefs')||'null');
     if (p){ if (Array.isArray(p.members) && p.members.length) state.members = p.members.slice(0, 10).map(m => ({ name: String(m.name || '').slice(0, 24), kcal: clampK(+m.kcal) }));
       else if (p.people) state.members = Array.from({ length: Math.min(10, p.people) }, () => ({ name: '', kcal: clampK(+p.kcal || 2000) }));
-      if (p.types) state.types = { ...state.types, ...p.types }; if (p.tab) state.tab = p.tab; if (p.have) state.have = p.have; if (typeof p.cheap === 'boolean') state.cheap = p.cheap; if (typeof p.gf === 'boolean') state.gf = p.gf; if (typeof p.netto === 'boolean') state.netto = p.netto; if (Number.isInteger(p.shopDay) && p.shopDay >= 0 && p.shopDay < 7) state.shopDay = p.shopDay; if (p.early && typeof p.early === 'object') state.early = p.early; if (Array.isArray(p.treatW) && p.treatW.length === 7) state.treatW = p.treatW; } }catch(e){}
-  state.got = {}; state.picks = {}; state.weeks = {}; state.usedUp = {};
+      if (p.types) state.types = { ...state.types, ...p.types }; if (p.tab) state.tab = p.tab; if (p.have) state.have = p.have; if (typeof p.cheap === 'boolean') state.cheap = p.cheap; if (typeof p.gf === 'boolean') state.gf = p.gf; if (typeof p.netto === 'boolean') state.netto = p.netto; if (Array.isArray(p.staples)) state.staples = p.staples; if (Number.isInteger(p.shopDay) && p.shopDay >= 0 && p.shopDay < 7) state.shopDay = p.shopDay; if (p.early && typeof p.early === 'object') state.early = p.early; if (Array.isArray(p.treatW) && p.treatW.length === 7) state.treatW = p.treatW; } }catch(e){}
+  state.got = {}; state.picks = {}; state.weeks = {}; state.usedUp = {}; state.extras = null;
   try{ state.got = JSON.parse(localStorage.getItem(KEY)||'{}') || {}; }catch(e){ state.got = {}; }
-  try{ const s = JSON.parse(localStorage.getItem(KEY.replace(':got', ':picks'))||'null'); if (s){ state.picks = s.picks || {}; state.weeks = s.weeks || {}; state.usedUp = s.usedUp || {}; if (s.lock?.sig) state.weeks[s.lock.sig] ||= s.lock.fixed; } }catch(e){}
+  try{ const s = JSON.parse(localStorage.getItem(KEY.replace(':got', ':picks'))||'null'); if (s){ state.picks = s.picks || {}; state.weeks = s.weeks || {}; state.usedUp = s.usedUp || {}; state.extras = Array.isArray(s.extras) ? s.extras : null; if (s.lock?.sig) state.weeks[s.lock.sig] ||= s.lock.fixed; } }catch(e){}
 }
 
 // ---- the current plan, made live in the browser by the shared planner
@@ -437,15 +442,76 @@ function amount(key, g){
 
 // ---- where things are in the shop, so the list follows a walk through the store
 const AISLES = [['produce','Fruit & veg'], ['bread','Bread'], ['meat','Meat, fish & cold cuts'], ['dairy','Dairy, cheese & eggs'],
-  ['dry','Pasta, rice, tins & baking'], ['spices','Spices, oil & sauces'], ['frozen','Frozen']];
+  ['dry','Pasta, rice, tins & baking'], ['spices','Spices, oil & sauces'], ['other','Drinks, household & more'], ['frozen','Frozen']];
 const AISLE_OF = { aeg:'dairy', gaer:'dairy', pizzadej:'dairy', taertedej:'dairy', tun:'dry', makreltomat:'dry', wraps:'dry',
   frostgront:'frozen', baer:'frozen', olie:'spices', soja:'spices', eddike:'spices', sennep:'spices', fond:'spices', brunsauce:'spices',
   bearnaise:'spices', tacokrydderi:'spices', bagepulver:'dry', rugbrod:'bread', toast:'bread', boller:'bread', burgerboller:'bread' };
 const BY_GROUP = { produce:'produce', protein:'meat', dairy:'dairy', grain:'dry', pantry:'dry', spice:'spices' };
 // The product's own REMA department wins where it says frozen, fresh produce or bread (frozen fish, fresh berries).
 const DEPT = { frost:'frozen', 'frugt-gront':'produce', 'brod-bavinchi':'bread' };
+const DEPT_ALL = { ...DEPT, 'kod-fisk-fjerkrae':'meat', kol:'meat', mejeri:'dairy', 'ost-mv':'dairy', kolonial:'dry' };
 const aisleOf = (key, o) => DEPT[o?.cat] || AISLE_OF[key] || BY_GROUP[ING[key].group] || 'dry';
 const AISLE_RANK = Object.fromEntries(AISLES.map(([k], i) => [k, i]));
+
+// ---- add something else: search everything REMA sells and the week's Netto offers, cheapest
+// per kg / litre / piece first. Extras are kept for the offer week; ones marked "every week" are
+// looked up again (same product, or the cheapest match) when a new week starts.
+let PRODUCTS = null, PRODUCTS_P = null;
+const loadProducts = () => PRODUCTS_P ||= fetch('data/products.json', { cache: 'no-cache' })
+  .then(r => r.ok ? r.json() : { products: [] })
+  .then(j => (PRODUCTS = (j.week === DATA.week ? j.products : []).map(x => ({ ...x, key: `${x.n} ${x.d}`.toLowerCase() }))))
+  .catch(() => (PRODUCTS = []));
+const perUnit = x => x.up > 0 ? x.up : x.u === 'stk' ? x.p / Math.max(1, x.q) : x.p / Math.max(1, x.q) * 1000;
+const perLabel = x => x.u === 'stk' ? 'stk' : x.u === 'ml' ? 'l' : 'kg';
+const packLabel = x => x.u === 'stk' ? `${x.q} stk` : x.q >= 1000 ? `${String(x.q / 1000).replace('.', ',')} ${x.u === 'g' ? 'kg' : 'l'}` : `${x.q} ${x.u}`;
+const STORE = { rema: 'REMA 1000', netto: 'Netto' };
+// Product names are Danish; common English words are looked up in Danish too.
+const DANISH = { coffee:'kaffe', tea:'te', 'toilet paper':'toiletpapir', 'kitchen roll':'køkkenrulle', 'paper towels':'køkkenrulle',
+  nappies:'ble', diapers:'ble', 'washing up liquid':'opvask', 'dish soap':'opvask', detergent:'vaskemiddel', 'washing powder':'vaskepulver',
+  'bin bags':'affaldsposer', 'trash bags':'affaldsposer', toothpaste:'tandpasta', toothbrush:'tandbørste', shampoo:'shampoo', soap:'sæbe',
+  milk:'mælk', bread:'brød', eggs:'æg', egg:'æg', butter:'smør', cheese:'ost', beer:'øl', wine:'vin', juice:'juice', water:'vand',
+  soda:'sodavand', chocolate:'chokolade', sweets:'slik', candy:'slik', crisps:'chips', biscuits:'kiks', cookies:'småkager', sugar:'sukker',
+  flour:'mel', salt:'salt', oil:'olie', rice:'ris', pasta:'pasta', bananas:'banan', banana:'banan', apples:'æble', apple:'æble',
+  oranges:'appelsin', 'cat food':'kattemad', 'dog food':'hundemad', 'cat litter':'kattegrus', batteries:'batteri', candles:'lys', foil:'folie' };
+function search(q){
+  let ql = q.toLowerCase().trim();
+  for (const [en, da] of Object.entries(DANISH).sort((a, b) => b[0].length - a[0].length)) ql = ql.replace(new RegExp(`\\b${en}\\b`, 'g'), da);
+  const words = ql.split(/\s+/).filter(w => w.length > 1);
+  if (!words.length || !PRODUCTS) return [];
+  const tier = x => { const n = x.n.toLowerCase();
+    return words.every(w => new RegExp(`(^|[^a-zæøå])${w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}`).test(n)) ? 0 : words.every(w => n.includes(w)) ? 1 : 2; };
+  return PRODUCTS.filter(x => words.every(w => x.key.includes(w)) && (x.s !== 'netto' || NETTO_READY(DATA)))
+    .map(x => ({ x, t: tier(x), u: perUnit(x) })).sort((a, b) => a.t - b.t || a.u - b.u).slice(0, 12).map(r => r.x);
+}
+const extraKey = e => `x:${e.s}:${e.i || e.n}`;
+function resultsHtml(){
+  if (!state.addQ.trim()) return '';
+  if (!PRODUCTS) return '<p class="c l">Looking up products…</p>';
+  const rs = search(state.addQ);
+  if (!rs.length) return `<p class="c l">Nothing matches “${state.addQ.replace(/[<>&]/g, '')}”. Try another word, in Danish.</p>`;
+  const best = rs[0];
+  return `<p class="c l">Cheapest per ${perLabel(best)} first${NETTO_READY(DATA) ? ', at REMA 1000 and on offer at Netto' : ''}.</p>
+    <ul class="alts">${rs.map(x => `<li><div><b>${x.n}</b><small>${STORE[x.s]} · ${x.d ? x.d + ' · ' : ''}${packLabel(x)}${x.o ? ' · <span class="offer">TILBUD</span>' : ''}</small></div>
+      <span class="d num">${kr(x.p)}<small>${kr(perUnit(x))}/${perLabel(x)}</small></span>
+      <button class="btn" data-add="${PRODUCTS.indexOf(x)}" aria-label="Add ${x.n} from ${STORE[x.s]}">Add</button></li>`).join('')}</ul>`;
+}
+function addHtml(){
+  return `<div class="addbox"><label for="addQ"><b>Add something else</b></label>
+    <p class="c l">Coffee, toilet paper, nappies… type what you need and pick where it's cheapest.</p>
+    <input type="search" id="addQ" placeholder="e.g. kaffe, toiletpapir" autocomplete="off" value="${state.addQ.replace(/"/g, '&quot;')}">
+    <div id="addResults" aria-live="polite">${resultsHtml()}</div></div>`;
+}
+// A new week: bring back the "every week" extras at this week's prices.
+async function restoreStaples(){
+  if (state.extras !== null || !state.staples.length) return;
+  await loadProducts();
+  state.extras = [];
+  for (const st of state.staples) {
+    const same = PRODUCTS.find(x => x.s === st.s && x.n === st.n) || search(st.q || st.n)[0];
+    if (same) state.extras.push({ ...same, key: undefined, qty: st.qty || 1, keep: true, q0: st.q || st.n });
+  }
+  save(); render();
+}
 
 function shopping(){
   const need = {}, P = plan(), plain = s => s.replace(/<[^>]+>/g,'');
@@ -471,10 +537,18 @@ function shopping(){
     lines.push({ key, store: o.store || 'rema', aisle: aisleOf(key, o), name: o.est ? ING[key].n : o.product, q: qa, short: o.loose ? `ca. ${plain(amount(key,g))}` : `${c.n} × ${o.label}`,
       price: c.cost, onSale: !!o.onSale, est: !!o.est, id: o.id, n: o.loose ? 1 : c.n });
   }
+  // Extras the visitor added.
+  let extrasTotal = 0;
+  for (const e of state.extras || []) {
+    const price = e.p * e.qty; extrasTotal += price; total += price; if (e.o) offer += price;
+    lines.push({ key: extraKey(e), store: e.s, aisle: DEPT_ALL[e.c] || 'other', name: e.n, extra: e,
+      q: `${e.qty} × ${packLabel(e)} à ${kr(e.p)}${e.d ? ` · ${e.d}` : ''}${e.s === 'netto' && e.t ? ` · Netto offer until ${e.t.slice(8, 10)}.${e.t.slice(5, 7)}` : ''}`,
+      short: `${e.qty} × ${packLabel(e)}`, price, onSale: !!e.o, est: false, id: e.i, n: e.qty });
+  }
   lines.sort((a, b) => AISLE_RANK[a.aisle] - AISLE_RANK[b.aisle] || a.name.localeCompare(b.name, 'da'));
   home.sort((a, b) => a.name.localeCompare(b.name, 'da'));
   left.sort((a, b) => (b.uses > 0) - (a.uses > 0) || a.name.localeCompare(b.name, 'da'));
-  return { lines, home, left, fromLast, total, offer, saved, dealSave, deals, portions, byKey };
+  return { lines, home, left, fromLast, extrasTotal, total, offer, saved, dealSave, deals, portions, byKey };
 }
 
 // ---- views
@@ -595,15 +669,17 @@ function shopView(){
       ${left.map(x => `<div class="line"><span>${x.name}<span class="q">≈ ${plain(amount(x.key, x.has))} left · ${x.uses > 0 ? `this week uses ${plain(amount(x.key, x.uses))}` : 'not needed this week'}</span></span><span class="r"><button class="mini" data-usedup="${x.key}" aria-label="${x.name} is used up">used up</button></span></div>`).join('')}
       ${used.length ? `<p class="c l">Used up: ${used.map(k => `${carryOver()[k].name} <button class="mini" data-stillhave="${k}" aria-label="I still have ${carryOver()[k].name}">still have it</button>`).join(', ')}</p>` : ''}
       <div class="dash"></div></div>` : '';
-  if (!lines.length && !home.length && !left.length) return `<div class="receipt"><p class="empty">Pick at least one of breakfast, lunch or dinner above.</p></div>`;
-  const row = l => `<div class="line"><label class="check" for="g-${l.key}"><input type="checkbox" id="g-${l.key}" data-got="${l.key}" ${state.got[l.key]?'checked':''}><span>${l.name}${l.onSale ? '<span class="offer">TILBUD</span>' : ''}<span class="q">${l.q}</span></span></label><span class="r"><span class="num">${l.est?'≈':''}${kr(l.price)}</span><button class="mini" data-have="${l.key}" aria-label="I already have ${ING[l.key].n}">have it</button></span></div>`;
+  if (!lines.length && !home.length && !left.length) return `${addHtml()}<div class="receipt"><p class="empty">Pick at least one of breakfast, lunch or dinner above.</p></div>`;
+  const row = l => `<div class="line"><label class="check" for="g-${l.key}"><input type="checkbox" id="g-${l.key}" data-got="${l.key}" ${state.got[l.key]?'checked':''}><span>${l.name}${l.onSale ? '<span class="offer">TILBUD</span>' : ''}<span class="q">${l.q}</span></span></label><span class="r"><span class="num">${l.est?'≈':''}${kr(l.price)}</span>${l.extra
+      ? `<span class="qty"><button class="mini" data-xqty="${l.key}|-1" aria-label="One less ${l.name}">−</button><button class="mini" data-xqty="${l.key}|1" aria-label="One more ${l.name}">+</button></span><button class="mini" data-xkeep="${l.key}" aria-pressed="${!!l.extra.keep}">${l.extra.keep ? 'every week ✓' : 'every week'}</button><button class="mini" data-xdel="${l.key}" aria-label="Remove ${l.name}">remove</button>`
+      : `<button class="mini" data-have="${l.key}" aria-label="I already have ${ING[l.key].n}">have it</button>`}</span></div>`;
   const basics = BASICS.filter(k => lines.some(l => l.key === k));
   const nettoLines = lines.filter(l => l.store === 'netto'), remaLines = lines.filter(l => l.store !== 'netto');
   const sum = ls => ls.reduce((t, l) => t + l.price, 0);
   const aisles = ls => AISLES.map(([k, label]) => { const here = ls.filter(l => l.aisle === k);
     return here.length ? `<p class="aisle">${label.toUpperCase()}</p>${here.map(row).join('')}` : ''; }).join('');
   const which = Object.keys(TYPES).filter(t => state.types[t]).map(t => TYPES[t].toLowerCase()).join(', ');
-  return `<div class="receipt" id="receipt">
+  return `${addHtml()}<div class="receipt" id="receipt">
     <h2>${nettoLines.length ? 'NETTO + REMA 1000' : 'REMA 1000'} · UGE ${DATA.week}</h2>
     <p class="c">${plural(PEOPLE())} · 7 days · ${which}</p>
     <p class="c">Offers ${DATA.validFrom.split('-').reverse().join('.')} – ${DATA.validTo.split('-').reverse().join('.')}</p>
@@ -617,7 +693,8 @@ function shopView(){
     <div class="line sub"><span>Normal price</span><span class="num">${kr(total - offer)}</span></div>
     <div class="line total"><span>TOTAL</span><span class="num">${kr(total)}</span></div>
     ${SHOP.dealSave >= 1 ? `<p class="c l">You save ${kr(SHOP.dealSave)} kr on ${SHOP.deals} offers against normal prices.</p>` : ''}
-    <p class="c l">${portions} portions · ${kr(total/portions)} kr each</p>
+    ${SHOP.extrasTotal ? `<p class="c l">Meals ${kr(total - SHOP.extrasTotal)} kr · other things ${kr(SHOP.extrasTotal)} kr</p>` : ''}
+    <p class="c l">${portions} portions · ${kr((total - (SHOP.extrasTotal || 0))/portions)} kr each</p>
     <div class="dash"></div>
     <div class="home">
       ${home.length ? `<p class="sect">ALREADY AT HOME · NOT COUNTED</p><ul>${home.map(h => `<li>${h.name}<button data-need="${h.key}" aria-label="I need to buy ${h.name}">buy it</button></li>`).join('')}</ul>`
@@ -671,6 +748,15 @@ function remaBookmark(){
 }
 const BOOKMARK = 'javascript:' + encodeURIComponent('(' + remaBookmark.toString() + ')()');
 const remaItems = lines => JSON.stringify(lines.map(l => [/^\d+$/.test(l.id || '') ? l.id : 0, l.n, l.name]));
+const syncStaples = () => { state.staples = (state.extras || []).filter(e => e.keep).map(e => ({ s: e.s, n: e.n, q: e.q0 || e.n, qty: e.qty })); };
+view.addEventListener('input', e => {
+  if (e.target.id !== 'addQ') return;
+  state.addQ = e.target.value;
+  if (!PRODUCTS) loadProducts().then(() => { const r = $('#addResults'); if (r) r.innerHTML = resultsHtml(); });
+  const r = $('#addResults'); if (r) r.innerHTML = resultsHtml();
+});
+view.addEventListener('focusin', e => { if (e.target.id === 'addQ') loadProducts(); });
+
 function remaBox(lines){
   return `<div class="rema">
     <h3>Send the list to the REMA 1000 app</h3>
@@ -778,6 +864,7 @@ function init(){
   KEY = `ugeplan:${DATA.year}-${DATA.week}:got`;
   load();
   setMode();
+  PRODUCTS = null; PRODUCTS_P = null; restoreStaples();
   $('#weekline').innerHTML = `<b>Uge ${DATA.week}</b> REMA 1000 · ${fmtDate(DATA.validFrom, DATA.validTo)}`;
   document.title = `Tilbudskøkken · uge ${DATA.week}`;
   const today = TODAY(), st = $('#stale'), long = iso => { const t = new Date(iso + 'T12:00:00Z'); return `${LONGDAYS[t.getUTCDay()]} ${t.getUTCDate()} ${MONTHS[t.getUTCMonth()].slice(0, 3)}`; };
@@ -850,13 +937,26 @@ view.addEventListener('click', e => {
   const t = e.target.closest('[data-toggle]'); if (t){ const id = t.dataset.toggle; state.open[id] = !state.open[id]; render(); return; }
   if (e.target.id === 'reset'){ state.got = {}; save(); render(); return; }
   const hv = e.target.closest('[data-have]'); if (hv){ state.have[hv.dataset.have] = true; save(); render(); return; }
+  const ad = e.target.closest('[data-add]');
+  if (ad && PRODUCTS){ const x = PRODUCTS[+ad.dataset.add], k = extraKey(x);
+    state.extras = state.extras || [];
+    const have = state.extras.find(e => extraKey(e) === k);
+    if (have) have.qty++; else state.extras.push({ ...x, key: undefined, qty: 1, q0: state.addQ.trim() });
+    state.addQ = ''; save(); render(); const inp = $('#addQ'); if (inp) inp.focus(); return; }
+  const xq = e.target.closest('[data-xqty]');
+  if (xq){ const [k, d] = xq.dataset.xqty.split('|'), x = (state.extras || []).find(e => extraKey(e) === k);
+    if (x){ x.qty = Math.max(1, x.qty + +d); syncStaples(); save(); render(); } return; }
+  const xd = e.target.closest('[data-xdel]');
+  if (xd){ state.extras = (state.extras || []).filter(e => extraKey(e) !== xd.dataset.xdel); syncStaples(); save(); render(); return; }
+  const xk = e.target.closest('[data-xkeep]');
+  if (xk){ const x = (state.extras || []).find(e => extraKey(e) === xk.dataset.xkeep); if (x){ x.keep = !x.keep; syncStaples(); save(); render(); } return; }
   const uu = e.target.closest('[data-usedup]'); if (uu){ state.usedUp[uu.dataset.usedup] = true; save(); render(); return; }
   const sh = e.target.closest('[data-stillhave]'); if (sh){ delete state.usedUp[sh.dataset.stillhave]; save(); render(); return; }
   const nd = e.target.closest('[data-need]'); if (nd){ delete state.have[nd.dataset.need]; save(); render(); return; }
   if (e.target.id === 'basics'){ BASICS.forEach(k => state.have[k] = true); save(); render(); return; }
   if (e.target.closest('.bm')){ e.preventDefault(); $('#remaMsg').textContent = 'Drag this button to your bookmarks bar instead of clicking it.'; return; }
   if (e.target.id === 'copyBm' || e.target.id === 'toRema'){
-    const isBm = e.target.id === 'copyBm', txt = isBm ? BOOKMARK : remaItems(SHOP.lines), msg = $('#remaMsg');
+    const isBm = e.target.id === 'copyBm', txt = isBm ? BOOKMARK : remaItems(SHOP.lines.filter(l => l.store !== 'netto')), msg = $('#remaMsg');
     const done = () => msg.textContent = isBm ? 'Bookmark code copied. Paste it as the bookmark’s address.' : 'List copied too, in case the bookmark asks for it.';
     try { navigator.clipboard.writeText(txt).then(done, () => { if (isBm) msg.textContent = 'Copy was blocked. Long-press the Til REMA button and copy its link instead.'; }); } catch (err) {}
     return;

@@ -12,7 +12,7 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import { INGREDIENTS, RECIPES, GLUTEN } from './recipes.mjs';
 import { createPlanner, glutenFree, cover } from '../planner.js';
-import { scrapeApi, scrapeRema, scrapeTjek, scrapeCatalogue, parseProduct, computedWeek, productDetails } from './offers.mjs';
+import { scrapeApi, scrapeRema, scrapeTjek, scrapeCatalogue, parseProduct, computedWeek, productDetails, FOOD_CATS } from './offers.mjs';
 
 const args = process.argv.slice(2);
 const arg = f => { const i = args.indexOf(f); return i >= 0 ? args[i + 1] : null; };
@@ -33,7 +33,7 @@ if (args.includes('--if-stale')) {
 }
 
 // ---------- 1. offers
-let offers, week, source, catalogue = [];
+let offers, week, source, catalogue = [], allOffers = null;
 if (arg('--offers')) {
   const fx = JSON.parse(await fs.readFile(arg('--offers'), 'utf8'));
   offers = fx.products ? fx.products.map(p => parseProduct(p.href, p.text)).filter(Boolean) : fx.offers;
@@ -41,7 +41,7 @@ if (arg('--offers')) {
   if (arg('--catalogue')) catalogue = JSON.parse(await fs.readFile(arg('--catalogue'), 'utf8'));
 } else {
   offers = [];
-  try { ({ offers, week, source } = await scrapeApi()); console.log(`REMA API: ${offers.length} food offers`); }
+  try { ({ offers, week, source, all: allOffers } = await scrapeApi()); console.log(`REMA API: ${offers.length} food offers`); }
   catch (e) { console.warn(`REMA API failed: ${e.message}`); offers = []; }
   if (offers.length < 15) {
     try { const r = await scrapeRema(); console.log(`REMA shop pages: ${r.offers.length} food offers`); if (r.offers.length > offers.length) ({ offers, week, source } = r); }
@@ -57,6 +57,9 @@ if (arg('--offers')) {
 if (!offers || offers.length < 15) { console.error(`Only ${offers?.length || 0} offers found. Keeping the previous plan.`); process.exit(1); }
 if (arg('--save-offers')) await fs.writeFile(arg('--save-offers'), JSON.stringify({ week, source, offers }, null, 1));
 if (arg('--save-catalogue')) await fs.writeFile(arg('--save-catalogue'), JSON.stringify(catalogue));
+// Everything REMA sells, for the site's "add something else" search; meals use the food only.
+const everything = catalogue;
+catalogue = catalogue.filter(o => FOOD_CATS.includes(o.cat));
 
 // ---------- 2. price every ingredient: offers + shelf prices -> the packs worth considering
 const textOf = o => `${o.name} ${o.desc}`.toUpperCase();
@@ -298,6 +301,26 @@ try {
   if (old.week !== data.week || old.year !== data.year) await fs.writeFile(path.join(path.dirname(OUT), 'prev-week.json'), JSON.stringify(old) + '\n');
 } catch { /* first week */ }
 await fs.writeFile(OUT, JSON.stringify(data) + '\n');
+
+// Everything to search on the site's "add something else": REMA's whole range at shelf price, its
+// offers (all departments), and Netto's offers. Short keys: the file is fetched on first search.
+{
+  const P = new Map();
+  const put = (o, store, onSale) => {
+    if (!o?.price || !o.name) return;
+    const k = `${store}:${o.id || o.name}`;
+    if (!onSale && P.has(k)) return;
+    const till = o.till || o.to;
+    P.set(k, { i: String(o.id ?? ''), s: store, n: sentence(o.name), d: o.desc ? sentence(o.desc).slice(0, 70) : '', p: o.price,
+      q: o.qty, u: o.unit, up: o.unitPrice, per: o.per, c: o.cat && o.cat !== '*' ? o.cat : '',
+      ...(onSale ? { o: 1 } : {}), ...(o.normal > o.price ? { was: o.normal } : {}), ...(till ? { t: String(till).slice(0, 10) } : {}) });
+  };
+  everything.forEach(o => put(o, 'rema', false));
+  (allOffers || offers).forEach(o => put(o, 'rema', true));
+  netto.forEach(o => put(o, 'netto', true));
+  await fs.writeFile(path.join(path.dirname(OUT), 'products.json'), JSON.stringify({ week: data.week, year: data.year, products: [...P.values()] }) + '\n');
+  console.log(`Products to search: ${P.size}`);
+}
 await fs.writeFile(PRICES_OUT, JSON.stringify({ week: week.week, catalogueProducts: catalogue.length, additiveCheck,
   flaggedProducts: Object.fromEntries(Object.entries(DETAILS).filter(([, d]) => d?.additives?.length).map(([id, d]) => [id, d.additives])),
   gluten: Object.fromEntries([...GF_KEYS].filter(k => USED.has(k)).map(k => [k, (GLUTEN.grain[k] ? GF_CAND[k] : CANDIDATES[k]).map(o =>

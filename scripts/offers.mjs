@@ -159,7 +159,9 @@ export async function scrapeCatalogue(log = console.log, now = new Date()) {
   let deps = [];
   try {
     const j = await getJson(`${API}/v3/departments?per_page=100`);
-    deps = (j.data || []).filter(d => FOOD_CATS.includes(d.slug)).map(d => ({ id: d.id, slug: d.slug }));
+    // Every department: food for the meal plan, the rest (drinks, household, care...) for the
+    // site's "add something else" search.
+    deps = (j.data || []).map(d => ({ id: d.id, slug: d.slug }));
   } catch (e) { log(`  departments: ${e.message}`); }
   const runs = deps.length ? deps.map(d => `filter%5Bdepartments%5D=${d.id}&`) : [''];
   const raw = [];
@@ -177,9 +179,9 @@ export async function scrapeCatalogue(log = console.log, now = new Date()) {
   for (const p of raw) {
     if (seen.has(p.id)) continue; seen.add(p.id);
     const o = fromApi(p, 'regular', now);
-    if (o && FOOD_CATS.includes(o.cat)) products.push(o);
+    if (o) products.push(o);
   }
-  log(`  catalogue: ${raw.length} rows, ${products.length} food products priced (${deps.length} departments)`);
+  log(`  catalogue: ${raw.length} rows, ${products.length} products priced, ${products.filter(o => FOOD_CATS.includes(o.cat)).length} food (${deps.length} departments)`);
   return products;
 }
 
@@ -212,7 +214,7 @@ export async function scrapeApi(log = console.log, now = new Date()) {
     week = { ...isoWeek(mon), validFrom: from, validTo: to || week.validTo }; }
   const cats = {}; live.forEach(o => cats[o.cat] = (cats[o.cat] || 0) + 1);
   log(`  API: ${raw.length} products, ${live.length} live offers; departments ${JSON.stringify(cats)}`);
-  return { offers: live.filter(o => FOOD_CATS.includes(o.cat)), week, source: 'REMA 1000 product API' };
+  return { offers: live.filter(o => FOOD_CATS.includes(o.cat)), all: live, week, source: 'REMA 1000 product API' };
 }
 
 // ---- scrapers ---------------------------------------------------------------

@@ -55,6 +55,7 @@ jobs:
           cp index.html planner.js _site/
           cp data/week.json _site/data/
           if [ -f data/prev-week.json ]; then cp data/prev-week.json _site/data/; fi
+          if [ -f data/products.json ]; then cp data/products.json _site/data/; fi
 
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
