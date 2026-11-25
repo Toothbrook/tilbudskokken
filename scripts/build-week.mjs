@@ -200,16 +200,31 @@ const nettoMatches = (def, o) => {
   return def.re.test(o.name.toUpperCase()) && !NETTO_EX.test(t) && !(def.ex && def.ex.test(t)) && !(def.nex && def.nex.test(t))
     && !(def.must && !def.must.test(t)) && !(def.nmust && !def.nmust.test(t));
 };
-const NETTO = {};
-for (const key of USED) {
-  // A matcher that leans on REMA's departments (re: /./) needs its own pattern for Netto (nre).
-  const def = INGREDIENTS[key].nre ? { ...INGREDIENTS[key], re: INGREDIENTS[key].nre } : INGREDIENTS[key];
-  if (NETTO_SKIP.has(key) || def.re.test('ZZZ QQQ')) continue;
-  const opts = netto.filter(o => nettoMatches(def, o)).map(o => {
-    const opt = toOption(def, o, true);
-    return opt && { ...opt, store: 'netto', till: o.till ? o.till.slice(0, 10) : '', ...(o.normal ? { normal: Math.round(o.normal / o.price * opt.price * 100) / 100 } : {}) };
-  }).filter(Boolean);
-  if (opts.length) NETTO[key] = frontier(opts);
+function chainOptions(list, store) {
+  const out = {};
+  for (const key of USED) {
+    // A matcher that leans on REMA's departments (re: /./) needs its own pattern for Tjek (nre).
+    const def = INGREDIENTS[key].nre ? { ...INGREDIENTS[key], re: INGREDIENTS[key].nre } : INGREDIENTS[key];
+    if (NETTO_SKIP.has(key) || def.re.test('ZZZ QQQ')) continue;
+    const opts = list.filter(o => nettoMatches(def, o)).map(o => {
+      const opt = toOption(def, o, true);
+      return opt && { ...opt, store, till: o.till ? o.till.slice(0, 10) : '', ...(o.normal ? { normal: Math.round(o.normal / o.price * opt.price * 100) / 100 } : {}) };
+    }).filter(Boolean);
+    if (opts.length) out[key] = frontier(opts);
+  }
+  return out;
+}
+const inWeek = list => list.filter(o => (!o.from || o.from.slice(0, 10) <= week.validTo) && (!o.till || o.till.slice(0, 10) >= week.validFrom));
+const NETTO = chainOptions(netto, 'netto');
+
+// Other chains, only measured for now (is a second stop worth it?): what adding each one's
+// offers to REMA would save on a typical week. Logged and kept in prices.json under chains.
+const OTHERS = [['bilka', 'Bilka', /^bilka$/i], ['365', '365discount', /^365\s*discount/i], ['superbrugsen', 'SuperBrugsen', /^superbrugsen$/i],
+  ['lidl', 'Lidl', /^lidl$/i], ['foetex', 'Føtex', /^føtex$/i]];
+const CHAIN = {};
+if (!arg('--offers')) for (const [id, label, re] of OTHERS) {
+  try { const t = await scrapeTjek(console.log, re, label); CHAIN[id] = { label, offers: inWeek(t.offers).length, options: chainOptions(inWeek(t.offers), id) }; }
+  catch (e) { console.warn(`${label} offers failed: ${e.message}`); }
 }
 console.log(`Netto: ${netto.length} offers this week, ${Object.keys(NETTO).length} ingredients with a Netto offer`);
 
@@ -244,6 +259,28 @@ for (const [label, people, treat, cheap] of [['1 person', 1], ['2 people', 2], [
     + (gp ? `${gp.total.toFixed(2)} kr · ${gp.days.map(d => d.d).join(' ')}` : 'NO PLAN (the switch will be hidden)'));
 }
 
+// Is a second stop worth it? Each chain's offers added to REMA's, the week planned again (meals
+// may change to use them), for 2 and 4 people on healthy days.
+const chainReport = {};
+{
+  const weekFor = ingX => { const P = createPlanner({ recipes, ing: ingX, seed }); return [2, 4].map(n => P.plan(n)); };
+  const base = weekFor(ing);
+  const all = { label: 'All of them', offers: 0, options: {} };
+  const chains = [['netto', { label: 'Netto', offers: netto.length, options: NETTO }], ...Object.entries(CHAIN)];
+  for (const [, c] of chains) { all.offers += c.offers; for (const [k, o] of Object.entries(c.options)) (all.options[k] ||= []).push(...o); }
+  for (const [id, c] of [...chains, ['all', all]]) {
+    const ingX = Object.fromEntries(Object.entries(ing).map(([k, x]) => [k, c.options[k] ? { ...x, options: [...x.options, ...c.options[k]] } : x]));
+    const ps = weekFor(ingX);
+    const there = p => Object.entries(p.need).map(([k, g]) => [k, cover(ingX[k], g)]).filter(([, cv]) => cv.o?.store && cv.o.store !== 'rema');
+    chainReport[id] = { label: c.label, offers: c.offers, matched: Object.keys(c.options).length,
+      ...Object.fromEntries([2, 4].map((n, i) => [`people${n}`, { rema: +base[i].total.toFixed(2), with: +ps[i].total.toFixed(2),
+        items: there(ps[i]).map(([k, cv]) => `${k}: ${cv.o.store} ${cv.o.product} ${cv.n}× ${cv.o.price} kr`) }])) };
+    const r = chainReport[id];
+    console.log(`Second stop ${c.label}: ${c.offers} offers, ${r.matched} ingredients matched · 2 people ${r.people2.rema.toFixed(0)} → ${r.people2.with.toFixed(0)} kr`
+      + ` (${r.people2.items.length} items there) · 4 people ${r.people4.rema.toFixed(0)} → ${r.people4.with.toFixed(0)} kr (${r.people4.items.length} items)`);
+  }
+}
+
 // ---------- 4. output
 const ORDER = ['kod-fisk-fjerkrae', 'kol', 'frugt-gront', 'mejeri', 'ost-mv', 'brod-bavinchi', 'frost', 'kolonial', '*'];
 const offerList = [...offers]
@@ -265,6 +302,8 @@ await fs.writeFile(PRICES_OUT, JSON.stringify({ week: week.week, catalogueProduc
   flaggedProducts: Object.fromEntries(Object.entries(DETAILS).filter(([, d]) => d?.additives?.length).map(([id, d]) => [id, d.additives])),
   gluten: Object.fromEntries([...GF_KEYS].filter(k => USED.has(k)).map(k => [k, (GLUTEN.grain[k] ? GF_CAND[k] : CANDIDATES[k]).map(o =>
     `${DETAILS[o.id]?.gluten || 'unknown'} · ${o.product} ${o.label} ${o.price} kr${DETAILS[o.id]?.decl ? ' · ' + DETAILS[o.id].decl.slice(0, 160) : ''}`)])),
+  chains: chainReport,
+  chainMatches: Object.fromEntries(Object.entries(CHAIN).map(([id, c]) => [id, Object.fromEntries(Object.entries(c.options).map(([k, o]) => [k, o.map(x => `${x.product} ${x.label} ${x.price} kr`)]))])),
   netto: Object.fromEntries(Object.entries(NETTO).map(([k, o]) => [k, o.map(x => `${x.product} ${x.desc} ${x.label} ${x.price} kr${x.normal ? ` (før ${x.normal})` : ''} til ${x.till}`)])),
   ingredients: Object.fromEntries(Object.entries(OPTIONS).map(([k, o]) => [k, o.map(x => `${x.onSale ? 'TILBUD ' : x.est ? 'EST ' : ''}${x.product} ${x.label} ${x.price} kr${x.additives ? ' ⚠ ' + x.additives.join(',') : ''}`)])) }, null, 1) + '\n');
 console.log(`Week ${week.week} (${week.validFrom} → ${week.validTo}), shelf prices ${data.shelfPrices}. Wrote ${OUT}`);
