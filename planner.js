@@ -135,7 +135,8 @@ export function createPlanner({ recipes, ing, seed = 0 }) {
     const slots = slotsFor(treat), byId = Object.fromEntries(recipes.map(r => [r.id, r]));
     // Keep only picks that still fit their slot (the week's treat days may have changed since).
     const fixed = {};
-    for (const slot of slots) { const id = opts.fixed?.[slotKey(slot)]; if (byId[id] && fits(byId[id], slot)) fixed[slotKey(slot)] = id; }
+    const allowed = (r, slot) => fits(r, slot) || (slot.kind === 'treat' && fits(r, { ...slot, kind: 'healthy' }));
+    for (const slot of slots) { const id = opts.fixed?.[slotKey(slot)]; if (byId[id] && allowed(byId[id], slot)) fixed[slotKey(slot)] = id; }
     const dayKcal = chosen => chosen.reduce((s, c) => s + c.kcal * c.slot.days.length, 0) / 7;
     let best, size = 1;
     // Try opening the week with every possible first dinner, then re-run only the best few while the
@@ -159,7 +160,11 @@ export function createPlanner({ recipes, ing, seed = 0 }) {
     }
     const onSale = Object.entries(best.need).reduce((s, [k, g]) => { const c = coverK(k, g); return s + (c.o?.onSale ? c.cost : 0); }, 0);
     const quality = best.chosen.reduce((s, c) => s + c.quality * c.portions, 0) / best.portions;
-    size = best.size;   // the size this week was priced at (the loop may have moved on to the next guess)
+    // The search sizes each pass for the previous pass's meals; size the week it settled on properly
+    // (same meals, portions that meet the calorie target) and price that.
+    if (Object.keys(fixed).length < slots.length)
+      return plan(people, treat, kcal, { ...opts, fixed: Object.fromEntries(best.chosen.map(c => [slotKey(c.slot), c.r.id])) });
+    size = best.size;
     return { people, treat, target: kcal, cheap, quality, saved: best.saved, size, kcal: Math.round(dayKcal(best.chosen) * size), total: best.total, onSale, portions: best.portions, need: best.need,
       cook: Object.fromEntries(best.chosen.map(c => [c.r.id, c.portions])),
       pick: Object.fromEntries(best.chosen.map(c => [c.r.id, c.lines])), days, fixed,

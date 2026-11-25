@@ -100,6 +100,10 @@ h1 em{font-style:normal;color:var(--sale)}
 /* week view */
 .days{display:flex;flex-direction:column;gap:10px}
 .day{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px 14px;display:grid;grid-template-columns:72px minmax(0,1fr);gap:4px 12px}
+.day.today{border:2px solid var(--ink);padding:11px 13px}
+.day .now{display:inline-block;font-family:var(--mono);font-size:10px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;background:var(--ink);color:var(--paper);padding:1px 6px;border-radius:3px;margin-bottom:4px}
+.day.past .slots,.day.past .date{opacity:.55}
+.day{scroll-margin-top:64px}
 .day .date{font-family:var(--display);font-weight:800;font-size:18px;line-height:1.1}
 .day .date small{display:block;font-family:var(--body);font-weight:500;font-size:12px;color:var(--muted)}
 .day .date .k{display:block;margin-top:6px;font-family:var(--mono);font-size:11px;font-weight:400;color:var(--muted)}
@@ -272,7 +276,7 @@ const BASICS = ['salt', 'sortpeber', 'olie'];
 const DOT = { breakfast:'var(--b1)', lunch:'var(--b2)', dinner:'var(--sale)' };
 const CAT = {'kod-fisk-fjerkrae':'Meat, fish & poultry','kol':'Chilled','frugt-gront':'Fruit & veg','mejeri':'Dairy','ost-mv':'Cheese','brod-bavinchi':'Bread','frost':'Frozen','kolonial':'Groceries','*':'Other'};
 let DATA, ING, MEALS = {}, KEY, SHOP, PLANNER, PLAN, PLAN_KEY = '';
-let state = { tab:'week', open:{}, got:{}, have:{}, picks:{}, lock:null, swapOpen:{}, swapF:{}, swapMore:{}, cheap:true, gf:false, treatW:[false,false,false,false,false,false,false], members:[{ name:'', kcal:2000 }, { name:'', kcal:2000 }], types:{ breakfast:true, lunch:true, dinner:true } };
+let state = { tab:'week', open:{}, got:{}, have:{}, picks:{}, weeks:{}, swapOpen:{}, swapF:{}, swapMore:{}, cheap:true, gf:false, treatW:[false,false,false,false,false,false,false], members:[{ name:'', kcal:2000 }, { name:'', kcal:2000 }], types:{ breakfast:true, lunch:true, dinner:true } };
 
 const kr = v => v.toFixed(2).replace('.', ',');
 const plural = n => `${n} ${n === 1 ? 'person' : 'people'}`;
@@ -291,7 +295,7 @@ const fmtDate = (a, b) => {
 function save(){
   try{ localStorage.setItem('ugeplan:prefs', JSON.stringify({ members:state.members, treatW:state.treatW, cheap:state.cheap, gf:state.gf, types:state.types, tab:state.tab, have:state.have }));
        localStorage.setItem(KEY, JSON.stringify(state.got));
-       localStorage.setItem(KEY.replace(':got', ':picks'), JSON.stringify({ picks:state.picks, lock:state.lock })); }catch(e){}
+       localStorage.setItem(KEY.replace(':got', ':picks'), JSON.stringify({ picks:state.picks, weeks:state.weeks })); }catch(e){}
 }
 function load(){
   try{ const p = JSON.parse(localStorage.getItem('ugeplan:prefs')||'null');
@@ -299,22 +303,38 @@ function load(){
       else if (p.people) state.members = Array.from({ length: Math.min(10, p.people) }, () => ({ name: '', kcal: clampK(+p.kcal || 2000) }));
       if (p.types) state.types = { ...state.types, ...p.types }; if (p.tab) state.tab = p.tab; if (p.have) state.have = p.have; if (typeof p.cheap === 'boolean') state.cheap = p.cheap; if (typeof p.gf === 'boolean') state.gf = p.gf; if (Array.isArray(p.treatW) && p.treatW.length === 7) state.treatW = p.treatW; } }catch(e){}
   try{ state.got = JSON.parse(localStorage.getItem(KEY)||'{}') || {}; }catch(e){ state.got = {}; }
-  try{ const s = JSON.parse(localStorage.getItem(KEY.replace(':got', ':picks'))||'null'); if (s){ state.picks = s.picks || {}; state.lock = s.lock || null; } }catch(e){}
+  try{ const s = JSON.parse(localStorage.getItem(KEY.replace(':got', ':picks'))||'null'); if (s){ state.picks = s.picks || {}; state.weeks = s.weeks || {}; if (s.lock?.sig) state.weeks[s.lock.sig] ||= s.lock.fixed; } }catch(e){}
 }
 
 // ---- the current plan, made live in the browser by the shared planner
 // Treat days are remembered by weekday (0 = Sunday), so "Friday is a treat day" carries over.
 const startW = () => new Date(DATA.validFrom + 'T12:00:00Z').getUTCDay();
+const TODAY = () => { const t = new Date(); return `${t.getFullYear()}-${String(t.getMonth() + 1).padStart(2, '0')}-${String(t.getDate()).padStart(2, '0')}`; };
 const dayDate = d => new Date(Date.parse(DATA.validFrom + 'T12:00:00Z') + d * 864e5);
 const treatPattern = () => Array.from({ length: 7 }, (_, d) => !!state.treatW[(startW() + d) % 7]);
-// Meals the visitor swapped in are kept in their slot. Right after a swap the rest of the week is
-// held as it was too (the lock), so a swap changes that one meal and the price shown is the price
-// paid. Changing the household, calories, treat days or the cheapest switch re-plans around the picks.
+// The week is remembered: the meals planned for a set of settings (household, calories, treat
+// days, the two switches) are saved in this browser for the rest of the offer week, so coming back
+// shows the same days even if prices have moved since; only the shop is re-priced. Meals the
+// visitor swapped in (picks) also stay when the settings change, and the week re-plans around them.
 const settings = () => `${PEOPLE()}|${Math.round(AVG())}|${state.cheap}|${state.gf}|${treatPattern().join()}`;
-const fixedMeals = () => ({ ...(state.lock && state.lock.sig === settings() ? state.lock.fixed : {}), ...state.picks });
+const fixedMeals = () => ({ ...(state.weeks[settings()] || {}), ...state.picks });
+const assignment = p => Object.fromEntries(Object.entries(p.slots).map(([id, k]) => [k, id]));
+function remember(sig, meals){
+  delete state.weeks[sig]; state.weeks[sig] = meals;
+  const sigs = Object.keys(state.weeks); sigs.slice(0, Math.max(0, sigs.length - 12)).forEach(k => delete state.weeks[k]);
+}
 function plan(){
-  const fixed = fixedMeals(), key = settings() + JSON.stringify(fixed);
-  if (key !== PLAN_KEY) { PLAN = PLANNER.plan(PEOPLE(), treatPattern(), Math.round(AVG()), { cheap: state.cheap, fixed }); PLAN_KEY = key; }
+  const sig = settings(), run = fixed => PLANNER.plan(PEOPLE(), treatPattern(), Math.round(AVG()), { cheap: state.cheap, fixed });
+  let fixed = fixedMeals(), key = sig + JSON.stringify(fixed);
+  if (key !== PLAN_KEY) {
+    PLAN = run(fixed);
+    // A new week for these settings: save it, and price it exactly as it will be on the next visit.
+    if (PLAN && JSON.stringify(assignment(PLAN)) !== JSON.stringify(fixed)) {
+      remember(sig, assignment(PLAN)); save();
+      fixed = fixedMeals(); key = sig + JSON.stringify(fixed); PLAN = run(fixed);
+    }
+    PLAN_KEY = key;
+  }
   // No gluten-free week possible from this week's shop: drop the mode rather than show nothing.
   if (!PLAN && state.gf) { state.gf = false; GF_NONE = true; setMode(); return plan(); }
   return PLAN;
@@ -390,7 +410,8 @@ function weekView(){
     ${picks ? `${picks} meal${picks > 1 ? 's' : ''} picked by you. <button class="mini" id="resetPicks">Go back to the suggested week</button>` : ''}</p>
   <div class="days">${plan().days.map((d, i) => {
     const dt = dayDate(i), kcal = keys.reduce((s, t) => s + per(d[SLOT[t]]).kcal, 0), w = dt.getUTCDay();
-    return `<div class="day${d.treat ? ' treat' : ''}"><div class="date">${DAYS[w]}<small>${dt.getUTCDate()}. ${MONTHS[dt.getUTCMonth()].slice(0,3)}</small>${sameK() ? `<span class="k num">${num(kcal)} kcal</span>` : ''}
+    const iso = dt.toISOString().slice(0, 10), now = TODAY(), when = iso === now ? ' today' : iso < now ? ' past' : '';
+    return `<div class="day${d.treat ? ' treat' : ''}${when}"${when === ' today' ? ' id="today" aria-current="date"' : ''}><div class="date">${when === ' today' ? '<span class="now">Today</span>' : ''}${DAYS[w]}<small>${dt.getUTCDate()}. ${MONTHS[dt.getUTCMonth()].slice(0,3)}</small>${sameK() ? `<span class="k num">${num(kcal)} kcal</span>` : ''}
       <button class="kind" data-treat="${w}" aria-pressed="${d.treat}" aria-label="${DAYS[w]}: ${d.treat ? 'treat day, tap to make it healthy' : 'healthy day, tap to make it a treat day'}">${d.treat ? 'Treat' : 'Healthy'}</button></div>
       <div class="slots">${keys.map(t => { const id = d[SLOT[t]]; return `<div class="slot"><span><i style="background:${DOT[t]}"></i>${TYPES[t]}</span>
         <div><button class="go" data-go="${id}">${MEALS[id].name}</button>${t === 'dinner' && d.left ? '<span class="left">leftovers</span>' : ''}${t === 'dinner' && d.left ? '' : `<button class="mini" data-swapgo="${id}" aria-label="Swap ${MEALS[id].name}">swap</button>`}</div></div>`; }).join('')}
@@ -657,6 +678,9 @@ function init(){
   if (DATA.additives?.checked) $('#healthNote').textContent += ` This week ${DATA.additives.checked} products were checked and ${DATA.additives.flagged} skipped.`;
   $('#updated').textContent = `Plan generated ${new Date(DATA.generatedAt).toLocaleString('da-DK', {dateStyle:'medium', timeStyle:'short'})}.`;
   render();
+  // Coming back mid-week: start at today's meals (the tabs stay at the top).
+  const td = document.getElementById('today');
+  if (state.tab === 'week' && td && td !== document.querySelector('.day')) td.scrollIntoView({ block: 'start' });
 }
 
 const members = $('#members');
@@ -698,13 +722,13 @@ view.addEventListener('click', e => {
   const pk = e.target.closest('[data-pick]');
   if (pk){ const [cur, next] = pk.dataset.pick.split('|'), key = slotOf(cur);
     // Hold the rest of the week as it is now, and put the new meal in this one's place.
-    state.lock = { sig: settings(), fixed: { ...Object.fromEntries(Object.entries(plan().slots).map(([id, k]) => [k, id])), [key]: next } };
+    remember(settings(), { ...assignment(plan()), [key]: next });
     state.picks[key] = next; delete state.swapOpen[cur]; state.open[next] = true; save(); render();
     const el = document.getElementById('m-' + next);
     if (el){ el.scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'start' }); el.querySelector('.meal-top').focus({ preventScroll: true }); }
     return; }
-  const up = e.target.closest('[data-unpick]'); if (up){ const key = up.dataset.unpick; delete state.picks[key]; if (state.lock) delete state.lock.fixed[key]; save(); render(); return; }
-  if (e.target.id === 'resetPicks'){ state.picks = {}; state.lock = null; save(); render(); return; }
+  const up = e.target.closest('[data-unpick]'); if (up){ const key = up.dataset.unpick; delete state.picks[key]; const w = state.weeks[settings()]; if (w) delete w[key]; save(); render(); return; }
+  if (e.target.id === 'resetPicks'){ state.picks = {}; delete state.weeks[settings()]; save(); render(); return; }
   const t = e.target.closest('[data-toggle]'); if (t){ const id = t.dataset.toggle; state.open[id] = !state.open[id]; render(); return; }
   if (e.target.id === 'reset'){ state.got = {}; save(); render(); return; }
   const hv = e.target.closest('[data-have]'); if (hv){ state.have[hv.dataset.have] = true; save(); render(); return; }

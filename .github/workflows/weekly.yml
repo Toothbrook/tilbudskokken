@@ -34,7 +34,7 @@ jobs:
         id: plan
         if: github.event_name != 'push' || hashFiles('data/week.json') == '' || contains(github.event.head_commit.message, '[rebuild]')
         continue-on-error: true
-        run: node scripts/build-week.mjs --save-offers data/offers-raw.json
+        run: node scripts/build-week.mjs --save-offers data/offers-raw.json ${{ github.event_name == 'schedule' && '--if-stale' || '' }}
 
       - name: Save the new plan to the repo
         if: steps.plan.outcome == 'success'

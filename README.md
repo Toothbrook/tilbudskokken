@@ -6,6 +6,8 @@ The recipes are healthy by design: whole ingredients, no processed meat (sausage
 
 Any day can be switched to a **treat day**, which uses a separate set of comfort-food classics (`kind: 'treat'` in `recipes.mjs`). A **Cheapest week** switch picks the lowest price when on, and favours vegetables, protein and fish when off.
 
+The site **remembers your week**: your settings and the meals planned for them are saved in your browser for the whole offer week, so coming back on Wednesday shows the same days (it opens at today's). Prices may be refreshed, but the meals stay. The scheduled Monday run only rebuilds when Sunday's failed (`--if-stale`), so the data doesn't change mid-week either.
+
 Any meal can be **swapped**: the site lists every other recipe that fits those days, with exactly what the week's shop would cost with it (the rest of the week stays as it is), filterable by fish, chicken, pork, beef or vegetarian. Picks are remembered for the week, and changing the household, calories or treat days re-plans around them.
 
 A **Gluten-free** switch keeps only meals that can be made without gluten. Bread, pasta, oats, flour, noodles, tortillas and soy sauce are swapped for gluten-free products the build finds at REMA (labelled glutenfri, or rice noodles, corn tortillas and tamari), with an estimated price for staples REMA doesn't list that week. Things that can hide gluten (sausages, cold cuts, spices, stock, sauces, pulses, nuts) are only used when REMA's ingredient list for that product shows no gluten and no "may contain traces". The rules are `GLUTEN` in `scripts/recipes.mjs`; what each product was judged is in `data/prices.json` under `gluten`.

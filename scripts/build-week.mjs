@@ -19,6 +19,19 @@ const arg = f => { const i = args.indexOf(f); return i >= 0 ? args[i + 1] : null
 const OUT = arg('--out') || 'data/week.json';
 const PRICES_OUT = path.join(path.dirname(OUT), 'prices.json');
 
+// --if-stale (scheduled runs): leave a plan that still covers today alone, so the week people
+// have started on doesn't change under them when prices move. Sunday's run finds last week's
+// plan out of date; Monday's retry only rebuilds if Sunday's failed.
+if (args.includes('--if-stale')) {
+  try {
+    const cur = JSON.parse(await fs.readFile(OUT, 'utf8')), today = new Date().toISOString().slice(0, 10);
+    if (cur.validFrom <= today && today <= cur.validTo) {
+      console.log(`Week ${cur.week} (${cur.validFrom} → ${cur.validTo}) is still current. Nothing to do.`);
+      process.exit(0);
+    }
+  } catch { /* no plan yet: build one */ }
+}
+
 // ---------- 1. offers
 let offers, week, source, catalogue = [];
 if (arg('--offers')) {
