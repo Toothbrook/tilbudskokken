@@ -1,8 +1,8 @@
 {
  "week": 48,
- "catalogueProducts": 2011,
+ "catalogueProducts": 2010,
  "additiveCheck": {
-  "checked": 318,
+  "checked": 320,
   "failed": 0,
   "probe": {
    "keys": [
@@ -29,7 +29,7 @@
    "query": "?include=declaration,nutrition_info",
    "declarationLike": []
   },
-  "flagged": 117
+  "flagged": 118
  },
  "flaggedProducts": {
   "20152": [
@@ -77,12 +77,6 @@
   "43005": [
    "E450"
   ],
-  "43086": [
-   "E451",
-   "E452",
-   "E1420",
-   "modificeret stivelse"
-  ],
   "43905": [
    "E450",
    "E471",
@@ -109,6 +103,14 @@
    "E472"
   ],
   "60113": [
+   "E471",
+   "E472"
+  ],
+  "60114": [
+   "E471",
+   "E472"
+  ],
+  "60115": [
    "E471",
    "E472"
   ],
@@ -758,6 +760,149 @@
    "free · Taco spice mix 40 g 5.25 kr · 42 % dextrose, 18 % salt, 6 % spidskommen, 6 % paprika, 6 % modificeret stivelse (majs), 6 % hvidløgspulver, 5 % løgpulver, 4 % chilipulver, 3 % naturlige aroma"
   ]
  },
+ "netto": {
+  "hkokse": [
+   "Netto hakket oksekød 14-18% 400 g. pr. kg 75,00 400 g 30 kr til 2026-11-27"
+  ],
+  "hkgris": [
+   "Flæsk i skiver, netto hakket grisekød 8-12% eller nakkekoteletter 250-400 g. pr. kg max. 76,00 250 g 19 kr til 2026-11-27",
+   "Koteletter eller hakket grisekød 4-7% Spot 1000 g. 1 kg 49 kr til 2026-12-04"
+  ],
+  "log": [
+   "Danske løg 1 kg. danmark. 1 kg 5 kr til 2026-12-04"
+  ],
+  "peber": [
+   "Egelykke spegepølse 100 g. sønderjysk- eller peberspegepølse. pr. kg 120,00 + pris 10.- pr. kg 100,0 100 g 12 kr til 2026-11-27"
+  ],
+  "gulerod": [
+   "Danske gulerødder 1 kg. danmark. 1 kg 5 kr til 2026-12-04"
+  ],
+  "hakkedetomater": [
+   "Mutti tomater 400 g. polpa hakkede eller pelati flåede tomater. pr. kg 20,00 max. 12 stk. pr.  400 g 8 kr til 2026-11-27"
+  ],
+  "olie": [
+   "Ollineo solsikke- eller rapsolie 1 liter. max. 4 stk. pr. variant pr. kunde pr. dag til denne pris 1 l 15 kr til 2026-11-27"
+  ],
+  "kyllingfars": [
+   "Dansk hel kylling eller hakket kyllingekød 7-10% 800-1450 g. pr. kg max. 61,25 800 g 49 kr til 2026-11-27"
+  ],
+  "salat": [
+   "Salatmesteren pålægssalat 150 g. pr. kg 53,33 150 g 8 kr til 2026-12-04",
+   "Tjia hytteostsalat 175 g. pr. kg 57,14 175 g 10 kr til 2026-12-04"
+  ],
+  "kaal": [
+   "Dansk spidskål Pr. stk. danmark. 1 stk 12 kr til 2026-11-27"
+  ],
+  "tomat": [
+   "La campagna tomatpuré 140 g. pr. kg 42,86 140 g 6 kr til 2026-12-04",
+   "Mutti tomater 400 g. polpa hakkede eller pelati flåede tomater. pr. kg 20,00 max. 12 stk. pr.  400 g 8 kr til 2026-11-27"
+  ],
+  "agurk": [
+   "Agurk Pr. stk. udenlandsk. 1 stk 5 kr til 2026-11-27"
+  ],
+  "aeg": [
+   "Øgo økologiske æg 10 stk. str. m/l. pr. stk. 3,00 10 stk 30 kr til 2026-11-27"
+  ],
+  "maelk": [
+   "Arla lactofree mælk 1 liter. 1 l 14 kr til 2026-11-27"
+  ],
+  "kartofler": [
+   "Harvest best perlekartofler 445 g. pr. kg 26,97 445 g 12 kr til 2026-12-04",
+   "Samsø kartofler Pr. pose 1500 g. danmark. pr. kg 12,00 1,5 kg 18 kr til 2026-12-04"
+  ],
+  "aeble": [
+   "Granatæble Pr. stk. udenlandsk. 1 stk 8 kr til 2026-11-27",
+   "Danske æbler 1,5 kg. danmark. pr. kg 8,00 normalpris 25.- max. 6 stk. pr. kunde pr. dag til 1 1,5 kg 12 kr (før 25) til 2026-11-27"
+  ],
+  "frostgront": [
+   "Øgo økologiske sorte bønner 252 g. pr. kg 23,81 252 g 6 kr til 2026-11-27",
+   "Øgo økologiske grøntsager 300-500 g. pr. kg max. 40,00 300 g 12 kr til 2026-11-27",
+   "Amo brødblanding eller gluten mel Spot 900-2000 g. pr. kg max. 16,67 900 g 15 kr til 2026-11-27"
+  ],
+  "mel": [
+   "Valsemøllen kage hvedemel 1,7 kg. pr. kg 7,65 1,7 kg 13 kr til 2026-12-04"
+  ],
+  "flaeskesteg": [
+   "Ovnklar dansk flæskesteg Pr. 1/2 kg uden ben. pr. kg 33,90 500 g 16.95 kr til 2026-11-27"
+  ],
+  "rodkaal": [
+   "Samsø økologiske rødkål 580 g. pr. kg 29,31 580 g 17 kr til 2026-12-04"
+  ],
+  "svinestrimler": [
+   "Malaco strimler, snøre eller stjerner 80-100 g. pr. kg max. 162,50 80 g 13 kr til 2026-11-27",
+   "Brunchy baconstrimler 2 x 100 g. pr. kg 75,00 200 g 15 kr til 2026-12-04",
+   "Dansk nakkefilet eller ribbenssteg Pr. 1/2 kg pr. kg 39,90 500 g 19.95 kr til 2026-12-04",
+   "Koteletter eller hakket grisekød 4-7% Spot 1000 g. 1 kg 49 kr til 2026-12-04"
+  ],
+  "kyllingebryst": [
+   "Kyllingebrystfilet 400 g. pr. kg 62,50 400 g 25 kr til 2026-11-27",
+   "Dansk kyllingefilet, -inderfilet eller -lårfilet 900-1000 g. pr. kg max. 76,67 900 g 69 kr til 2026-12-04"
+  ],
+  "kyllingelaar": [
+   "Kyllingeunderlår 600 g. pr. kg 41,67 600 g 25 kr til 2026-11-27",
+   "Dansk kyllingefilet, -inderfilet eller -lårfilet 900-1000 g. pr. kg max. 76,67 900 g 69 kr til 2026-12-04"
+  ],
+  "moerbrad": [
+   "Dansk svinemørbrad 1100-1450 g. pr. kg max. 71,82 1,1 kg 79 kr til 2026-11-27"
+  ],
+  "ost": [
+   "Cheese makers treasures skiveost 180 g. pr. kg 55,39 normalpris 19,95 max. 6 stk. pr. variant pr. kunde pr. dag t 180 g 9.97 kr (før 19.95) til 2026-11-27",
+   "Klovborg skiveost 240 g. pr. kg 83,33 240 g 20 kr til 2026-11-27",
+   "Grønnelund eller mammen skæreost 450-690 g. pr. kg max. 86,67 450 g 39 kr til 2026-11-27"
+  ],
+  "persille": [
+   "Dansk persille Pr. potte pr. potte. danmark. 1 stk 9 kr til 2026-12-04"
+  ],
+  "laks": [
+   "Navito indbagt laks eller rejer 540 g. pr. kg 72,22 540 g 39 kr til 2026-12-04",
+   "Selaks, castel del lago, montgras organic, the wild life eller borgo al pascolo 75 cl. rødvin eller hvidvin. pr. liter 66,67 750 ml 50 kr til 2026-11-27"
+  ],
+  "hvidfisk": [
+   "Velsmag rødspættefilet 400 g. pr. kg 172,50 400 g 69 kr til 2026-11-27"
+  ],
+  "rejer": [
+   "Rahbek indbagte rejer, laks eller sej 250 g. pr. kg 40,00 250 g 10 kr til 2026-12-04",
+   "Navito indbagt laks eller rejer 540 g. pr. kg 72,22 540 g 39 kr til 2026-12-04"
+  ],
+  "oksetern": [
+   "Velsmag oksekød i tern 400 g. pr. kg 137,50 400 g 55 kr til 2026-12-04"
+  ],
+  "helkylling": [
+   "Dansk hel kylling eller hakket kyllingekød 7-10% 800-1450 g. pr. kg max. 61,25 800 g 49 kr til 2026-11-27",
+   "Løgismose hel kylling 1300-1650 g. pr. kg max. 76,15 1,3 kg 99 kr til 2026-12-04"
+  ],
+  "rodbeder": [
+   "Samsø økologiske survarer 400-580 g. rødkål eller rødbeder. pr. kg max. 42,50 400 g 17 kr til 2026-12-04"
+  ],
+  "baer": [
+   "Actimel 8-pak eller danonino 12-pak 8 x 100 ml. actimel multifrugt-, jordbær/ banan- eller jordbærsmag eller danonin 1 stk 25 kr til 2026-12-04"
+  ],
+  "hytteost": [
+   "Cheasy hytteost eller revet mozzarella 150-250 g. pr. kg max. 80,00 150 g 12 kr til 2026-11-27"
+  ],
+  "avocado": [
+   "Øgo økologiske spisemodne avocadoer Pr. bakke 3 stk. udenlandske. pr. stk. 8,33 3 stk 25 kr til 2026-11-27"
+  ],
+  "tun": [
+   "Glyngøre tun 105-150 g. pr. kg max. 95,24 105 g 10 kr til 2026-12-04"
+  ],
+  "flaesk": [
+   "Flæsk i skiver, netto hakket grisekød 8-12% eller nakkekoteletter 250-400 g. pr. kg max. 76,00 250 g 19 kr til 2026-11-27",
+   "Dansk flæsk i skiver 1000 g. 1 kg 49 kr til 2026-12-04"
+  ],
+  "sukker": [
+   "Dansukker dansk sukker Spot 2 kg. pr. kg 7,50 2 kg 15 kr til 2026-12-04"
+  ],
+  "mozzarella": [
+   "Cheasy hytteost eller revet mozzarella 150-250 g. pr. kg max. 80,00 150 g 12 kr til 2026-11-27"
+  ],
+  "lasagne": [
+   "Barilla lasagneplader 500 g. pr. kg 20,00 500 g 10 kr til 2026-12-04"
+  ],
+  "tomatpure": [
+   "La campagna tomatpuré 140 g. pr. kg 42,86 140 g 6 kr til 2026-12-04"
+  ]
+ },
  "ingredients": {
   "hkokse": [
    "TILBUD Hk. oksekød 15-18% 400 g 29 kr",
@@ -907,7 +1052,7 @@
    "EST Karry 50 g 15 kr"
   ],
   "moerbrad": [
-   "Mørbrad 500-700g 500 g 79 kr",
+   "Grisemørbrad 47,94 kr/kg 47.94 kr",
    "Kalvemørbrad 1,4 kg 479 kr"
   ],
   "champignon": [
@@ -949,6 +1094,7 @@
    "Sojasauce 250 ml 34.03 kr"
   ],
   "rejer": [
+   "Tempurarejer 160 g 15 kr",
    "Vannamei rejer rå 200 g 29.95 kr"
   ],
   "roedelinser": [
@@ -1001,6 +1147,7 @@
    "Jordbær 400 g 12 kr"
   ],
   "citrus": [
+   "Clementin spanien 1 stk 2.5 kr",
    "Øko. clementiner 500 g 15 kr",
    "Clementin land se vare 1 kg 18 kr"
   ],
@@ -1068,7 +1215,6 @@
    "Græskarkerneboller 438 g 14.95 kr"
   ],
   "toast": [
-   "Hvedesandwich 500 g 8.8 kr",
    "TILBUD Limpan 900 g 15 kr"
   ],
   "sukker": [
