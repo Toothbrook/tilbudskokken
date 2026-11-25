@@ -61,17 +61,24 @@ export function createPlanner({ recipes, ing, seed = 0 }) {
       carb: lines.find(k => CARBS.includes(k)), kcal: kcal / r.base };
   }
 
+  // Who eats at home: portions for a meal on a day (opts.eaters[day][type], each person counted by
+  // their share of the household's calories). Default: everyone, every meal.
+  let eat = () => 1;
+  const portionsOf = slot => slot.days.reduce((n, d) => n + eat(d, slot.type), 0);
+
   // Turn the week's healthy/treat pattern into slots: one recipe each, covering one or more days.
+  // A meal nobody eats at home that day gets no slot.
   function slotsFor(treat) {
-    const kind = d => (treat[d] ? 'treat' : 'healthy'), slots = [];
+    const kind = d => (treat[d] ? 'treat' : 'healthy'), home = (d, t) => eat(d, t) > 0, slots = [];
     let pairs = 0;
     for (let d = 0; d < 7;) {
       const k = kind(d);
-      if (k === 'healthy' && d + 1 < 7 && kind(d + 1) === k && pairs < MAX_PAIRS) { slots.push({ type: 'dinner', kind: k, days: [d, d + 1] }); pairs++; d += 2; }
+      if (!home(d, 'dinner')) { d++; continue; }
+      if (k === 'healthy' && d + 1 < 7 && kind(d + 1) === k && home(d + 1, 'dinner') && pairs < MAX_PAIRS) { slots.push({ type: 'dinner', kind: k, days: [d, d + 1] }); pairs++; d += 2; }
       else { slots.push({ type: 'dinner', kind: k, days: [d] }); d++; }
     }
     for (const type of ['lunch', 'breakfast']) for (const k of ['healthy', 'treat']) {
-      const days = [...Array(7).keys()].filter(d => kind(d) === k);
+      const days = [...Array(7).keys()].filter(d => kind(d) === k && home(d, type));
       const n = Math.min(ROTATE[k], days.length);
       for (let i = 0; i < n; i++) slots.push({ type, kind: k, days: days.filter((_, j) => j % n === i) });
     }
@@ -98,7 +105,7 @@ export function createPlanner({ recipes, ing, seed = 0 }) {
     let need = {};
     const chosen = [], used = new Set(Object.values(fixed)), protein = new Set(), family = {}, carbs = {};
     for (const [i, slot] of slots.entries()) {
-      const portions = slot.days.length * people, pinned = fixed[slotKey(slot)];
+      const portions = portionsOf(slot), pinned = fixed[slotKey(slot)];
       const pick = fit => recipes.filter(r => (pinned ? r.id === pinned : (i > 0 || !opener || r.id === opener) && !used.has(r.id)) && fit(r, slot))
         .map(r => evaluate(r, need, portions, size)).filter(Boolean);
       // A treat day may fall back to a healthy recipe when the treats run out (gluten-free mode).
@@ -134,12 +141,18 @@ export function createPlanner({ recipes, ing, seed = 0 }) {
   // opts.fixed: { slotKey: recipeId } meals the visitor picked themselves.
   function plan(people, treat = Array(7).fill(false), kcal = 2000, opts = {}) {
     cheap = opts.cheap !== false; stock = opts.stock || {};
+    const eaters = opts.eaters || null;
+    eat = (d, t) => eaters ? (eaters[d]?.[t] ?? people) : people;
     const slots = slotsFor(treat), byId = Object.fromEntries(recipes.map(r => [r.id, r]));
     // Keep only picks that still fit their slot (the week's treat days may have changed since).
     const fixed = {};
     const allowed = (r, slot) => fits(r, slot) || (slot.kind === 'treat' && fits(r, { ...slot, kind: 'healthy' }));
     for (const slot of slots) { const id = opts.fixed?.[slotKey(slot)]; if (byId[id] && allowed(byId[id], slot)) fixed[slotKey(slot)] = id; }
+    if (!slots.length) return null;
     const dayKcal = chosen => chosen.reduce((s, c) => s + c.kcal * c.slot.days.length, 0) / 7;
+    // Meals eaten out still count towards the day: size the home meals for their usual share of it.
+    const SHARE = { breakfast: 0.25, lunch: 0.3, dinner: 0.45 };
+    const homeShare = slots.reduce((s, sl) => s + SHARE[sl.type] * sl.days.length, 0) / 7;
     let best, size = 1;
     // Try opening the week with every possible first dinner, then re-run only the best few while the
     // portion size settles (packs bought for the opener shape the rest of the week).
@@ -151,7 +164,7 @@ export function createPlanner({ recipes, ing, seed = 0 }) {
       best = plans[0] || greedy(people, slots, size, null, fixed);
       if (!best) return null;
       best.size = size;
-      const next = Math.min(2.6, Math.max(0.5, kcal / dayKcal(best.chosen)));
+      const next = Math.min(2.6, Math.max(0.5, kcal * homeShare / dayKcal(best.chosen)));
       if (Math.abs(next - size) < 0.02) break;
       size = next;
     }
@@ -167,7 +180,7 @@ export function createPlanner({ recipes, ing, seed = 0 }) {
     if (Object.keys(fixed).length < slots.length)
       return plan(people, treat, kcal, { ...opts, fixed: Object.fromEntries(best.chosen.map(c => [slotKey(c.slot), c.r.id])) });
     size = best.size;
-    return { people, treat, target: kcal, cheap, stock, quality, saved: best.saved, size, kcal: Math.round(dayKcal(best.chosen) * size), total: best.total, onSale, portions: best.portions, need: best.need,
+    return { people, treat, target: kcal, cheap, stock, eaters, quality, saved: best.saved, size, kcal: Math.round(dayKcal(best.chosen) * size), total: best.total, onSale, portions: best.portions, need: best.need,
       cook: Object.fromEntries(best.chosen.map(c => [c.r.id, c.portions])),
       pick: Object.fromEntries(best.chosen.map(c => [c.r.id, c.lines])), days, fixed,
       slots: Object.fromEntries(best.chosen.map(c => [c.r.id, slotKey(c.slot)])),
@@ -180,14 +193,15 @@ export function createPlanner({ recipes, ing, seed = 0 }) {
   function alternatives(p, id) {
     const meal = p.meals.find(m => m.id === id);
     if (!meal) return [];
-    const portions = meal.slot.days.length * p.people, [lo, hi] = KCAL[meal.slot.type];
+    eat = (d, t) => p.eaters ? (p.eaters[d]?.[t] ?? p.people) : p.people;
+    const portions = portionsOf(meal.slot), [lo, hi] = KCAL[meal.slot.type];
     const inWeek = new Set(p.meals.map(m => m.id)), all = Object.fromEntries(p.meals.map(m => [m.key, m.id]));
     const out = [];
     for (const r of recipes) {
       if (inWeek.has(r.id) || !fits(r, meal.slot)) continue;
       const c = evaluate(r, {}, portions, p.size);
       if (!c || c.kcal < lo || c.kcal > hi) continue;
-      const q = plan(p.people, p.treat, p.target, { cheap: p.cheap, stock: p.stock, fixed: { ...all, [meal.key]: r.id } });
+      const q = plan(p.people, p.treat, p.target, { cheap: p.cheap, stock: p.stock, eaters: p.eaters, fixed: { ...all, [meal.key]: r.id } });
       if (!q) continue;
       const kcal = q.meals.find(m => m.id === r.id) && c.kcal * q.size;
       out.push({ id: r.id, delta: q.total - p.total, total: q.total, kcal: Math.round(kcal), family: c.protein ? ing[c.protein].pg : 'veg', quality: c.quality });

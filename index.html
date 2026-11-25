@@ -64,6 +64,16 @@ h1 em{font-style:normal;color:var(--sale)}
 .ctl.who{flex-basis:100%}
 .members{display:flex;flex-direction:column;gap:6px}
 .mrow{display:flex;gap:6px;align-items:center}
+.awayline{margin:2px 0 8px}
+.awayline .mini{font-size:12px;text-align:left}
+.away{background:var(--soft);border-radius:10px;padding:10px;margin:0 0 10px;display:flex;flex-direction:column;gap:6px}
+.away p{margin:0;font-size:12.5px;color:var(--muted)}
+.arow{display:grid;grid-template-columns:72px repeat(7,minmax(0,1fr));gap:3px;align-items:center}
+.arow span{font-size:12.5px;font-weight:600}
+.arow button{font:inherit;font-size:11.5px;padding:6px 0;border-radius:6px;border:1px solid var(--line);background:var(--card);color:var(--ink);cursor:pointer}
+.arow button[aria-pressed="true"]{background:var(--ink);color:var(--paper);border-color:var(--ink);text-decoration:line-through}
+.apreset{display:flex;gap:10px;flex-wrap:wrap}
+.slot.out .outtxt{color:var(--muted);font-size:13.5px;font-style:italic}
 .mrow .stepper button{width:34px;height:36px}
 .mrow .stepper input{width:58px}
 .mrow .stepper .unit{padding-right:4px}
@@ -288,6 +298,30 @@ const view = $('#view');
 const LONGDAYS = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
 const MONTHS = ['januar','februar','marts','april','maj','juni','juli','august','september','oktober','november','december'];
 const DAYS = ['Søn','Man','Tir','Ons','Tor','Fre','Lør'];
+// ---- who eats at home: per person, the weekdays (0 = Sunday) each meal is eaten out
+const MEALTYPES = ['breakfast', 'lunch', 'dinner'];
+const cleanAway = a => Object.fromEntries(MEALTYPES.map(t => [t, Array.isArray(a?.[t]) ? [...new Set(a[t].filter(w => Number.isInteger(w) && w >= 0 && w < 7))] : []]));
+const isAway = (m, t, w) => !!m.away?.[t]?.includes(w);
+const anyAway = () => state.members.some(m => MEALTYPES.some(t => m.away?.[t]?.length));
+const weekdayOf = d => (startW() + offsetDays(DATA) + d) % 7;
+// Portions per meal and day for the planner: each person at home counts by their share of the
+// household's calories. Undefined when everyone eats everything at home.
+function eaters(){
+  if (!anyAway()) return undefined;
+  const avg = AVG();
+  return Array.from({ length: 7 }, (_, d) => { const w = weekdayOf(d);
+    return Object.fromEntries(MEALTYPES.map(t => [t, +state.members.reduce((n, m) => n + (isAway(m, t, w) ? 0 : m.kcal / avg), 0).toFixed(3)])); });
+}
+const eatersSig = e => e ? `A${e.map(x => MEALTYPES.map(t => x[t]).join(',')).join('/')}|` : '';
+const parseEaters = seg => seg.slice(1).split('/').map(x => { const v = x.split(',').map(Number); return Object.fromEntries(MEALTYPES.map((t, i) => [t, v[i]])); });
+const WEEK_ORDER = [1, 2, 3, 4, 5, 6, 0];
+function awaySummary(m){
+  const parts = MEALTYPES.filter(t => m.away?.[t]?.length).map(t => { const ws = m.away[t];
+    const days = ws.length === 7 ? 'every day' : ws.length === 5 && [1,2,3,4,5].every(w => ws.includes(w)) ? 'Mon–Fri'
+      : ws.length === 2 && ws.includes(0) && ws.includes(6) ? 'weekends' : WEEK_ORDER.filter(w => ws.includes(w)).map(w => LONGDAYS[w].slice(0, 3)).join(', ');
+    return `${TYPES[t].toLowerCase()} out ${days}`; });
+  return parts.length ? parts.join(' · ') : 'eats every meal at home';
+}
 const TYPES = { breakfast:'Breakfast', lunch:'Lunch', dinner:'Dinner' };
 const SLOT = { breakfast:'b', lunch:'l', dinner:'d' };
 const BASICS = ['salt', 'sortpeber', 'olie'];
@@ -317,7 +351,7 @@ function save(){
 }
 function load(){
   try{ const p = JSON.parse(localStorage.getItem('ugeplan:prefs')||'null');
-    if (p){ if (Array.isArray(p.members) && p.members.length) state.members = p.members.slice(0, 10).map(m => ({ name: String(m.name || '').slice(0, 24), kcal: clampK(+m.kcal) }));
+    if (p){ if (Array.isArray(p.members) && p.members.length) state.members = p.members.slice(0, 10).map(m => ({ name: String(m.name || '').slice(0, 24), kcal: clampK(+m.kcal), away: cleanAway(m.away) }));
       else if (p.people) state.members = Array.from({ length: Math.min(10, p.people) }, () => ({ name: '', kcal: clampK(+p.kcal || 2000) }));
       if (p.types) state.types = { ...state.types, ...p.types }; if (p.tab) state.tab = p.tab; if (p.have) state.have = p.have; if (typeof p.cheap === 'boolean') state.cheap = p.cheap; if (typeof p.gf === 'boolean') state.gf = p.gf; if (typeof p.netto === 'boolean') state.netto = p.netto; if (Array.isArray(p.staples)) state.staples = p.staples; if (Number.isInteger(p.shopDay) && p.shopDay >= 0 && p.shopDay < 7) state.shopDay = p.shopDay; if (p.early && typeof p.early === 'object') state.early = p.early; if (Array.isArray(p.treatW) && p.treatW.length === 7) state.treatW = p.treatW; } }catch(e){}
   state.got = {}; state.picks = {}; state.weeks = {}; state.usedUp = {}; state.extras = null;
@@ -345,7 +379,7 @@ const treatPattern = () => Array.from({ length: 7 }, (_, d) => !!state.treatW[(s
 // days, the two switches) are saved in this browser for the rest of the offer week, so coming back
 // shows the same days even if prices have moved since; only the shop is re-priced. Meals the
 // visitor swapped in (picks) also stay when the settings change, and the week re-plans around them.
-const settings = () => `${PEOPLE()}|${Math.round(AVG())}|${state.cheap}|${state.gf}|${offsetDays(DATA)}|${NETTO_ON() ? 'N|' : ''}${treatPattern().join()}`;
+const settings = () => `${PEOPLE()}|${Math.round(AVG())}|${state.cheap}|${state.gf}|${offsetDays(DATA)}|${NETTO_ON() ? 'N|' : ''}${eatersSig(eaters())}${treatPattern().join()}`;
 // Weeks saved before the shopping day existed (Sunday start) are keyed without it.
 const oldSig = () => `${PEOPLE()}|${Math.round(AVG())}|${state.cheap}|${state.gf}|${treatPattern().join()}`;
 const fixedMeals = () => ({ ...(state.weeks[settings()] || (offsetDays(DATA) === 0 && state.weeks[oldSig()]) || {}), ...state.picks });
@@ -380,7 +414,8 @@ function carryOver(){
     const [sig, meals] = last, parts = sig.split('|'), gf = parts[3] === 'true';
     const pattern = parts[parts.length - 1].split(',').map(x => x === 'true');
     const src = source(PREV, parts.includes('N') && NETTO_READY(PREV), gf);
-    const P = createPlanner({ recipes: src.recipes, ing: src.ing, seed: PREV.seed }).plan(+parts[0], pattern, +parts[1], { cheap: parts[2] === 'true', fixed: meals });
+    const aSeg = parts.find(x => x.startsWith('A'));
+    const P = createPlanner({ recipes: src.recipes, ing: src.ing, seed: PREV.seed }).plan(+parts[0], pattern, +parts[1], { cheap: parts[2] === 'true', fixed: meals, eaters: aSeg ? parseEaters(aSeg) : undefined });
     if (!P) return CARRY;
     const got = JSON.parse(localStorage.getItem(id + ':got') || '{}') || {}, ticked = Object.values(got).some(Boolean);
     for (const [k, need] of Object.entries(P.need)) {
@@ -399,7 +434,7 @@ function carryOver(){
 const STOCK = () => { const c = carryOver(), st = {}; for (const k in c) if (!state.usedUp[k]) st[k] = c[k].g; return st; };
 
 function plan(){
-  const stock = STOCK(), sig = settings(), run = fixed => PLANNER.plan(PEOPLE(), treatPattern(), Math.round(AVG()), { cheap: state.cheap, fixed, stock });
+  const stock = STOCK(), sig = settings(), run = fixed => PLANNER.plan(PEOPLE(), treatPattern(), Math.round(AVG()), { cheap: state.cheap, fixed, stock, eaters: eaters() });
   let fixed = fixedMeals(), key = sig + JSON.stringify(fixed) + JSON.stringify(stock);
   if (key !== PLAN_KEY) {
     PLAN = run(fixed);
@@ -478,10 +513,20 @@ function search(q){
   for (const [en, da] of Object.entries(DANISH).sort((a, b) => b[0].length - a[0].length)) ql = ql.replace(new RegExp(`\\b${en}\\b`, 'g'), da);
   const words = ql.split(/\s+/).filter(w => w.length > 1);
   if (!words.length || !PRODUCTS) return [];
-  const tier = x => { const n = x.n.toLowerCase();
-    return words.every(w => new RegExp(`(^|[^a-zæøå])${w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}`).test(n)) ? 0 : words.every(w => n.includes(w)) ? 1 : 2; };
-  return PRODUCTS.filter(x => words.every(w => x.key.includes(w)) && (x.s !== 'netto' || NETTO_READY(DATA)))
-    .map(x => ({ x, t: tier(x), u: perUnit(x) })).sort((a, b) => a.t - b.t || a.u - b.u).slice(0, 12).map(r => r.x);
+  // Relevance per word: a word in the name ending with it (kaffe, letmælk: in a Danish compound
+  // the last part says what it is), a word starting with it (kaffefiltre),
+  // anywhere in the name, then only in the description. Then, among equally relevant products,
+  // those sold by the most common unit come first, cheapest per kg / l / piece.
+  const esc = w => w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), L = '[^a-zæøå0-9]';
+  // (Short words only as whole words: æble isn't ble, trusseindlæg isn't æg; ost is the exception.)
+  const res = words.map(w => [new RegExp(w.length >= 4 || w === 'ost' ? `${esc(w)}(${L}|$)` : `(^|${L})${esc(w)}(${L}|$)`), new RegExp(`(^|${L})${esc(w)}`)]);
+  const score = x => { const n = x.n.toLowerCase();
+    return words.reduce((t, w, i) => t + (res[i][0].test(n) ? 0 : res[i][1].test(n) ? 1 : n.includes(w) ? 2 : 3), 0); };
+  const hits = PRODUCTS.filter(x => words.every(w => x.key.includes(w)) && (x.s !== 'netto' || NETTO_READY(DATA))).map(x => ({ x, t: score(x), u: perUnit(x), per: perLabel(x) }));
+  const best = Math.min(...hits.map(h => h.t)), top = hits.filter(h => h.t === best), count = {};
+  top.forEach(h => count[h.per] = (count[h.per] || 0) + 1);
+  const unitRank = h => h.t === best ? -(count[h.per] || 0) : 0;
+  return hits.sort((a, b) => a.t - b.t || unitRank(a) - unitRank(b) || (a.per === b.per ? a.u - b.u : a.per.localeCompare(b.per))).slice(0, 12).map(h => h.x);
 }
 const extraKey = e => `x:${e.s}:${e.i || e.n}`;
 function resultsHtml(){
@@ -561,13 +606,16 @@ function weekView(){
   return `<p class="weekhint">Your week: <b>${d2(a)} – ${d2(z)}</b>, shopping ${LONGDAYS[state.shopDay]}. Tap <b>Healthy</b> on a day to make it a treat day with comfort-food classics instead, or <b>swap</b> to pick another meal. ${treats ? `${treats} treat day${treats > 1 ? 's' : ''} this week.` : ''}
     ${picks ? `${picks} meal${picks > 1 ? 's' : ''} picked by you. <button class="mini" id="resetPicks">Go back to the suggested week</button>` : ''}</p>
   <div class="days">${plan().days.map((d, i) => {
-    const dt = dayDate(i), kcal = keys.reduce((s, t) => s + per(d[SLOT[t]]).kcal, 0), w = dt.getUTCDay();
+    const dt = dayDate(i), kcal = keys.reduce((s, t) => s + (d[SLOT[t]] ? per(d[SLOT[t]]).kcal : 0), 0), w = dt.getUTCDay();
     const iso = dt.toISOString().slice(0, 10), now = TODAY(), when = iso === now ? ' today' : iso < now ? ' past' : '';
-    return `<div class="day${d.treat ? ' treat' : ''}${when}"${when === ' today' ? ' id="today" aria-current="date"' : ''}><div class="date">${when === ' today' ? '<span class="now">Today</span>' : ''}${DAYS[w]}<small>${dt.getUTCDate()}. ${MONTHS[dt.getUTCMonth()].slice(0,3)}</small>${sameK() ? `<span class="k num">${num(kcal)} kcal</span>` : ''}
+    return `<div class="day${d.treat ? ' treat' : ''}${when}"${when === ' today' ? ' id="today" aria-current="date"' : ''}><div class="date">${when === ' today' ? '<span class="now">Today</span>' : ''}${DAYS[w]}<small>${dt.getUTCDate()}. ${MONTHS[dt.getUTCMonth()].slice(0,3)}</small>${sameK() && !anyAway() ? `<span class="k num">${num(kcal)} kcal</span>` : ''}
       <button class="kind" data-treat="${w}" aria-pressed="${d.treat}" aria-label="${DAYS[w]}: ${d.treat ? 'treat day, tap to make it healthy' : 'healthy day, tap to make it a treat day'}">${d.treat ? 'Treat' : 'Healthy'}</button></div>
-      <div class="slots">${keys.map(t => { const id = d[SLOT[t]]; return `<div class="slot"><span><i style="background:${DOT[t]}"></i>${TYPES[t]}</span>
-        <div><button class="go" data-go="${id}">${MEALS[id].name}</button>${t === 'dinner' && d.left ? '<span class="left">leftovers</span>' : ''}${t === 'dinner' && d.left ? '' : `<button class="mini" data-swapgo="${id}" aria-label="Swap ${MEALS[id].name}">swap</button>`}</div></div>`; }).join('')}
-        ${sameK() ? '' : `<div class="whok num">${state.members.map((m, j) => `${nameOf(j)} ${num(kcal * m.kcal / AVG())}`).join(' · ')} kcal</div>`}</div></div>`;
+      <div class="slots">${keys.map(t => { const id = d[SLOT[t]];
+        if (!id) return `<div class="slot out"><span><i style="background:${DOT[t]}"></i>${TYPES[t]}</span><div class="outtxt">${PEOPLE() > 1 ? 'Everyone eats out' : 'Eating out'}</div></div>`;
+        const out = state.members.map((m, j) => isAway(m, t, w) ? nameOf(j) : null).filter(Boolean);
+        return `<div class="slot"><span><i style="background:${DOT[t]}"></i>${TYPES[t]}</span>
+        <div><button class="go" data-go="${id}">${MEALS[id].name}</button>${t === 'dinner' && d.left ? '<span class="left">leftovers</span>' : ''}${out.length ? `<span class="left">${out.join(', ')} out</span>` : ''}${t === 'dinner' && d.left ? '' : `<button class="mini" data-swapgo="${id}" aria-label="Swap ${MEALS[id].name}">swap</button>`}</div></div>`; }).join('')}
+        ${sameK() && !anyAway() ? '' : `<div class="whok num">${state.members.map((m, j) => `${nameOf(j)} ${num(keys.reduce((s2, t) => s2 + (isAway(m, t, w) || !d[SLOT[t]] ? 0 : per(d[SLOT[t]]).kcal), 0) * m.kcal / AVG())}`).join(' · ')} kcal at home</div>`}</div></div>`;
   }).join('')}</div>`;
 }
 
@@ -633,12 +681,25 @@ function swapHtml(m){
   </div>`;
 }
 
+// Who a meal is for: everyone, or everyone minus those eating out on some of its days.
+function forWhom(m){
+  const ds = plan().days.map((d, i) => d[SLOT[m.type]] === m.id ? weekdayOf(i) : null).filter(w => w !== null);
+  const out = state.members.map((mm, j) => ds.some(w => isAway(mm, m.type, w)) ? j : null).filter(j => j !== null);
+  if (!out.length) return plural(PEOPLE());
+  const home = state.members.map((_, j) => j).filter(j => ds.some(w => !isAway(state.members[j], m.type, w)));
+  const partial = out.filter(j => home.includes(j));
+  return `${home.map(nameOf).join(' and ')}${partial.length ? ` (${partial.map(nameOf).join(', ')} not every day)` : ''}`;
+}
+
 function mealCard(m){
-  const n = plan().cook[m.id], f = n/m.base*SCALE, open = !!state.open[m.id], s = per(m.id), days = daysOf(m.id);
-  const word = m.type === 'breakfast' ? 'mornings' : m.type === 'lunch' ? 'days' : (days > 1 ? 'evenings' : 'evening');
+  const n0 = plan().cook[m.id], f = n0/m.base*SCALE, open = !!state.open[m.id], s = per(m.id), days = daysOf(m.id);
+  // With people eating out, portions are counted by calories and can be fractional.
+  const nr = Number.isInteger(n0) ? n0 : Math.max(0.5, Math.round(n0 * 2) / 2);
+  const n = Number.isInteger(n0) ? n0 : `about ${String(nr).replace('.', ',')}`;
+  const word = m.type === 'breakfast' ? (days > 1 ? 'mornings' : 'morning') : m.type === 'lunch' ? (days > 1 ? 'days' : 'day') : (days > 1 ? 'evenings' : 'evening');
   const when = m.type === 'dinner'
-    ? (days > 1 ? `Cook ${n} portions: dinner for ${plural(PEOPLE())}, then leftovers the next evening.` : `Cook ${n} portion${n>1?'s':''}: dinner for ${plural(PEOPLE())}.`)
-    : `${n} portions over the week: ${days} ${word} for ${plural(PEOPLE())}.${m.base > 1 ? ' Cook it all at once and keep it in the fridge.' : ' Make it fresh each day.'}`;
+    ? (days > 1 ? `Cook ${n} portions: dinner for ${forWhom(m)}, then leftovers the next evening.` : `Cook ${n} portion${nr>1?'s':''}: dinner for ${forWhom(m)}.`)
+    : `${n} portions over the week: ${days} ${word} for ${forWhom(m)}.${m.base > 1 ? ' Cook it all at once and keep it in the fridge.' : ' Make it fresh each day.'}`;
   const ings = ingOf(m.id).map(([key,g]) => { const i = ING[key], o = (SHOP.byKey[key] || cover(key, g*f)).o;
     const prod = o.est ? '' : `<span class="prod">${o.store === 'netto' ? 'Netto: ' : ''}${o.product}${o.desc ? ', '+o.desc.toLowerCase() : ''}</span>`;
     const lastWeek = !SHOP.byKey[key] && STOCK()[key];
@@ -780,20 +841,26 @@ function offersView(){
 
 function kcalNote(){
   const got = plan().kcal, avg = AVG();
+  if (anyAway()) return `Portions sized for ${sameK() ? `about ${num(avg)} kcal per person` : state.members.map((m, j) => `${nameOf(j)} ${num(m.kcal)}`).join(', ') + ' kcal'} a day; meals eaten out count as their usual share of the day.`;
   if (Math.abs(got - avg) > 60) return `Portions are as ${SCALE > 1 ? 'big' : 'small'} as this plan sensibly goes: about ${num(got)} kcal per person per day on average.`;
   if (sameK()) return `Portions sized for about ${num(avg)} kcal per person per day on average; some days a little more, some less.`;
   return `Portions sized for ${state.members.map((m, j) => `${nameOf(j)} ${num(m.kcal)}`).join(', ')} kcal a day on average; some days a little more, some less.`;
 }
 let MEMBERS_SIG = '';
+const AWAY_OPEN = {};
 function renderMembers(){
-  const sig = JSON.stringify(state.members.map(m => m.kcal)) ;
+  const sig = JSON.stringify([state.members.map(m => [m.kcal, m.away]), AWAY_OPEN]);
   if (sig === MEMBERS_SIG && $('#members').children.length === PEOPLE()) return;
   const focused = document.activeElement && document.activeElement.id;
   MEMBERS_SIG = sig;
   $('#members').innerHTML = state.members.map((m, i) => `<div class="mrow">
     <input class="mname" id="mn-${i}" data-name="${i}" maxlength="24" placeholder="Person ${i + 1}" value="${m.name.replace(/"/g, '&quot;').replace(/</g, '&lt;')}" aria-label="Name of person ${i + 1}">
     <div class="stepper"><button data-kd="${i}" data-d="-100" aria-label="100 kcal less for person ${i + 1}">−</button><input id="mk-${i}" class="num" type="number" inputmode="numeric" min="800" max="4500" step="50" data-kcal="${i}" value="${m.kcal}" aria-label="Calories per day for person ${i + 1}"><span class="unit">kcal</span><button data-kd="${i}" data-d="100" aria-label="100 kcal more for person ${i + 1}">+</button></div>
-    ${PEOPLE() > 1 ? `<button class="mdel" data-del="${i}" aria-label="Remove person ${i + 1}">×</button>` : ''}</div>`).join('');
+    ${PEOPLE() > 1 ? `<button class="mdel" data-del="${i}" aria-label="Remove person ${i + 1}">×</button>` : ''}</div>
+    <div class="awayline"><button class="mini" data-awayopen="${i}" aria-expanded="${!!AWAY_OPEN[i]}" aria-controls="aw-${i}">${awaySummary(m)} · change</button></div>
+    ${AWAY_OPEN[i] ? `<div class="away" id="aw-${i}" role="group" aria-label="When ${nameOf(i)} eats at home"><p>Tap the days ${nameOf(i)} eats out.</p>
+      ${MEALTYPES.map(t => `<div class="arow"><span>${TYPES[t]}</span>${WEEK_ORDER.map(w => `<button data-away="${i}|${t}|${w}" aria-pressed="${isAway(m, t, w)}" aria-label="${TYPES[t]} ${LONGDAYS[w]}: ${isAway(m, t, w) ? 'out' : 'at home'}">${DAYS[w]}</button>`).join('')}</div>`).join('')}
+      <div class="apreset"><button class="mini" data-lunchout="${i}">Lunch out Mon–Fri</button><button class="mini" data-allhome="${i}">Every meal at home</button></div></div>` : ''}`).join('');
   $('#addPerson').disabled = PEOPLE() >= 10;
   if (focused && document.getElementById(focused)) document.getElementById(focused).focus();
 }
@@ -892,8 +959,18 @@ members.addEventListener('click', e => {
   if (!DATA) return;
   const kd = e.target.closest('[data-kd]');
   if (kd){ const i = +kd.dataset.kd; state.members[i].kcal = clampK(state.members[i].kcal + +kd.dataset.d); save(); render(); return; }
+  const ao = e.target.closest('[data-awayopen]');
+  if (ao){ const i = +ao.dataset.awayopen; AWAY_OPEN[i] = !AWAY_OPEN[i]; render(); return; }
+  const aw = e.target.closest('[data-away]');
+  if (aw){ const [i, t, w] = aw.dataset.away.split('|'), m = state.members[+i]; m.away = cleanAway(m.away);
+    m.away[t] = isAway(m, t, +w) ? m.away[t].filter(x => x !== +w) : [...m.away[t], +w];
+    save(); render(); const again = document.querySelector(`[data-away="${aw.dataset.away}"]`); if (again) again.focus(); return; }
+  const lo = e.target.closest('[data-lunchout]');
+  if (lo){ const m = state.members[+lo.dataset.lunchout]; m.away = { ...cleanAway(m.away), lunch: [1, 2, 3, 4, 5] }; save(); render(); return; }
+  const ah = e.target.closest('[data-allhome]');
+  if (ah){ state.members[+ah.dataset.allhome].away = cleanAway(); save(); render(); return; }
   const del = e.target.closest('[data-del]');
-  if (del && PEOPLE() > 1){ state.members.splice(+del.dataset.del, 1); save(); render(); $('#addPerson').focus(); }
+  if (del && PEOPLE() > 1){ for (const k in AWAY_OPEN) delete AWAY_OPEN[k]; state.members.splice(+del.dataset.del, 1); save(); render(); $('#addPerson').focus(); }
 });
 members.addEventListener('change', e => { const i = e.target.dataset.kcal; if (i !== undefined && DATA){ state.members[+i].kcal = clampK(+e.target.value); save(); render(); } });
 members.addEventListener('input', e => { const i = e.target.dataset.name; if (i !== undefined){ state.members[+i].name = e.target.value.slice(0, 24); save(); }});
