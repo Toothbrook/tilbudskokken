@@ -192,6 +192,8 @@ h1 em{font-style:normal;color:var(--sale)}
 .orow .p b{font-family:var(--mono)}
 .orow .p small{white-space:nowrap}
 .offer{font-family:var(--mono);font-size:10px;font-weight:600;background:var(--tag);color:var(--sale);padding:0 5px;border-radius:3px;margin-left:6px;vertical-align:1px}
+.store{font-family:var(--mono);font-size:13px;font-weight:700;letter-spacing:.06em;margin:14px 0 0;display:flex;justify-content:space-between;gap:8px}
+.store + .aisle{margin-top:6px}
 .aisle{font-size:11px;letter-spacing:.1em;color:var(--muted);margin:12px 0 2px;padding-bottom:2px;border-bottom:1px dashed var(--line)}
 .aisle:first-of-type{margin-top:4px}
 .swaprow{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center;font-size:13px;color:var(--muted)}
@@ -238,6 +240,9 @@ footer p{margin:0}
       <div class="ctl" id="gfCtl"><span id="gfLbl">Gluten-free</span>
         <button class="switch" id="gf" role="switch" aria-checked="false" aria-labelledby="gfLbl" aria-describedby="gfHint"><span class="knob"></span><span class="txt">Off</span></button>
         <small class="hint" id="gfHint">Only meals and products without gluten.</small></div>
+      <div class="ctl" id="nettoCtl" hidden><span id="nettoLbl">Netto too</span>
+        <button class="switch" id="netto" role="switch" aria-checked="false" aria-labelledby="nettoLbl" aria-describedby="nettoHint"><span class="knob"></span><span class="txt">Off</span></button>
+        <small class="hint" id="nettoHint">Buy Netto's offers when they're cheaper. Everything else stays at REMA.</small></div>
       <div class="ctl"><label for="shopDay">Shopping day</label>
         <select id="shopDay" aria-describedby="shopHint">
           <option value="0">Sunday</option><option value="1">Monday</option><option value="2">Tuesday</option><option value="3">Wednesday</option>
@@ -284,7 +289,7 @@ const BASICS = ['salt', 'sortpeber', 'olie'];
 const DOT = { breakfast:'var(--b1)', lunch:'var(--b2)', dinner:'var(--sale)' };
 const CAT = {'kod-fisk-fjerkrae':'Meat, fish & poultry','kol':'Chilled','frugt-gront':'Fruit & veg','mejeri':'Dairy','ost-mv':'Cheese','brod-bavinchi':'Bread','frost':'Frozen','kolonial':'Groceries','*':'Other'};
 let DATA, ING, MEALS = {}, KEY, SHOP, PLANNER, PLAN, PLAN_KEY = '';
-let state = { tab:'week', open:{}, got:{}, have:{}, picks:{}, weeks:{}, usedUp:{}, swapOpen:{}, swapF:{}, swapMore:{}, cheap:true, gf:false, shopDay:0, early:{}, peek:false, treatW:[false,false,false,false,false,false,false], members:[{ name:'', kcal:2000 }, { name:'', kcal:2000 }], types:{ breakfast:true, lunch:true, dinner:true } };
+let state = { tab:'week', open:{}, got:{}, have:{}, picks:{}, weeks:{}, usedUp:{}, swapOpen:{}, swapF:{}, swapMore:{}, cheap:true, gf:false, netto:false, shopDay:0, early:{}, peek:false, treatW:[false,false,false,false,false,false,false], members:[{ name:'', kcal:2000 }, { name:'', kcal:2000 }], types:{ breakfast:true, lunch:true, dinner:true } };
 
 const kr = v => v.toFixed(2).replace('.', ',');
 const plural = n => `${n} ${n === 1 ? 'person' : 'people'}`;
@@ -301,7 +306,7 @@ const fmtDate = (a, b) => {
   return m1 === m2 ? `${d1}.–${d2}. ${MONTHS[m2-1]} ${y2}` : `${d1}. ${MONTHS[m1-1].slice(0,3)} – ${d2}. ${MONTHS[m2-1].slice(0,3)} ${y2}`;
 };
 function save(){
-  try{ localStorage.setItem('ugeplan:prefs', JSON.stringify({ members:state.members, treatW:state.treatW, cheap:state.cheap, gf:state.gf, shopDay:state.shopDay, early:state.early, types:state.types, tab:state.tab, have:state.have }));
+  try{ localStorage.setItem('ugeplan:prefs', JSON.stringify({ members:state.members, treatW:state.treatW, cheap:state.cheap, gf:state.gf, netto:state.netto, shopDay:state.shopDay, early:state.early, types:state.types, tab:state.tab, have:state.have }));
        localStorage.setItem(KEY, JSON.stringify(state.got));
        localStorage.setItem(KEY.replace(':got', ':picks'), JSON.stringify({ picks:state.picks, weeks:state.weeks, usedUp:state.usedUp })); }catch(e){}
 }
@@ -309,7 +314,7 @@ function load(){
   try{ const p = JSON.parse(localStorage.getItem('ugeplan:prefs')||'null');
     if (p){ if (Array.isArray(p.members) && p.members.length) state.members = p.members.slice(0, 10).map(m => ({ name: String(m.name || '').slice(0, 24), kcal: clampK(+m.kcal) }));
       else if (p.people) state.members = Array.from({ length: Math.min(10, p.people) }, () => ({ name: '', kcal: clampK(+p.kcal || 2000) }));
-      if (p.types) state.types = { ...state.types, ...p.types }; if (p.tab) state.tab = p.tab; if (p.have) state.have = p.have; if (typeof p.cheap === 'boolean') state.cheap = p.cheap; if (typeof p.gf === 'boolean') state.gf = p.gf; if (Number.isInteger(p.shopDay) && p.shopDay >= 0 && p.shopDay < 7) state.shopDay = p.shopDay; if (p.early && typeof p.early === 'object') state.early = p.early; if (Array.isArray(p.treatW) && p.treatW.length === 7) state.treatW = p.treatW; } }catch(e){}
+      if (p.types) state.types = { ...state.types, ...p.types }; if (p.tab) state.tab = p.tab; if (p.have) state.have = p.have; if (typeof p.cheap === 'boolean') state.cheap = p.cheap; if (typeof p.gf === 'boolean') state.gf = p.gf; if (typeof p.netto === 'boolean') state.netto = p.netto; if (Number.isInteger(p.shopDay) && p.shopDay >= 0 && p.shopDay < 7) state.shopDay = p.shopDay; if (p.early && typeof p.early === 'object') state.early = p.early; if (Array.isArray(p.treatW) && p.treatW.length === 7) state.treatW = p.treatW; } }catch(e){}
   state.got = {}; state.picks = {}; state.weeks = {}; state.usedUp = {};
   try{ state.got = JSON.parse(localStorage.getItem(KEY)||'{}') || {}; }catch(e){ state.got = {}; }
   try{ const s = JSON.parse(localStorage.getItem(KEY.replace(':got', ':picks'))||'null'); if (s){ state.picks = s.picks || {}; state.weeks = s.weeks || {}; state.usedUp = s.usedUp || {}; if (s.lock?.sig) state.weeks[s.lock.sig] ||= s.lock.fixed; } }catch(e){}
@@ -335,7 +340,7 @@ const treatPattern = () => Array.from({ length: 7 }, (_, d) => !!state.treatW[(s
 // days, the two switches) are saved in this browser for the rest of the offer week, so coming back
 // shows the same days even if prices have moved since; only the shop is re-priced. Meals the
 // visitor swapped in (picks) also stay when the settings change, and the week re-plans around them.
-const settings = () => `${PEOPLE()}|${Math.round(AVG())}|${state.cheap}|${state.gf}|${offsetDays(DATA)}|${treatPattern().join()}`;
+const settings = () => `${PEOPLE()}|${Math.round(AVG())}|${state.cheap}|${state.gf}|${offsetDays(DATA)}|${NETTO_ON() ? 'N|' : ''}${treatPattern().join()}`;
 // Weeks saved before the shopping day existed (Sunday start) are keyed without it.
 const oldSig = () => `${PEOPLE()}|${Math.round(AVG())}|${state.cheap}|${state.gf}|${treatPattern().join()}`;
 const fixedMeals = () => ({ ...(state.weeks[settings()] || (offsetDays(DATA) === 0 && state.weeks[oldSig()]) || {}), ...state.picks });
@@ -369,7 +374,7 @@ function carryOver(){
     if (!last) return CARRY;
     const [sig, meals] = last, parts = sig.split('|'), gf = parts[3] === 'true';
     const pattern = parts[parts.length - 1].split(',').map(x => x === 'true');
-    const src = gf ? glutenFree(PREV) : PREV;
+    const src = source(PREV, parts.includes('N') && NETTO_READY(PREV), gf);
     const P = createPlanner({ recipes: src.recipes, ing: src.ing, seed: PREV.seed }).plan(+parts[0], pattern, +parts[1], { cheap: parts[2] === 'true', fixed: meals });
     if (!P) return CARRY;
     const got = JSON.parse(localStorage.getItem(id + ':got') || '{}') || {}, ticked = Object.values(got).some(Boolean);
@@ -461,8 +466,9 @@ function shopping(){
     total += c.cost; if (o.onSale) { offer += c.cost; deals++; if (o.normal) dealSave += c.n * (o.normal - o.price); }
     const q = o.loose ? `≈ ${plain(amount(key,g)).replace(/ \(.*$/,'')} à ${o.label}`
       : `${c.n} × ${o.label} à ${o.est?'≈':''}${kr(o.price)}${o.onSale && o.normal ? ` (normally ${kr(o.normal)})` : ''} · need ${plain(amount(key,g))}${use > 0 ? ` more than the ${plain(amount(key, use))} left from last week` : ''}`;
-    const qa = o.additives ? `${q} · contains ${o.additives.join(', ')}` : q;
-    lines.push({ key, aisle: aisleOf(key, o), name: o.est ? ING[key].n : o.product, q: qa, short: o.loose ? `ca. ${plain(amount(key,g))}` : `${c.n} × ${o.label}`,
+    const q2 = o.store === 'netto' && o.till ? `${q} · Netto offer until ${o.till.slice(8, 10)}.${o.till.slice(5, 7)}` : q;
+    const qa = o.additives ? `${q2} · contains ${o.additives.join(', ')}` : q2;
+    lines.push({ key, store: o.store || 'rema', aisle: aisleOf(key, o), name: o.est ? ING[key].n : o.product, q: qa, short: o.loose ? `ca. ${plain(amount(key,g))}` : `${c.n} × ${o.label}`,
       price: c.cost, onSale: !!o.onSale, est: !!o.est, id: o.id, n: o.loose ? 1 : c.n });
   }
   lines.sort((a, b) => AISLE_RANK[a.aisle] - AISLE_RANK[b.aisle] || a.name.localeCompare(b.name, 'da'));
@@ -560,7 +566,7 @@ function mealCard(m){
     ? (days > 1 ? `Cook ${n} portions: dinner for ${plural(PEOPLE())}, then leftovers the next evening.` : `Cook ${n} portion${n>1?'s':''}: dinner for ${plural(PEOPLE())}.`)
     : `${n} portions over the week: ${days} ${word} for ${plural(PEOPLE())}.${m.base > 1 ? ' Cook it all at once and keep it in the fridge.' : ' Make it fresh each day.'}`;
   const ings = ingOf(m.id).map(([key,g]) => { const i = ING[key], o = (SHOP.byKey[key] || cover(key, g*f)).o;
-    const prod = o.est ? '' : `<span class="prod">${o.product}${o.desc ? ', '+o.desc.toLowerCase() : ''}</span>`;
+    const prod = o.est ? '' : `<span class="prod">${o.store === 'netto' ? 'Netto: ' : ''}${o.product}${o.desc ? ', '+o.desc.toLowerCase() : ''}</span>`;
     const lastWeek = !SHOP.byKey[key] && STOCK()[key];
     return `<li><span>${i.n}${state.have[key] ? '<span class="athome">at home</span>' : lastWeek ? '<span class="athome">from last week</span>' : tag(o)}${warn(o)}${prod}</span><span class="amt num">${amount(key, g*f)}</span></li>`; }).join('');
   return `<article class="meal" id="m-${m.id}">
@@ -592,15 +598,20 @@ function shopView(){
   if (!lines.length && !home.length && !left.length) return `<div class="receipt"><p class="empty">Pick at least one of breakfast, lunch or dinner above.</p></div>`;
   const row = l => `<div class="line"><label class="check" for="g-${l.key}"><input type="checkbox" id="g-${l.key}" data-got="${l.key}" ${state.got[l.key]?'checked':''}><span>${l.name}${l.onSale ? '<span class="offer">TILBUD</span>' : ''}<span class="q">${l.q}</span></span></label><span class="r"><span class="num">${l.est?'≈':''}${kr(l.price)}</span><button class="mini" data-have="${l.key}" aria-label="I already have ${ING[l.key].n}">have it</button></span></div>`;
   const basics = BASICS.filter(k => lines.some(l => l.key === k));
+  const nettoLines = lines.filter(l => l.store === 'netto'), remaLines = lines.filter(l => l.store !== 'netto');
+  const sum = ls => ls.reduce((t, l) => t + l.price, 0);
+  const aisles = ls => AISLES.map(([k, label]) => { const here = ls.filter(l => l.aisle === k);
+    return here.length ? `<p class="aisle">${label.toUpperCase()}</p>${here.map(row).join('')}` : ''; }).join('');
   const which = Object.keys(TYPES).filter(t => state.types[t]).map(t => TYPES[t].toLowerCase()).join(', ');
   return `<div class="receipt" id="receipt">
-    <h2>REMA 1000 · UGE ${DATA.week}</h2>
+    <h2>${nettoLines.length ? 'NETTO + REMA 1000' : 'REMA 1000'} · UGE ${DATA.week}</h2>
     <p class="c">${plural(PEOPLE())} · 7 days · ${which}</p>
     <p class="c">Offers ${DATA.validFrom.split('-').reverse().join('.')} – ${DATA.validTo.split('-').reverse().join('.')}</p>
     <div class="dash"></div>
     ${leftHtml}
-    ${AISLES.map(([k, label]) => { const here = lines.filter(l => l.aisle === k);
-      return here.length ? `<p class="aisle">${label.toUpperCase()}</p>${here.map(row).join('')}` : ''; }).join('')}
+    ${nettoLines.length ? `<p class="store"><span>NETTO · OFFERS</span><span class="num">${kr(sum(nettoLines))}</span></p>${aisles(nettoLines)}
+      <p class="store"><span>REMA 1000</span><span class="num">${kr(sum(remaLines))}</span></p>` : ''}
+    ${aisles(remaLines)}
     <div class="dash"></div>
     <div class="line sub"><span>On offer</span><span class="num">${kr(offer)}</span></div>
     <div class="line sub"><span>Normal price</span><span class="num">${kr(total - offer)}</span></div>
@@ -617,7 +628,7 @@ function shopView(){
     <div class="actions"><button class="btn" id="copy">Copy list</button><button class="btn" id="reset">Clear ticks</button></div>
     <p class="c" id="copyMsg" aria-live="polite"></p>
     <div class="dash"></div>
-    ${lines.length ? remaBox(lines) : ''}
+    ${remaLines.length ? remaBox(remaLines) : ''}
   </div>`;
 }
 
@@ -705,6 +716,11 @@ function renderHouse(){
   $('#cheap').setAttribute('aria-checked', state.cheap); $('#cheap .txt').textContent = state.cheap ? 'On' : 'Off';
   $('#gfCtl').hidden = !GF_READY;
   $('#gf').setAttribute('aria-checked', state.gf); $('#gf .txt').textContent = state.gf ? 'On' : 'Off';
+  $('#nettoCtl').hidden = !NETTO_READY(DATA);
+  $('#netto').setAttribute('aria-checked', NETTO_ON()); $('#netto .txt').textContent = NETTO_ON() ? 'On' : 'Off';
+  $('#nettoHint').textContent = NETTO_ON()
+    ? `${Object.values(DATA.ing).filter(x => x.netto).length} things you might need are on offer at Netto this week. The list splits into a Netto part and a REMA part.`
+    : "Buy Netto's offers when they're cheaper. Everything else stays at REMA.";
   $('#gfHint').textContent = state.gf
     ? `${GF.recipes.length} of ${DATA.recipes.length} recipes can be made gluten-free this week. Only products labelled gluten-free, or whose ingredient list at REMA shows no gluten and no "may contain traces", go on the list. Always check the packet.`
     : 'Only meals and products without gluten.';
@@ -736,11 +752,21 @@ function render(){
 let GF = null, GF_READY = false, GF_NONE = false;
 const PLANNERS = {};
 function useData(d){ CARRY = null; DATA = d; GF = null; GF_NONE = false; for (const k in PLANNERS) delete PLANNERS[k]; PLAN = null; init(); }
+// Netto too: Netto's offers join REMA's packs (gluten-free mode keeps to its checked packs).
+const NETTO_READY = d => Object.values(d.ing).some(x => x.netto);
+const NETTO_ON = () => state.netto && NETTO_READY(DATA);
+const withNetto = d => ({ ...d, ing: Object.fromEntries(Object.entries(d.ing).map(([k, x]) => [k, x.netto ? { ...x, options: [...x.options, ...x.netto] } : x])) });
+const sources = {};
+function source(d, netto, gf){
+  const k = `${d.year}-${d.week}|${netto}|${gf}`;
+  if (!sources[k]) { const base = netto ? withNetto(d) : d; sources[k] = gf ? glutenFree(base) : base; }
+  return sources[k];
+}
 function setMode(){
   GF_READY = !GF_NONE && Object.values(DATA.ing).some(d => d.gluten);
   if (!GF_READY) state.gf = false;
-  if (GF_READY && !GF) GF = glutenFree(DATA);
-  const src = state.gf ? GF : DATA, mode = state.gf ? 'gf' : 'all';
+  if (GF_READY) GF = source(DATA, NETTO_ON(), true);
+  const src = source(DATA, NETTO_ON(), state.gf), mode = `${state.gf}|${NETTO_ON()}`;
   for (const k of Object.keys(MEALS)) delete MEALS[k];
   src.recipes.forEach(m => MEALS[m.id] = m);
   ING = src.ing;
@@ -789,6 +815,7 @@ members.addEventListener('focusout', e => { if (e.target.dataset.name !== undefi
 $('#addPerson').addEventListener('click', () => { if (!DATA || PEOPLE() >= 10) return;
   state.members.push({ name: '', kcal: clampK(AVG()) }); save(); render(); const n = document.getElementById(`mn-${PEOPLE() - 1}`); if (n) n.focus(); });
 $('#cheap').addEventListener('click', () => { if (!DATA) return; state.cheap = !state.cheap; save(); render(); });
+$('#netto').addEventListener('click', () => { if (!DATA || !NETTO_READY(DATA)) return; state.netto = !state.netto; setMode(); save(); render(); });
 $('#gf').addEventListener('click', () => { if (!DATA || !GF_READY) return; state.gf = !state.gf; setMode(); save(); render(); });
 document.querySelectorAll('.tg').forEach(b => b.addEventListener('click', () => { if (!DATA) return; state.types[b.dataset.type] = !state.types[b.dataset.type]; save(); render(); }));
 document.querySelector('.tabs').addEventListener('click', e => { const b = e.target.closest('.tab'); if (!b || !DATA) return; state.tab = b.dataset.tab; save(); render(); });
@@ -836,8 +863,11 @@ view.addEventListener('click', e => {
   }
   if (e.target.id === 'copy'){
     const { lines, total } = SHOP;
-    const txt = `REMA 1000 uge ${DATA.week} · ${plural(PEOPLE())} · 7 dage\n` + AISLES.map(([k, label]) => { const here = lines.filter(l => l.aisle === k);
-      return here.length ? `\n${label}\n` + here.map(l => `☐ ${l.name} – ${l.short}${l.onSale ? ' (tilbud)' : ''}`).join('\n') : ''; }).join('') + `\n\nTotal ≈ ${kr(total)} kr`;
+    const part = ls => AISLES.map(([k, label]) => { const here = ls.filter(l => l.aisle === k);
+      return here.length ? `\n${label}\n` + here.map(l => `☐ ${l.name} – ${l.short}${l.onSale ? ' (tilbud)' : ''}`).join('\n') : ''; }).join('');
+    const nl = lines.filter(l => l.store === 'netto'), rl = lines.filter(l => l.store !== 'netto');
+    const txt = `${nl.length ? 'Netto + ' : ''}REMA 1000 uge ${DATA.week} · ${plural(PEOPLE())} · 7 dage\n`
+      + (nl.length ? `\n== NETTO ==${part(nl)}\n\n== REMA 1000 ==` : '') + part(rl) + `\n\nTotal ≈ ${kr(total)} kr`;
     const msg = $('#copyMsg');
     const fallback = () => { msg.textContent = 'Copy is blocked here. Select the list and copy it manually.'; const r = document.createRange(); r.selectNodeContents($('#receipt')); const sel = getSelection(); sel.removeAllRanges(); sel.addRange(r); };
     try { navigator.clipboard.writeText(txt).then(() => msg.textContent = 'Copied to clipboard', fallback); } catch(err){ fallback(); }

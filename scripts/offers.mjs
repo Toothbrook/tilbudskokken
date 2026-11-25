@@ -236,11 +236,22 @@ export async function scrapeRema(log = console.log) {
   return { offers: [...seen.values()].filter(o => FOOD_CATS.includes(o.cat)), week, source: 'shop.rema1000.dk' };
 }
 
-export async function scrapeTjek(log = console.log) {
+// Offers from Tjek (eTilbudsavis) for one chain: a fallback for REMA, and the source for Netto.
+async function tjekDealer(re, H) {
+  for (let off = 0; off < 1000; off += 100) {
+    const r = await fetch(`https://squid-api.tjek.com/v2/dealers?country_id=DK&limit=100&offset=${off}`, { headers: H });
+    if (!r.ok) throw new Error(`Tjek dealers HTTP ${r.status}`);
+    const list = await r.json();
+    const d = Array.isArray(list) && list.find(x => re.test(x.name || ''));
+    if (d) return d;
+    if (!Array.isArray(list) || list.length < 100) break;
+  }
+  return null;
+}
+export async function scrapeTjek(log = console.log, re = /^rema\s*1000/i, label = 'REMA 1000') {
   const H = { accept: 'application/json', 'user-agent': HEADERS['user-agent'] };
-  const dealers = await (await fetch('https://squid-api.tjek.com/v2/dealers?country_id=DK&limit=100', { headers: H })).json();
-  const d = Array.isArray(dealers) && dealers.find(x => /^rema\s*1000/i.test(x.name));
-  if (!d) throw new Error('REMA 1000 not found on Tjek');
+  const d = await tjekDealer(re, H);
+  if (!d) throw new Error(`${label} not found on Tjek`);
   const raw = [];
   for (let off = 0; off < 1500; off += 100) {
     const r = await fetch(`https://squid-api.tjek.com/v2/offers?dealer_ids=${d.id}&limit=100&offset=${off}`, { headers: H });
@@ -250,19 +261,22 @@ export async function scrapeTjek(log = console.log) {
     if (arr.length < 100) break;
     await sleep(300);
   }
-  log(`  Tjek: ${raw.length} offers`);
+  log(`  Tjek ${label} (${d.name}, ${d.id}): ${raw.length} offers`);
   const UNIT = { g: [1, 'g'], kg: [1000, 'g'], ml: [1, 'ml'], cl: [10, 'ml'], l: [1000, 'ml'], pcs: [1, 'stk'] };
   const offers = raw.map(o => {
     const sym = o.quantity?.unit?.symbol, [mul, unit] = UNIT[sym] || [1, 'stk'];
-    const qty = (o.quantity?.size?.from || 1) * mul, price = o.pricing?.price;
+    // "2 x 400 g" comes as pieces 2 and size 400: the pack is both.
+    const pieces = Math.max(1, o.quantity?.pieces?.from || 1);
+    const qty = (o.quantity?.size?.from || 1) * mul * (unit === 'stk' ? 1 : pieces), price = o.pricing?.price;
     if (!price) return null;
     const per = unit === 'stk' ? 'stk' : unit === 'g' ? 'kg' : 'ltr';
-    return { id: o.id, name: (o.heading || '').toUpperCase(), desc: (o.description || '').slice(0, 60), qty, unit, price,
-      unitPrice: Math.round(price / perQty(qty, unit, per) * 100) / 100, per, cat: '*', sub: '', url: '' };
+    return { id: o.id, name: (o.heading || '').toUpperCase(), desc: (o.description || '').replace(/\s+/g, ' ').slice(0, 80), qty, unit, price,
+      unitPrice: Math.round(price / perQty(qty, unit, per) * 100) / 100, per, cat: '*', sub: '', url: '',
+      ...(o.pricing?.pre_price > price ? { normal: o.pricing.pre_price } : {}), from: o.run_from, till: o.run_till };
   }).filter(Boolean);
   const from = raw.map(o => o.run_from).filter(Boolean).sort()[0];
   const week = from ? computedWeek(new Date(from)) : computedWeek();
-  return { offers, week, source: 'Tjek / eTilbudsavis' };
+  return { offers, week, source: `Tjek / eTilbudsavis (${d.name})`, dealer: d.name };
 }
 
 // ---- additives -------------------------------------------------------------------

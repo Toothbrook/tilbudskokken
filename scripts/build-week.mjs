@@ -176,6 +176,34 @@ for (const key of Object.keys(OPTIONS)) {
     if (normal > o.price * 1.02) o.normal = Math.round(normal * 100) / 100;
   }
 }
+// ---------- Netto: its weekly offers, for the site's "Netto too" switch. Only offers (Netto's
+// normal prices aren't public), and only for plain foods: Tjek shows no ingredient lists, so
+// processed things that could hide additives or gluten (sausages, cold cuts, sauces, spices,
+// bread) stay at REMA, where they're checked.
+const NETTO_SKIP = new Set([...GLUTEN.check, 'medister', 'bacon', 'polser', 'leverpostej', 'skinke', 'rogetfisk', 'makreltomat',
+  'brunsauce', 'bearnaise', 'fond', 'tacokrydderi', 'rugbrod', 'toast', 'boller', 'burgerboller', 'wraps', 'pizzadej', 'taertedej']);
+let netto = [], nettoSource = null;
+if (arg('--netto')) ({ offers: netto, source: nettoSource } = JSON.parse(await fs.readFile(arg('--netto'), 'utf8')));
+else if (!arg('--offers')) {
+  try { ({ offers: netto, source: nettoSource } = await scrapeTjek(console.log, /^netto$/i, 'Netto')); }
+  catch (e) { console.warn(`Netto offers failed: ${e.message}`); }
+}
+if (arg('--save-netto') && nettoSource) await fs.writeFile(arg('--save-netto'), JSON.stringify({ source: nettoSource, offers: netto }, null, 1));
+// Offers that run at some point in this offer week.
+netto = netto.filter(o => (!o.from || o.from.slice(0, 10) <= week.validTo) && (!o.till || o.till.slice(0, 10) >= week.validFrom));
+const NETTO = {};
+for (const key of USED) {
+  // A matcher that leans on REMA's departments (re: /./) needs its own pattern for Netto (nre).
+  const def = INGREDIENTS[key].nre ? { ...INGREDIENTS[key], re: INGREDIENTS[key].nre } : INGREDIENTS[key];
+  if (NETTO_SKIP.has(key) || def.re.test('ZZZ QQQ')) continue;
+  const opts = netto.filter(o => matches(def, o)).map(o => {
+    const opt = toOption(def, o, true);
+    return opt && { ...opt, store: 'netto', till: o.till ? o.till.slice(0, 10) : '', ...(o.normal ? { normal: Math.round(o.normal / o.price * opt.price * 100) / 100 } : {}) };
+  }).filter(Boolean);
+  if (opts.length) NETTO[key] = frontier(opts);
+}
+console.log(`Netto: ${netto.length} offers this week, ${Object.keys(NETTO).length} ingredients with a Netto offer`);
+
 console.log(`Priced ${Object.keys(OPTIONS).length} ingredients: ${stats.sale} on offer, ${stats.shelf} at shelf price, ${stats.est} estimated`);
 console.log(`Gluten: ${glutenCheck.free} of ${glutenCheck.checked} ingredients that can contain gluten have a gluten-free choice`);
 console.log(`Additives: ${additiveCheck.checked} products checked, ${additiveCheck.flagged} flagged and skipped where possible${stats.unavoidable.length ? `; no clean choice for ${stats.unavoidable.join(', ')}` : ''}`);
@@ -184,7 +212,7 @@ console.log(`Additives: ${additiveCheck.checked} products checked, ${additiveChe
 const ing = {};
 for (const k of USED) {
   const { re, ex, must, cats, subs, stkG, est, ...rest } = INGREDIENTS[k];
-  ing[k] = { ...rest, options: OPTIONS[k] };
+  ing[k] = { ...rest, options: OPTIONS[k], ...(NETTO[k] ? { netto: NETTO[k] } : {}) };
   if (GLUTEN.grain[k]?.as) Object.assign(ing[k], { gluten: 'grain', gfAs: GLUTEN.grain[k].as });
   else if (GLUTEN.grain[k]) Object.assign(ing[k], { gluten: 'grain', gfN: GLUTEN.grain[k].n, gfOptions: GF_OPTIONS[k] });
   else if (GLUTEN.check.includes(k)) Object.assign(ing[k], { gluten: 'check', gfOptions: GF_OPTIONS[k] });
@@ -215,7 +243,7 @@ const offerList = [...offers]
     unitPrice: o.unitPrice, per: o.per, cat: o.cat, url: o.url }));
 
 const data = { ...week, source, generatedAt: new Date().toISOString(), shelfPrices: catalogue.length ? 'live' : 'estimated',
-  additives: { checked: additiveCheck.checked, flagged: additiveCheck.flagged }, seed, defaultPeople: 2, recipes, ing, offers: offerList };
+  additives: { checked: additiveCheck.checked, flagged: additiveCheck.flagged }, netto: nettoSource ? { source: nettoSource, offers: netto.length } : null, seed, defaultPeople: 2, recipes, ing, offers: offerList };
 await fs.mkdir(path.dirname(OUT), { recursive: true });
 // Keep the outgoing week as prev-week.json: people who shop mid-week are still eating it for a few
 // days after the new offers arrive on Sunday.
@@ -228,5 +256,6 @@ await fs.writeFile(PRICES_OUT, JSON.stringify({ week: week.week, catalogueProduc
   flaggedProducts: Object.fromEntries(Object.entries(DETAILS).filter(([, d]) => d?.additives?.length).map(([id, d]) => [id, d.additives])),
   gluten: Object.fromEntries([...GF_KEYS].filter(k => USED.has(k)).map(k => [k, (GLUTEN.grain[k] ? GF_CAND[k] : CANDIDATES[k]).map(o =>
     `${DETAILS[o.id]?.gluten || 'unknown'} · ${o.product} ${o.label} ${o.price} kr${DETAILS[o.id]?.decl ? ' · ' + DETAILS[o.id].decl.slice(0, 160) : ''}`)])),
+  netto: Object.fromEntries(Object.entries(NETTO).map(([k, o]) => [k, o.map(x => `${x.product} ${x.desc} ${x.label} ${x.price} kr${x.normal ? ` (før ${x.normal})` : ''} til ${x.till}`)])),
   ingredients: Object.fromEntries(Object.entries(OPTIONS).map(([k, o]) => [k, o.map(x => `${x.onSale ? 'TILBUD ' : x.est ? 'EST ' : ''}${x.product} ${x.label} ${x.price} kr${x.additives ? ' ⚠ ' + x.additives.join(',') : ''}`)])) }, null, 1) + '\n');
 console.log(`Week ${week.week} (${week.validFrom} → ${week.validTo}), shelf prices ${data.shelfPrices}. Wrote ${OUT}`);
