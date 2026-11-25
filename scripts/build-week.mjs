@@ -217,6 +217,12 @@ const offerList = [...offers]
 const data = { ...week, source, generatedAt: new Date().toISOString(), shelfPrices: catalogue.length ? 'live' : 'estimated',
   additives: { checked: additiveCheck.checked, flagged: additiveCheck.flagged }, seed, defaultPeople: 2, recipes, ing, offers: offerList };
 await fs.mkdir(path.dirname(OUT), { recursive: true });
+// Keep the outgoing week as prev-week.json: people who shop mid-week are still eating it for a few
+// days after the new offers arrive on Sunday.
+try {
+  const old = JSON.parse(await fs.readFile(OUT, 'utf8'));
+  if (old.week !== data.week || old.year !== data.year) await fs.writeFile(path.join(path.dirname(OUT), 'prev-week.json'), JSON.stringify(old) + '\n');
+} catch { /* first week */ }
 await fs.writeFile(OUT, JSON.stringify(data) + '\n');
 await fs.writeFile(PRICES_OUT, JSON.stringify({ week: week.week, catalogueProducts: catalogue.length, additiveCheck,
   flaggedProducts: Object.fromEntries(Object.entries(DETAILS).filter(([, d]) => d?.additives?.length).map(([id, d]) => [id, d.additives])),

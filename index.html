@@ -44,6 +44,8 @@ header{display:flex;flex-direction:column;gap:8px}
 h1{font-size:clamp(30px,8vw,44px);font-weight:800;letter-spacing:-.02em}
 h1 em{font-style:normal;color:var(--sale)}
 .lede{color:var(--muted);margin:0;max-width:60ch}
+.ctl select{font:inherit;font-size:15px;font-weight:600;color:var(--ink);background:var(--card);border:1px solid var(--line);border-radius:10px;padding:7px 10px;min-height:40px;max-width:100%}
+.banner .mini{margin-left:6px}
 .banner{background:var(--tag);color:var(--tag-ink);padding:10px 14px;border-radius:10px;font-size:14px;font-weight:500}
 
 /* household panel */
@@ -236,6 +238,11 @@ footer p{margin:0}
       <div class="ctl" id="gfCtl"><span id="gfLbl">Gluten-free</span>
         <button class="switch" id="gf" role="switch" aria-checked="false" aria-labelledby="gfLbl" aria-describedby="gfHint"><span class="knob"></span><span class="txt">Off</span></button>
         <small class="hint" id="gfHint">Only meals and products without gluten.</small></div>
+      <div class="ctl"><label for="shopDay">Shopping day</label>
+        <select id="shopDay" aria-describedby="shopHint">
+          <option value="0">Sunday</option><option value="1">Monday</option><option value="2">Tuesday</option><option value="3">Wednesday</option>
+          <option value="4">Thursday</option><option value="5">Friday</option><option value="6">Saturday</option></select>
+        <small class="hint" id="shopHint">Your 7 days start on the day you shop. Offers run Sunday to Saturday.</small></div>
       <div class="ctl"><span id="typesLbl">Plan for</span>
         <div class="toggles" role="group" aria-labelledby="typesLbl">
           <button class="tg" data-type="breakfast" aria-pressed="true">Breakfast</button>
@@ -268,6 +275,7 @@ footer p{margin:0}
 import { createPlanner, glutenFree, cover as coverDef } from './planner.js';
 const $ = s => document.querySelector(s);
 const view = $('#view');
+const LONGDAYS = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
 const MONTHS = ['januar','februar','marts','april','maj','juni','juli','august','september','oktober','november','december'];
 const DAYS = ['Søn','Man','Tir','Ons','Tor','Fre','Lør'];
 const TYPES = { breakfast:'Breakfast', lunch:'Lunch', dinner:'Dinner' };
@@ -276,7 +284,7 @@ const BASICS = ['salt', 'sortpeber', 'olie'];
 const DOT = { breakfast:'var(--b1)', lunch:'var(--b2)', dinner:'var(--sale)' };
 const CAT = {'kod-fisk-fjerkrae':'Meat, fish & poultry','kol':'Chilled','frugt-gront':'Fruit & veg','mejeri':'Dairy','ost-mv':'Cheese','brod-bavinchi':'Bread','frost':'Frozen','kolonial':'Groceries','*':'Other'};
 let DATA, ING, MEALS = {}, KEY, SHOP, PLANNER, PLAN, PLAN_KEY = '';
-let state = { tab:'week', open:{}, got:{}, have:{}, picks:{}, weeks:{}, swapOpen:{}, swapF:{}, swapMore:{}, cheap:true, gf:false, treatW:[false,false,false,false,false,false,false], members:[{ name:'', kcal:2000 }, { name:'', kcal:2000 }], types:{ breakfast:true, lunch:true, dinner:true } };
+let state = { tab:'week', open:{}, got:{}, have:{}, picks:{}, weeks:{}, swapOpen:{}, swapF:{}, swapMore:{}, cheap:true, gf:false, shopDay:0, peek:false, treatW:[false,false,false,false,false,false,false], members:[{ name:'', kcal:2000 }, { name:'', kcal:2000 }], types:{ breakfast:true, lunch:true, dinner:true } };
 
 const kr = v => v.toFixed(2).replace('.', ',');
 const plural = n => `${n} ${n === 1 ? 'person' : 'people'}`;
@@ -293,7 +301,7 @@ const fmtDate = (a, b) => {
   return m1 === m2 ? `${d1}.–${d2}. ${MONTHS[m2-1]} ${y2}` : `${d1}. ${MONTHS[m1-1].slice(0,3)} – ${d2}. ${MONTHS[m2-1].slice(0,3)} ${y2}`;
 };
 function save(){
-  try{ localStorage.setItem('ugeplan:prefs', JSON.stringify({ members:state.members, treatW:state.treatW, cheap:state.cheap, gf:state.gf, types:state.types, tab:state.tab, have:state.have }));
+  try{ localStorage.setItem('ugeplan:prefs', JSON.stringify({ members:state.members, treatW:state.treatW, cheap:state.cheap, gf:state.gf, shopDay:state.shopDay, types:state.types, tab:state.tab, have:state.have }));
        localStorage.setItem(KEY, JSON.stringify(state.got));
        localStorage.setItem(KEY.replace(':got', ':picks'), JSON.stringify({ picks:state.picks, weeks:state.weeks })); }catch(e){}
 }
@@ -301,7 +309,8 @@ function load(){
   try{ const p = JSON.parse(localStorage.getItem('ugeplan:prefs')||'null');
     if (p){ if (Array.isArray(p.members) && p.members.length) state.members = p.members.slice(0, 10).map(m => ({ name: String(m.name || '').slice(0, 24), kcal: clampK(+m.kcal) }));
       else if (p.people) state.members = Array.from({ length: Math.min(10, p.people) }, () => ({ name: '', kcal: clampK(+p.kcal || 2000) }));
-      if (p.types) state.types = { ...state.types, ...p.types }; if (p.tab) state.tab = p.tab; if (p.have) state.have = p.have; if (typeof p.cheap === 'boolean') state.cheap = p.cheap; if (typeof p.gf === 'boolean') state.gf = p.gf; if (Array.isArray(p.treatW) && p.treatW.length === 7) state.treatW = p.treatW; } }catch(e){}
+      if (p.types) state.types = { ...state.types, ...p.types }; if (p.tab) state.tab = p.tab; if (p.have) state.have = p.have; if (typeof p.cheap === 'boolean') state.cheap = p.cheap; if (typeof p.gf === 'boolean') state.gf = p.gf; if (Number.isInteger(p.shopDay) && p.shopDay >= 0 && p.shopDay < 7) state.shopDay = p.shopDay; if (Array.isArray(p.treatW) && p.treatW.length === 7) state.treatW = p.treatW; } }catch(e){}
+  state.got = {}; state.picks = {}; state.weeks = {};
   try{ state.got = JSON.parse(localStorage.getItem(KEY)||'{}') || {}; }catch(e){ state.got = {}; }
   try{ const s = JSON.parse(localStorage.getItem(KEY.replace(':got', ':picks'))||'null'); if (s){ state.picks = s.picks || {}; state.weeks = s.weeks || {}; if (s.lock?.sig) state.weeks[s.lock.sig] ||= s.lock.fixed; } }catch(e){}
 }
@@ -310,13 +319,17 @@ function load(){
 // Treat days are remembered by weekday (0 = Sunday), so "Friday is a treat day" carries over.
 const startW = () => new Date(DATA.validFrom + 'T12:00:00Z').getUTCDay();
 const TODAY = () => { const t = new Date(); return `${t.getFullYear()}-${String(t.getMonth() + 1).padStart(2, '0')}-${String(t.getDate()).padStart(2, '0')}`; };
-const dayDate = d => new Date(Date.parse(DATA.validFrom + 'T12:00:00Z') + d * 864e5);
-const treatPattern = () => Array.from({ length: 7 }, (_, d) => !!state.treatW[(startW() + d) % 7]);
+// The 7 planned days start on the shopping day: its first date in the offer week.
+const offsetIn = d => (state.shopDay - new Date(d.validFrom + 'T12:00:00Z').getUTCDay() + 7) % 7;
+const shopDate = d => isoDay(new Date(Date.parse(d.validFrom + 'T12:00:00Z') + offsetIn(d) * 864e5));
+const isoDay = dt => dt.toISOString().slice(0, 10);
+const dayDate = d => new Date(Date.parse(DATA.validFrom + 'T12:00:00Z') + (offsetIn(DATA) + d) * 864e5);
+const treatPattern = () => Array.from({ length: 7 }, (_, d) => !!state.treatW[(startW() + offsetIn(DATA) + d) % 7]);
 // The week is remembered: the meals planned for a set of settings (household, calories, treat
 // days, the two switches) are saved in this browser for the rest of the offer week, so coming back
 // shows the same days even if prices have moved since; only the shop is re-priced. Meals the
 // visitor swapped in (picks) also stay when the settings change, and the week re-plans around them.
-const settings = () => `${PEOPLE()}|${Math.round(AVG())}|${state.cheap}|${state.gf}|${treatPattern().join()}`;
+const settings = () => `${PEOPLE()}|${Math.round(AVG())}|${state.cheap}|${state.gf}|${state.shopDay}|${treatPattern().join()}`;
 const fixedMeals = () => ({ ...(state.weeks[settings()] || {}), ...state.picks });
 const assignment = p => Object.fromEntries(Object.entries(p.slots).map(([id, k]) => [k, id]));
 function remember(sig, meals){
@@ -406,7 +419,8 @@ function weekView(){
   if (!keys.length) return `<p class="empty">Pick at least one of breakfast, lunch or dinner above.</p>`;
   const treats = plan().days.filter(d => d.treat).length;
   const picks = Object.values(plan().fixed).filter(id => Object.values(state.picks).includes(id)).length;
-  return `<p class="weekhint">Tap <b>Healthy</b> on a day to make it a treat day with comfort-food classics instead, or <b>swap</b> to pick another meal. ${treats ? `${treats} treat day${treats > 1 ? 's' : ''} this week.` : ''}
+  const a = dayDate(0), z = dayDate(6), d2 = t => `${LONGDAYS[t.getUTCDay()].slice(0, 3)} ${t.getUTCDate()} ${MONTHS[t.getUTCMonth()].slice(0, 3)}`;
+  return `<p class="weekhint">Your week: <b>${d2(a)} – ${d2(z)}</b>, shopping ${LONGDAYS[state.shopDay]}. Tap <b>Healthy</b> on a day to make it a treat day with comfort-food classics instead, or <b>swap</b> to pick another meal. ${treats ? `${treats} treat day${treats > 1 ? 's' : ''} this week.` : ''}
     ${picks ? `${picks} meal${picks > 1 ? 's' : ''} picked by you. <button class="mini" id="resetPicks">Go back to the suggested week</button>` : ''}</p>
   <div class="days">${plan().days.map((d, i) => {
     const dt = dayDate(i), kcal = keys.reduce((s, t) => s + per(d[SLOT[t]]).kcal, 0), w = dt.getUTCDay();
@@ -654,6 +668,7 @@ function render(){
 // data without gluten information hides the switch.
 let GF = null, GF_READY = false, GF_NONE = false;
 const PLANNERS = {};
+function useData(d){ DATA = d; GF = null; GF_NONE = false; for (const k in PLANNERS) delete PLANNERS[k]; PLAN = null; init(); }
 function setMode(){
   GF_READY = !GF_NONE && Object.values(DATA.ing).some(d => d.gluten);
   if (!GF_READY) state.gf = false;
@@ -672,9 +687,15 @@ function init(){
   setMode();
   $('#weekline').innerHTML = `<b>Uge ${DATA.week}</b> REMA 1000 · ${fmtDate(DATA.validFrom, DATA.validTo)}`;
   document.title = `Tilbudskøkken · uge ${DATA.week}`;
-  const today = new Date().toISOString().slice(0,10);
-  if (today > DATA.validTo) { const st = $('#stale'); st.hidden = false;
+  const today = TODAY(), st = $('#stale'), long = iso => { const t = new Date(iso + 'T12:00:00Z'); return `${LONGDAYS[t.getUTCDay()]} ${t.getUTCDate()} ${MONTHS[t.getUTCMonth()].slice(0, 3)}`; };
+  st.hidden = true;
+  if (DATA === PREV) { st.hidden = false;
+    st.innerHTML = `You shop on ${LONGDAYS[state.shopDay]}s, so this is still the week you shopped for on ${long(shopDate(PREV))}. The next plan, from week ${NEXT.week}'s offers, starts ${long(shopDate(NEXT))}. <button class="mini" id="peekNext">See it now</button>`; }
+  else if (PREV && state.peek && today < shopDate(NEXT)) { st.hidden = false;
+    st.innerHTML = `This is the plan for your next shopping day, ${long(shopDate(NEXT))}. <button class="mini" id="peekBack">Back to the week you're on</button>`; }
+  else if (today > DATA.validTo) { st.hidden = false;
     st.textContent = `These are week ${DATA.week}'s offers, which ended ${DATA.validTo.split('-').reverse().join('.')}. The new plan normally lands Sunday morning.`; }
+  $('#shopDay').value = String(state.shopDay);
   if (DATA.additives?.checked) $('#healthNote').textContent += ` This week ${DATA.additives.checked} products were checked and ${DATA.additives.flagged} skipped.`;
   $('#updated').textContent = `Plan generated ${new Date(DATA.generatedAt).toLocaleString('da-DK', {dateStyle:'medium', timeStyle:'short'})}.`;
   render();
@@ -752,10 +773,27 @@ view.addEventListener('click', e => {
 });
 view.addEventListener('change', e => { const g = e.target.dataset.got; if (g){ state.got[g] = e.target.checked; save(); } });
 
-fetch('data/week.json', { cache:'no-cache' })
-  .then(r => { if (!r.ok) throw new Error(r.status); return r.json(); })
-  .then(d => { DATA = d; init(); })
+// Last week's data is kept too: someone who shops on Wednesdays is still eating last week's plan
+// on Monday, after the new offers arrived on Sunday.
+let NEXT = null, PREV = null;
+function pick(){
+  const today = TODAY(), useOld = PREV && !state.peek && today < shopDate(NEXT) && shopDate(PREV) <= today;
+  useData(useOld ? PREV : NEXT);
+}
+Promise.all([
+  fetch('data/week.json', { cache:'no-cache' }).then(r => { if (!r.ok) throw new Error(r.status); return r.json(); }),
+  fetch('data/prev-week.json', { cache:'no-cache' }).then(r => r.ok ? r.json() : null).catch(() => null),
+]).then(([cur, prev]) => {
+    NEXT = cur; PREV = prev && prev.week !== cur.week ? prev : null;
+    try { const p = JSON.parse(localStorage.getItem('ugeplan:prefs') || 'null'); if (Number.isInteger(p?.shopDay)) state.shopDay = p.shopDay; } catch(e){}
+    pick();
+  })
   .catch(() => { view.innerHTML = `<p class="loading">Couldn't load this week's plan. Refresh the page to try again.</p>`; });
+$('#shopDay').addEventListener('change', e => { if (!NEXT) return; state.shopDay = +e.target.value; state.peek = false; save(); pick(); });
+document.getElementById('stale').addEventListener('click', e => {
+  if (e.target.id === 'peekNext'){ state.peek = true; pick(); }
+  if (e.target.id === 'peekBack'){ state.peek = false; pick(); }
+});
 </script>
 </body>
 </html>
