@@ -59,7 +59,18 @@ jobs:
       - uses: actions/upload-pages-artifact@v3
         with:
           path: _site
+      # GitHub sometimes can't see the just-uploaded artifact yet ("Found 0 artifact(s)"):
+      # give it a moment, and try once more after a longer wait if the deploy still fails.
+      - name: Let the upload settle
+        run: sleep 15
       - id: deploy
+        uses: actions/deploy-pages@v4
+        continue-on-error: true
+      - name: Wait before retrying the deploy
+        if: steps.deploy.outcome == 'failure'
+        run: sleep 90
+      - id: deploy-retry
+        if: steps.deploy.outcome == 'failure'
         uses: actions/deploy-pages@v4
 
       - name: Flag a failed offer fetch
