@@ -284,7 +284,7 @@ const BASICS = ['salt', 'sortpeber', 'olie'];
 const DOT = { breakfast:'var(--b1)', lunch:'var(--b2)', dinner:'var(--sale)' };
 const CAT = {'kod-fisk-fjerkrae':'Meat, fish & poultry','kol':'Chilled','frugt-gront':'Fruit & veg','mejeri':'Dairy','ost-mv':'Cheese','brod-bavinchi':'Bread','frost':'Frozen','kolonial':'Groceries','*':'Other'};
 let DATA, ING, MEALS = {}, KEY, SHOP, PLANNER, PLAN, PLAN_KEY = '';
-let state = { tab:'week', open:{}, got:{}, have:{}, picks:{}, weeks:{}, swapOpen:{}, swapF:{}, swapMore:{}, cheap:true, gf:false, shopDay:0, early:{}, peek:false, treatW:[false,false,false,false,false,false,false], members:[{ name:'', kcal:2000 }, { name:'', kcal:2000 }], types:{ breakfast:true, lunch:true, dinner:true } };
+let state = { tab:'week', open:{}, got:{}, have:{}, picks:{}, weeks:{}, usedUp:{}, swapOpen:{}, swapF:{}, swapMore:{}, cheap:true, gf:false, shopDay:0, early:{}, peek:false, treatW:[false,false,false,false,false,false,false], members:[{ name:'', kcal:2000 }, { name:'', kcal:2000 }], types:{ breakfast:true, lunch:true, dinner:true } };
 
 const kr = v => v.toFixed(2).replace('.', ',');
 const plural = n => `${n} ${n === 1 ? 'person' : 'people'}`;
@@ -303,16 +303,16 @@ const fmtDate = (a, b) => {
 function save(){
   try{ localStorage.setItem('ugeplan:prefs', JSON.stringify({ members:state.members, treatW:state.treatW, cheap:state.cheap, gf:state.gf, shopDay:state.shopDay, early:state.early, types:state.types, tab:state.tab, have:state.have }));
        localStorage.setItem(KEY, JSON.stringify(state.got));
-       localStorage.setItem(KEY.replace(':got', ':picks'), JSON.stringify({ picks:state.picks, weeks:state.weeks })); }catch(e){}
+       localStorage.setItem(KEY.replace(':got', ':picks'), JSON.stringify({ picks:state.picks, weeks:state.weeks, usedUp:state.usedUp })); }catch(e){}
 }
 function load(){
   try{ const p = JSON.parse(localStorage.getItem('ugeplan:prefs')||'null');
     if (p){ if (Array.isArray(p.members) && p.members.length) state.members = p.members.slice(0, 10).map(m => ({ name: String(m.name || '').slice(0, 24), kcal: clampK(+m.kcal) }));
       else if (p.people) state.members = Array.from({ length: Math.min(10, p.people) }, () => ({ name: '', kcal: clampK(+p.kcal || 2000) }));
       if (p.types) state.types = { ...state.types, ...p.types }; if (p.tab) state.tab = p.tab; if (p.have) state.have = p.have; if (typeof p.cheap === 'boolean') state.cheap = p.cheap; if (typeof p.gf === 'boolean') state.gf = p.gf; if (Number.isInteger(p.shopDay) && p.shopDay >= 0 && p.shopDay < 7) state.shopDay = p.shopDay; if (p.early && typeof p.early === 'object') state.early = p.early; if (Array.isArray(p.treatW) && p.treatW.length === 7) state.treatW = p.treatW; } }catch(e){}
-  state.got = {}; state.picks = {}; state.weeks = {};
+  state.got = {}; state.picks = {}; state.weeks = {}; state.usedUp = {};
   try{ state.got = JSON.parse(localStorage.getItem(KEY)||'{}') || {}; }catch(e){ state.got = {}; }
-  try{ const s = JSON.parse(localStorage.getItem(KEY.replace(':got', ':picks'))||'null'); if (s){ state.picks = s.picks || {}; state.weeks = s.weeks || {}; if (s.lock?.sig) state.weeks[s.lock.sig] ||= s.lock.fixed; } }catch(e){}
+  try{ const s = JSON.parse(localStorage.getItem(KEY.replace(':got', ':picks'))||'null'); if (s){ state.picks = s.picks || {}; state.weeks = s.weeks || {}; state.usedUp = s.usedUp || {}; if (s.lock?.sig) state.weeks[s.lock.sig] ||= s.lock.fixed; } }catch(e){}
 }
 
 // ---- the current plan, made live in the browser by the shared planner
@@ -344,15 +344,59 @@ function remember(sig, meals){
   delete state.weeks[sig]; state.weeks[sig] = meals;
   const sigs = Object.keys(state.weeks); sigs.slice(0, Math.max(0, sigs.length - 12)).forEach(k => delete state.weeks[k]);
 }
+// ---- left over from last week
+// When a new week starts, what last week's shop should have left in the cupboard is used first.
+// Last week's shop is rebuilt from the meals this browser remembered for it (the last settings
+// used) and, if anything was ticked on its list, only the ticked items count as bought. Only
+// durable things carry over: PART keeps whatever is left (dry goods, spices, oil, roots, apples,
+// butter, eggs, hard cheese, anything frozen); WHOLE only unopened packs (tins, tortillas, dough).
+const PART = new Set(['salt','sortpeber','paprika','karry','spidskommen','chiliflager','oregano','kanel','timian','bagepulver','tacokrydderi',
+  'olie','soja','eddike','honning','sukker','mel','sennep','peanutbutter','noedder','rosiner','fond','roedelinser',
+  'ris','pasta','havregryn','bulgur','nudler','lasagne','muesli',
+  'kartofler','kaal','rodkaal','gulerod','log','hvidlog','rodbeder','aeble','citrus','citron','ingefaer','sodkartoffel','frostgront','baer',
+  'smor','ost','aeg']);
+const WHOLE = new Set(['hakkedetomater','kokosmaelk','bonner','majs','tomatpure','tun','makreltomat','wraps','pizzadej','taertedej',
+  'brunsauce','bearnaise','revetost','feta','mozzarella','bacon','polser']);
+let CARRY = null, CARRY_KEY = '';
+function carryOver(){
+  const ck = `${DATA.year}-${DATA.week}|${state.gf}|${JSON.stringify(state.have)}`;
+  if (CARRY && ck === CARRY_KEY) return CARRY;
+  CARRY = {}; CARRY_KEY = ck;
+  if (!PREV || DATA !== NEXT) return CARRY;
+  try {
+    const id = `ugeplan:${PREV.year}-${PREV.week}`;
+    const last = Object.entries(JSON.parse(localStorage.getItem(id + ':picks') || 'null')?.weeks || {}).pop();
+    if (!last) return CARRY;
+    const [sig, meals] = last, parts = sig.split('|'), gf = parts[3] === 'true';
+    const pattern = parts[parts.length - 1].split(',').map(x => x === 'true');
+    const src = gf ? glutenFree(PREV) : PREV;
+    const P = createPlanner({ recipes: src.recipes, ing: src.ing, seed: PREV.seed }).plan(+parts[0], pattern, +parts[1], { cheap: parts[2] === 'true', fixed: meals });
+    if (!P) return CARRY;
+    const got = JSON.parse(localStorage.getItem(id + ':got') || '{}') || {}, ticked = Object.values(got).some(Boolean);
+    for (const [k, need] of Object.entries(P.need)) {
+      if (!ING[k] || !src.ing[k] || state.have[k] || (ticked && !got[k])) continue;
+      if (gf !== state.gf && ING[k].gluten) continue;      // last week's pasta isn't this week's gluten-free pasta
+      const c = coverDef(src.ing[k], need), o = c.o, frozen = o?.cat === 'frost';
+      if (!o || o.loose || !(PART.has(k) || WHOLE.has(k) || frozen)) continue;
+      let left = c.n * o.pack - need;
+      if (WHOLE.has(k) && !frozen) left = Math.floor(left / o.pack + 1e-6) * o.pack;
+      if (left < Math.max(5, (ING[k].each || 0) * 0.5)) continue;
+      CARRY[k] = { g: left, name: o.est ? src.ing[k].n : o.product };
+    }
+  } catch (e) {}
+  return CARRY;
+}
+const STOCK = () => { const c = carryOver(), st = {}; for (const k in c) if (!state.usedUp[k]) st[k] = c[k].g; return st; };
+
 function plan(){
-  const sig = settings(), run = fixed => PLANNER.plan(PEOPLE(), treatPattern(), Math.round(AVG()), { cheap: state.cheap, fixed });
-  let fixed = fixedMeals(), key = sig + JSON.stringify(fixed);
+  const stock = STOCK(), sig = settings(), run = fixed => PLANNER.plan(PEOPLE(), treatPattern(), Math.round(AVG()), { cheap: state.cheap, fixed, stock });
+  let fixed = fixedMeals(), key = sig + JSON.stringify(fixed) + JSON.stringify(stock);
   if (key !== PLAN_KEY) {
     PLAN = run(fixed);
     // A new week for these settings: save it, and price it exactly as it will be on the next visit.
     if (PLAN && JSON.stringify(assignment(PLAN)) !== JSON.stringify(fixed)) {
       remember(sig, assignment(PLAN)); save();
-      fixed = fixedMeals(); key = sig + JSON.stringify(fixed); PLAN = run(fixed);
+      fixed = fixedMeals(); key = sig + JSON.stringify(fixed) + JSON.stringify(stock); PLAN = run(fixed);
     }
     PLAN_KEY = key;
   }
@@ -403,22 +447,28 @@ function shopping(){
   let portions = 0;
   planMeals().filter(m => state.types[m.type]).forEach(m => { const n = P.cook[m.id], f = n/m.base*SCALE; portions += n;
     ingOf(m.id).forEach(([key,g]) => { need[key] = (need[key]||0) + g*f; }); });
-  const byKey = {}, lines = [], home = [];
-  let total = 0, offer = 0, saved = 0, dealSave = 0, deals = 0;
-  for (const [key, g] of Object.entries(need)){
+  const byKey = {}, lines = [], home = [], stock = STOCK(), carry = carryOver(), left = [];
+  let total = 0, offer = 0, saved = 0, dealSave = 0, deals = 0, fromLast = 0;
+  // Everything carried over from last week, and how much of it this week uses.
+  for (const [key, c] of Object.entries(carry)) if (!state.usedUp[key]) left.push({ key, name: c.name, has: c.g, uses: Math.min(c.g, need[key] || 0) });
+  for (const [key, g0] of Object.entries(need)){
+    const use = Math.min(stock[key] || 0, g0), g = g0 - use;
+    if (use > 0) fromLast += cover(key, g0).cost - cover(key, g).cost;
+    if (g <= 0.5) continue;                       // all of it is in the cupboard from last week
     const c = cover(key, g), o = c.o;
     byKey[key] = c;
     if (state.have[key]){ home.push({ key, name: ING[key].n }); saved += c.cost; continue; }
     total += c.cost; if (o.onSale) { offer += c.cost; deals++; if (o.normal) dealSave += c.n * (o.normal - o.price); }
     const q = o.loose ? `≈ ${plain(amount(key,g)).replace(/ \(.*$/,'')} à ${o.label}`
-      : `${c.n} × ${o.label} à ${o.est?'≈':''}${kr(o.price)}${o.onSale && o.normal ? ` (normally ${kr(o.normal)})` : ''} · need ${plain(amount(key,g))}`;
+      : `${c.n} × ${o.label} à ${o.est?'≈':''}${kr(o.price)}${o.onSale && o.normal ? ` (normally ${kr(o.normal)})` : ''} · need ${plain(amount(key,g))}${use > 0 ? ` more than the ${plain(amount(key, use))} left from last week` : ''}`;
     const qa = o.additives ? `${q} · contains ${o.additives.join(', ')}` : q;
     lines.push({ key, aisle: aisleOf(key, o), name: o.est ? ING[key].n : o.product, q: qa, short: o.loose ? `ca. ${plain(amount(key,g))}` : `${c.n} × ${o.label}`,
       price: c.cost, onSale: !!o.onSale, est: !!o.est, id: o.id, n: o.loose ? 1 : c.n });
   }
   lines.sort((a, b) => AISLE_RANK[a.aisle] - AISLE_RANK[b.aisle] || a.name.localeCompare(b.name, 'da'));
   home.sort((a, b) => a.name.localeCompare(b.name, 'da'));
-  return { lines, home, total, offer, saved, dealSave, deals, portions, byKey };
+  left.sort((a, b) => (b.uses > 0) - (a.uses > 0) || a.name.localeCompare(b.name, 'da'));
+  return { lines, home, left, fromLast, total, offer, saved, dealSave, deals, portions, byKey };
 }
 
 // ---- views
@@ -511,7 +561,8 @@ function mealCard(m){
     : `${n} portions over the week: ${days} ${word} for ${plural(PEOPLE())}.${m.base > 1 ? ' Cook it all at once and keep it in the fridge.' : ' Make it fresh each day.'}`;
   const ings = ingOf(m.id).map(([key,g]) => { const i = ING[key], o = (SHOP.byKey[key] || cover(key, g*f)).o;
     const prod = o.est ? '' : `<span class="prod">${o.product}${o.desc ? ', '+o.desc.toLowerCase() : ''}</span>`;
-    return `<li><span>${i.n}${state.have[key] ? '<span class="athome">at home</span>' : tag(o)}${warn(o)}${prod}</span><span class="amt num">${amount(key, g*f)}</span></li>`; }).join('');
+    const lastWeek = !SHOP.byKey[key] && STOCK()[key];
+    return `<li><span>${i.n}${state.have[key] ? '<span class="athome">at home</span>' : lastWeek ? '<span class="athome">from last week</span>' : tag(o)}${warn(o)}${prod}</span><span class="amt num">${amount(key, g*f)}</span></li>`; }).join('');
   return `<article class="meal" id="m-${m.id}">
     <button class="meal-top" data-toggle="${m.id}" aria-expanded="${open}" aria-controls="b-${m.id}">
       <div><h3>${m.name}</h3><div class="dk">${m.dk}</div>
@@ -530,8 +581,15 @@ function mealCard(m){
 }
 
 function shopView(){
-  const { lines, home, total, offer, portions } = SHOP;
-  if (!lines.length && !home.length) return `<div class="receipt"><p class="empty">Pick at least one of breakfast, lunch or dinner above.</p></div>`;
+  const { lines, home, left, total, offer, portions } = SHOP;
+  const used = Object.keys(state.usedUp).filter(k => carryOver()[k]);
+  const leftHtml = left.length || used.length ? `<div class="left-over">
+      <p class="aisle">LEFT FROM LAST WEEK</p>
+      <p class="c l">What last week's shop should have left in your cupboard. It's used first, so it isn't on the list${SHOP.fromLast >= 1 ? ` (saves ${kr(SHOP.fromLast)} kr)` : ''}. Tap <b>used up</b> on anything that's gone.</p>
+      ${left.map(x => `<div class="line"><span>${x.name}<span class="q">≈ ${plain(amount(x.key, x.has))} left · ${x.uses > 0 ? `this week uses ${plain(amount(x.key, x.uses))}` : 'not needed this week'}</span></span><span class="r"><button class="mini" data-usedup="${x.key}" aria-label="${x.name} is used up">used up</button></span></div>`).join('')}
+      ${used.length ? `<p class="c l">Used up: ${used.map(k => `${carryOver()[k].name} <button class="mini" data-stillhave="${k}" aria-label="I still have ${carryOver()[k].name}">still have it</button>`).join(', ')}</p>` : ''}
+      <div class="dash"></div></div>` : '';
+  if (!lines.length && !home.length && !left.length) return `<div class="receipt"><p class="empty">Pick at least one of breakfast, lunch or dinner above.</p></div>`;
   const row = l => `<div class="line"><label class="check" for="g-${l.key}"><input type="checkbox" id="g-${l.key}" data-got="${l.key}" ${state.got[l.key]?'checked':''}><span>${l.name}${l.onSale ? '<span class="offer">TILBUD</span>' : ''}<span class="q">${l.q}</span></span></label><span class="r"><span class="num">${l.est?'≈':''}${kr(l.price)}</span><button class="mini" data-have="${l.key}" aria-label="I already have ${ING[l.key].n}">have it</button></span></div>`;
   const basics = BASICS.filter(k => lines.some(l => l.key === k));
   const which = Object.keys(TYPES).filter(t => state.types[t]).map(t => TYPES[t].toLowerCase()).join(', ');
@@ -540,6 +598,7 @@ function shopView(){
     <p class="c">${plural(PEOPLE())} · 7 days · ${which}</p>
     <p class="c">Offers ${DATA.validFrom.split('-').reverse().join('.')} – ${DATA.validTo.split('-').reverse().join('.')}</p>
     <div class="dash"></div>
+    ${leftHtml}
     ${AISLES.map(([k, label]) => { const here = lines.filter(l => l.aisle === k);
       return here.length ? `<p class="aisle">${label.toUpperCase()}</p>${here.map(row).join('')}` : ''; }).join('')}
     <div class="dash"></div>
@@ -655,7 +714,7 @@ function renderHouse(){
   $('#totals').innerHTML = s.portions && !s.lines.length ? `<small>You have everything for this week already.</small>` : s.portions ? `<span><b class="num">${kr(s.total)} kr</b> <small>for the week</small></span>
     <span><b class="num">${kr(s.total/PEOPLE()/7)} kr</b> <small>per person per day</small></span>
     <span><b class="num">${s.portions}</b> <small>portions</small></span>
-    <span class="note">${kcalNote()} ${s.home.length ? `Leaving out ${s.home.length} thing${s.home.length > 1 ? 's' : ''} you have at home (${kr(s.saved)} kr).` : 'Everything on the list, salt and oil included.'} <b>${s.deals} of this week's offers</b> are on the list${s.dealSave >= 1 ? `, saving ${kr(s.dealSave)} kr against normal prices` : ''}.${all ? '' : ' Only the meals you picked are counted.'}${DATA.shelfPrices === 'estimated' ? ' Normal prices are estimates this week.' : ''}</span>`
+    <span class="note">${kcalNote()} ${s.left.some(x => x.uses > 0) ? `${s.left.filter(x => x.uses > 0).length} things left from last week are used first (${kr(s.fromLast)} kr). ` : ''}${s.home.length ? `Leaving out ${s.home.length} thing${s.home.length > 1 ? 's' : ''} you have at home (${kr(s.saved)} kr).` : 'Everything on the list, salt and oil included.'} <b>${s.deals} of this week's offers</b> are on the list${s.dealSave >= 1 ? `, saving ${kr(s.dealSave)} kr against normal prices` : ''}.${all ? '' : ' Only the meals you picked are counted.'}${DATA.shelfPrices === 'estimated' ? ' Normal prices are estimates this week.' : ''}</span>`
     : `<small>Pick at least one of breakfast, lunch or dinner.</small>`;
 }
 
@@ -676,7 +735,7 @@ function render(){
 // data without gluten information hides the switch.
 let GF = null, GF_READY = false, GF_NONE = false;
 const PLANNERS = {};
-function useData(d){ DATA = d; GF = null; GF_NONE = false; for (const k in PLANNERS) delete PLANNERS[k]; PLAN = null; init(); }
+function useData(d){ CARRY = null; DATA = d; GF = null; GF_NONE = false; for (const k in PLANNERS) delete PLANNERS[k]; PLAN = null; init(); }
 function setMode(){
   GF_READY = !GF_NONE && Object.values(DATA.ing).some(d => d.gluten);
   if (!GF_READY) state.gf = false;
@@ -764,6 +823,8 @@ view.addEventListener('click', e => {
   const t = e.target.closest('[data-toggle]'); if (t){ const id = t.dataset.toggle; state.open[id] = !state.open[id]; render(); return; }
   if (e.target.id === 'reset'){ state.got = {}; save(); render(); return; }
   const hv = e.target.closest('[data-have]'); if (hv){ state.have[hv.dataset.have] = true; save(); render(); return; }
+  const uu = e.target.closest('[data-usedup]'); if (uu){ state.usedUp[uu.dataset.usedup] = true; save(); render(); return; }
+  const sh = e.target.closest('[data-stillhave]'); if (sh){ delete state.usedUp[sh.dataset.stillhave]; save(); render(); return; }
   const nd = e.target.closest('[data-need]'); if (nd){ delete state.have[nd.dataset.need]; save(); render(); return; }
   if (e.target.id === 'basics'){ BASICS.forEach(k => state.have[k] = true); save(); render(); return; }
   if (e.target.closest('.bm')){ e.preventDefault(); $('#remaMsg').textContent = 'Drag this button to your bookmarks bar instead of clicking it.'; return; }

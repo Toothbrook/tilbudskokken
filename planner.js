@@ -26,7 +26,9 @@ export function cover(def, g) {
 }
 
 export function createPlanner({ recipes, ing, seed = 0 }) {
-  const coverK = (k, g) => cover(ing[k], g);
+  // What's already in the cupboard (opts.stock, grams per ingredient) is used first and costs nothing.
+  let stock = {};
+  const coverK = (k, g) => cover(ing[k], g - (stock[k] || 0));
   const shopCost = need => Object.entries(need).reduce((s, [k, g]) => s + coverK(k, g).cost, 0);
   const jitter = id => { let h = seed >>> 0; for (const c of id) h = (h * 31 + c.charCodeAt(0)) >>> 0; return 1 + (h % 1000) / 1000 * 0.06; };
   const kindOf = r => r.kind || 'healthy';
@@ -131,7 +133,7 @@ export function createPlanner({ recipes, ing, seed = 0 }) {
   // per day; opts.cheap: prioritise the cheapest week (default) or the most nourishing one;
   // opts.fixed: { slotKey: recipeId } meals the visitor picked themselves.
   function plan(people, treat = Array(7).fill(false), kcal = 2000, opts = {}) {
-    cheap = opts.cheap !== false;
+    cheap = opts.cheap !== false; stock = opts.stock || {};
     const slots = slotsFor(treat), byId = Object.fromEntries(recipes.map(r => [r.id, r]));
     // Keep only picks that still fit their slot (the week's treat days may have changed since).
     const fixed = {};
@@ -165,7 +167,7 @@ export function createPlanner({ recipes, ing, seed = 0 }) {
     if (Object.keys(fixed).length < slots.length)
       return plan(people, treat, kcal, { ...opts, fixed: Object.fromEntries(best.chosen.map(c => [slotKey(c.slot), c.r.id])) });
     size = best.size;
-    return { people, treat, target: kcal, cheap, quality, saved: best.saved, size, kcal: Math.round(dayKcal(best.chosen) * size), total: best.total, onSale, portions: best.portions, need: best.need,
+    return { people, treat, target: kcal, cheap, stock, quality, saved: best.saved, size, kcal: Math.round(dayKcal(best.chosen) * size), total: best.total, onSale, portions: best.portions, need: best.need,
       cook: Object.fromEntries(best.chosen.map(c => [c.r.id, c.portions])),
       pick: Object.fromEntries(best.chosen.map(c => [c.r.id, c.lines])), days, fixed,
       slots: Object.fromEntries(best.chosen.map(c => [c.r.id, slotKey(c.slot)])),
@@ -185,12 +187,12 @@ export function createPlanner({ recipes, ing, seed = 0 }) {
       if (inWeek.has(r.id) || !fits(r, meal.slot)) continue;
       const c = evaluate(r, {}, portions, p.size);
       if (!c || c.kcal < lo || c.kcal > hi) continue;
-      const q = plan(p.people, p.treat, p.target, { cheap: p.cheap, fixed: { ...all, [meal.key]: r.id } });
+      const q = plan(p.people, p.treat, p.target, { cheap: p.cheap, stock: p.stock, fixed: { ...all, [meal.key]: r.id } });
       if (!q) continue;
       const kcal = q.meals.find(m => m.id === r.id) && c.kcal * q.size;
       out.push({ id: r.id, delta: q.total - p.total, total: q.total, kcal: Math.round(kcal), family: c.protein ? ing[c.protein].pg : 'veg', quality: c.quality });
     }
-    cheap = p.cheap;
+    cheap = p.cheap; stock = p.stock;
     return out.sort((a, b) => a.delta - b.delta);
   }
 
