@@ -764,25 +764,25 @@
   "365": {
    "label": "365discount",
    "offers": 312,
-   "matched": 32,
+   "matched": 31,
    "people2": {
     "rema": 596.05,
-    "with": 598.79,
+    "with": 586.95,
     "items": [
-     "gulerod: 365 Gulerødder fra lammefjorden 2× 5 kr",
+     "aeg: 365 Coop skrabeæg 1× 35 kr",
      "aeble: 365 Coop royal gala æbler* 2× 12 kr",
+     "gulerod: 365 Gulerødder fra lammefjorden 1× 5 kr",
      "salat: 365 Coop mini romainesalat 1× 10 kr"
     ]
    },
    "people4": {
     "rema": 1146.61,
-    "with": 1032.81,
+    "with": 1003.66,
     "items": [
-     "gulerod: 365 Gulerødder fra lammefjorden 5× 5 kr",
-     "squash: 365 Coca-cola, fanta, schweppes eller tuborg squash 1× 11 kr",
-     "aeble: 365 Coop royal gala æbler* 2× 12 kr",
      "salat: 365 Coop mini romainesalat 1× 10 kr",
-     "banan: 365 Änglamark økologiske bananer 1× 22 kr"
+     "aeble: 365 Coop royal gala æbler* 3× 12 kr",
+     "gulerod: 365 Gulerødder fra lammefjorden 2× 5 kr",
+     "aeg: 365 Coop skrabeæg 2× 35 kr"
     ]
    }
   },
@@ -880,35 +880,35 @@
    "matched": 54,
    "people2": {
     "rema": 596.05,
-    "with": 550.33,
+    "with": 546.08,
     "items": [
-     "log: netto Danske løg 2× 5 kr",
-     "peber: lidl Pebermix 1× 16 kr",
-     "squash: 365 Coca-cola, fanta, schweppes eller tuborg squash 1× 11 kr",
-     "olie: netto Ollineo solsikke- eller rapsolie 1× 15 kr",
-     "gulerod: netto Danske gulerødder 1× 5 kr",
-     "tomatpure: netto La campagna tomatpuré 1× 6 kr",
-     "ost: lidl Milbona hvid ost i blok 2× 13.95 kr",
-     "kartofler: superbrugsen Danske kartofler fra storøhage  1× 12 kr",
-     "aeble: netto Danske æbler 1× 12 kr",
-     "aeg: netto Øgo økologiske æg 1× 30 kr",
+     "aeg: superbrugsen Dueholm økologiske æg 1× 15 kr",
+     "log: netto Danske løg 1× 5 kr",
+     "feta: lidl Milbona hvid ost i blok 1× 13.95 kr",
+     "kartofler: superbrugsen Danske kartofler fra storøhage  2× 12 kr",
+     "agurk: netto Agurk 4× 5 kr",
      "salat: lidl Freshona helbladet spinat 1× 8.95 kr",
-     "agurk: netto Agurk 7× 5 kr",
-     "tomat: lidl Stilktomater 1× 12 kr"
+     "olie: netto Ollineo solsikke- eller rapsolie 1× 15 kr",
+     "gulerod: netto Danske gulerødder 2× 5 kr",
+     "persille: netto Dansk persille 2× 9 kr",
+     "broccoli: lidl Freshona broccoli- eller blomkålsris 1× 9.95 kr",
+     "squash: lidl Squash 1× 5 kr",
+     "ost: lidl Milbona hvid ost i blok 1× 13.95 kr",
+     "tomat: lidl Stilktomater 1× 12 kr",
+     "aeble: netto Danske æbler 1× 12 kr",
+     "banan: lidl Rainforestbanan 12× 1.75 kr"
     ]
    },
    "people4": {
     "rema": 1146.61,
-    "with": 971.16,
+    "with": 938.3,
     "items": [
-     "svinestrimler: netto Dansk nakkefilet eller ribbenssteg 4× 19.95 kr",
-     "kartofler: superbrugsen Danske kartofler fra storøhage  3× 12 kr",
-     "aeble: netto Danske æbler 3× 12 kr",
-     "log: netto Danske løg 2× 5 kr",
-     "olie: netto Ollineo solsikke- eller rapsolie 1× 15 kr",
-     "gulerod: netto Danske gulerødder 3× 5 kr",
+     "gulerod: netto Danske gulerødder 4× 5 kr",
+     "log: netto Danske løg 3× 5 kr",
      "persille: netto Dansk persille 4× 9 kr",
-     "hkgris: lidl Madværket hakket grisekød 1× 37.95 kr",
+     "kartofler: superbrugsen Danske kartofler fra storøhage  4× 12 kr",
+     "olie: netto Ollineo solsikke- eller rapsolie 1× 15 kr",
+     "aeble: netto Danske æbler 3× 12 kr",
      "salat: lidl Freshona helbladet spinat 1× 8.95 kr",
      "squash: lidl Squash 2× 5 kr",
      "tomatpure: netto La campagna tomatpuré 1× 6 kr",
@@ -945,12 +945,9 @@
     "Xtra! hvidløgsbaguette 350 g 12 kr",
     "Coop koteletter, stegeflæsk, nakkekoteletter eller filet a la mørbrad med gyros/hvidløg 375 g 39 kr"
    ],
-   "squash": [
-    "Coca-cola, fanta, schweppes eller tuborg squash 1,25 l 11 kr"
-   ],
    "kyllingfars": [
     "Xtra! kyllingelårfilet, -inderfilet eller hakket kylling 7-10% 350 g 25 kr",
-    "Rose hakket kylling 7-10%  1 kg 45 kr"
+    "Rose hakket kylling 7-10% 1 kg 45 kr"
    ],
    "salat": [
     "Coop mini romainesalat 250 g 10 kr",
@@ -963,7 +960,7 @@
     "Coop agurk 1 stk 7 kr"
    ],
    "aeg": [
-    "Coop skrabeæg* 15 stk 35 kr"
+    "Coop skrabeæg 15 stk 35 kr"
    ],
    "kartofler": [
     "Coop kartofler 450 g 10 kr",
@@ -979,27 +976,27 @@
    ],
    "flaeskesteg": [
     "Änglamark økologisk flæskesteg 500 g 49 kr",
-    "Coop mørbrad af gris eller flæskesteg 1,9 kg 99 kr"
+    "Coop mørbrad af gris eller flæskesteg  1,9 kg 99 kr"
    ],
    "svinestrimler": [
     "Coop nakkefilet  1,1 kg 79 kr"
    ],
    "kyllingebryst": [
     "Xtra! kyllingelårfilet, -inderfilet eller hakket kylling 7-10% 350 g 25 kr",
-    "Xtra! kyllingebryst med lage, -lårfilet eller -lårmix  800 g 55 kr",
+    "Xtra! kyllingebryst med lage, -lårfilet eller -lårmix 800 g 55 kr",
     "Frijsenborg hel kylling, rose kyllingebryst eller -inderfilet 1 kg 69 kr"
    ],
    "kyllingelaar": [
     "Xtra! kyllingelårfilet, -inderfilet eller hakket kylling 7-10% 350 g 25 kr",
     "Coop kyllingeover- eller underlår 700 g 29 kr",
-    "Xtra! kyllingebryst med lage, -lårfilet eller -lårmix  800 g 55 kr"
+    "Xtra! kyllingebryst med lage, -lårfilet eller -lårmix 800 g 55 kr"
    ],
    "moerbrad": [
     "Coop koteletter, stegeflæsk, nakkekoteletter eller filet a la mørbrad med gyros/hvidløg 375 g 39 kr",
-    "Coop mørbrad af gris eller flæskesteg 1,9 kg 99 kr"
+    "Coop mørbrad af gris eller flæskesteg  1,9 kg 99 kr"
    ],
    "ost": [
-    "Castello dessertost 125 g 18 kr",
+    "Castello dessertost* 125 g 18 kr",
     "Coop skiveost 200 g 22 kr",
     "Cheasy eller klovborg skæreost 495 g 45 kr"
    ],
@@ -1008,13 +1005,13 @@
     "Glyngøre fersk lakseside 600 g 99 kr"
    ],
    "rejer": [
-    "Fiskefileter eller xtra rejer 200 g 25 kr"
+    "Fiskefileter eller xtra rejer* 200 g 25 kr"
    ],
    "helkylling": [
     "Frijsenborg hel kylling, rose kyllingebryst eller -inderfilet 1 kg 69 kr"
    ],
    "nudler": [
-    "Santa maria eller nissin nudler 63 g 12 kr"
+    "Santa maria eller nissin nudler* 63 g 12 kr"
    ],
    "banan": [
     "Änglamark økologiske bananer 1,3 kg 22 kr"
@@ -1023,7 +1020,7 @@
     "Cultura a38 eller kefir* 1 kg 15 kr"
    ],
    "tun": [
-    "Elvira tun* 102 g 10 kr",
+    "Elvira tun 102 g 10 kr",
     "Amanda luksusrogn, glyngøre tun eller sæby makrel 105 g 14 kr"
    ],
    "flaesk": [
@@ -1038,7 +1035,7 @@
   },
   "superbrugsen": {
    "hkokse": [
-    "Coop hakket oksekød 5-8% eller rose kyllingbrystfilet med lage 700 g 79 kr"
+    "Coop hakket oksekød 5-8% eller rose kyllingbrystfilet med lage  700 g 79 kr"
    ],
    "hkblanding": [
     "Coop hakket gris & kalv 4-7% eller 8-12% 400 g 32 kr"
@@ -1121,7 +1118,7 @@
     "Rose kylling hele lår 2 kg 69 kr"
    ],
    "hytteost": [
-    "Cheasy hytteost  500 g 24 kr"
+    "Cheasy hytteost 500 g 24 kr"
    ],
    "tun": [
     "Amanda yellowfin tun 105 g 10 kr"
@@ -1131,7 +1128,7 @@
     "Coop koteletter eller stegeflæsk 900 g 65 kr"
    ],
    "honning": [
-    "Honningbombe 1 stk 20 kr"
+    "Honningbombe* 1 stk 20 kr"
    ]
   },
   "lidl": {
@@ -1149,7 +1146,7 @@
     "Pebermix 500 g 16 kr"
    ],
    "olie": [
-    "Primadonna økologisk spansk jomfruolivenolie 500 ml 49.95 kr",
+    "Primadonna spansk ekstra jomfruolivenolie 750 ml 49.95 kr",
     "Primadonna spansk ekstra jomfruolivenolie 1 l 59.95 kr"
    ],
    "skyr": [
@@ -1306,7 +1303,7 @@
    "Danske løg 1 kg. danmark. 1 kg 5 kr til 2026-12-04"
   ],
   "gulerod": [
-   "Danske gulerødder 1 kg. danmark. 1 kg 5 kr til 2026-12-04"
+   "Danske gulerødder Pr. pose 1 kg. danmark. 1 kg 5 kr til 2026-12-04"
   ],
   "olie": [
    "Ollineo solsikke- eller rapsolie 1 liter. max. 4 stk. pr. variant pr. kunde pr. dag til denne pris 1 l 15 kr til 2026-11-27"
