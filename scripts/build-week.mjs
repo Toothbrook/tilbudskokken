@@ -191,12 +191,21 @@ else if (!arg('--offers')) {
 if (arg('--save-netto') && nettoSource) await fs.writeFile(arg('--save-netto'), JSON.stringify({ source: nettoSource, offers: netto }, null, 1));
 // Offers that run at some point in this offer week.
 netto = netto.filter(o => (!o.from || o.from.slice(0, 10) <= week.validTo) && (!o.till || o.till.slice(0, 10) >= week.validFrom));
+// Tjek's texts are long and often list several products ("A, B eller C"), so for Netto the
+// ingredient has to be in the offer's heading, nothing breaded, cold-cut, sweet or drinkable
+// counts, and per-ingredient nex/nmust tighten it further (frozen veg must say frozen).
+const NETTO_EX = /PÅLÆG|SPEGEPØLSE|INDBAG|PANER|SNACK|SLIK|MALACO|HARIBO|VINGUMMI|LAKRIDS|\bVIN\b|RØDVIN|HVIDVIN|ROSÉ|\bØL\b|ACTIMEL|DANONINO|DRIK|JUICE|SMOOTHIE|SAFT|BRØDBLANDING|GLUTEN ?MEL|KAGE|KIKS|CHIPS|GRANATÆBLE|BACON|FÆRDIGRET|MARINERET|SALATMESTEREN/;
+const nettoMatches = (def, o) => {
+  const t = textOf(o);
+  return def.re.test(o.name.toUpperCase()) && !NETTO_EX.test(t) && !(def.ex && def.ex.test(t)) && !(def.nex && def.nex.test(t))
+    && !(def.must && !def.must.test(t)) && !(def.nmust && !def.nmust.test(t));
+};
 const NETTO = {};
 for (const key of USED) {
   // A matcher that leans on REMA's departments (re: /./) needs its own pattern for Netto (nre).
   const def = INGREDIENTS[key].nre ? { ...INGREDIENTS[key], re: INGREDIENTS[key].nre } : INGREDIENTS[key];
   if (NETTO_SKIP.has(key) || def.re.test('ZZZ QQQ')) continue;
-  const opts = netto.filter(o => matches(def, o)).map(o => {
+  const opts = netto.filter(o => nettoMatches(def, o)).map(o => {
     const opt = toOption(def, o, true);
     return opt && { ...opt, store: 'netto', till: o.till ? o.till.slice(0, 10) : '', ...(o.normal ? { normal: Math.round(o.normal / o.price * opt.price * 100) / 100 } : {}) };
   }).filter(Boolean);
