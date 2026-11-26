@@ -129,6 +129,22 @@ h1 em{font-style:normal;color:var(--sale)}
 .kind[aria-pressed="true"]{background:var(--tag);color:var(--tag-ink);border-color:var(--tag)}
 .day.treat{border-color:var(--tag);box-shadow:inset 4px 0 0 var(--tag)}
 .weekhint{margin:0 0 10px;font-size:13px;color:var(--muted)}
+.export{display:flex;flex-wrap:wrap;gap:8px;align-items:center;background:var(--card);border-radius:12px;padding:10px 12px;margin:0 0 12px}
+.export b{font-size:14px;flex-basis:100%}
+.export .btn{padding:7px 12px}
+.export small{flex-basis:100%;color:var(--muted);font-size:12px}
+#printout{display:none}
+@media print{
+  body > *:not(#printout){display:none !important}
+  body{background:#fff !important;color:#000}
+  #printout{display:block;font:11pt/1.4 Georgia,serif;color:#000}
+  #printout h1{font-size:16pt;margin:0 0 4pt}
+  #printout section{break-inside:avoid-page;margin:0 0 14pt;padding-top:8pt;border-top:1px solid #999}
+  #printout h2{font-size:13pt;margin:0}
+  #printout .meta,#printout .dk{color:#444;font-size:10pt;margin:0}
+  #printout h3{font-size:10pt;text-transform:uppercase;letter-spacing:.05em;margin:6pt 0 2pt}
+  #printout ul,#printout ol{margin:0;padding-left:16pt}
+}
 .chip.treat{background:var(--tag);color:var(--tag-ink)}
 .left{font-size:11px;font-weight:700;background:var(--soft);color:var(--muted);padding:1px 6px;border-radius:3px;margin-left:6px;display:inline-block}
 @media (max-width:420px){.day{grid-template-columns:1fr}.day .date{display:flex;gap:8px;align-items:baseline;flex-wrap:wrap}.day .date small,.day .date .k{display:inline;margin:0}.day .date .k{margin-left:auto}.kind{margin-top:0;order:3}}
@@ -235,6 +251,7 @@ footer p{margin:0}
 </style>
 </head>
 <body>
+<div id="printout" aria-hidden="true"></div>
 <div class="wrap">
   <header>
     <div class="week" id="weekline"><b>REMA 1000</b> Loading this week's offers…</div>
@@ -603,7 +620,10 @@ function weekView(){
   const treats = plan().days.filter(d => d.treat).length;
   const picks = Object.values(plan().fixed).filter(id => Object.values(state.picks).includes(id)).length;
   const a = dayDate(0), z = dayDate(6), d2 = t => `${LONGDAYS[t.getUTCDay()].slice(0, 3)} ${t.getUTCDate()} ${MONTHS[t.getUTCMonth()].slice(0, 3)}`;
-  return `<p class="weekhint">Your week: <b>${d2(a)} – ${d2(z)}</b>, shopping ${LONGDAYS[state.shopDay]}. Tap <b>Healthy</b> on a day to make it a treat day with comfort-food classics instead, or <b>swap</b> to pick another meal. ${treats ? `${treats} treat day${treats > 1 ? 's' : ''} this week.` : ''}
+  return `<div class="export"><b>Recipes to your phone</b>
+    <button class="btn" id="exShare">Share</button><button class="btn" id="exCal">Add to calendar</button><button class="btn" id="exPrint">Print / PDF</button>
+    <small id="exMsg" aria-live="polite">Share sends every recipe, with amounts for your household, to Notes, Messages or mail. The calendar puts each meal on its day.</small></div>
+  <p class="weekhint">Your week: <b>${d2(a)} – ${d2(z)}</b>, shopping ${LONGDAYS[state.shopDay]}. Tap <b>Healthy</b> on a day to make it a treat day with comfort-food classics instead, or <b>swap</b> to pick another meal. ${treats ? `${treats} treat day${treats > 1 ? 's' : ''} this week.` : ''}
     ${picks ? `${picks} meal${picks > 1 ? 's' : ''} picked by you. <button class="mini" id="resetPicks">Go back to the suggested week</button>` : ''}</p>
   <div class="days">${plan().days.map((d, i) => {
     const dt = dayDate(i), kcal = keys.reduce((s, t) => s + (d[SLOT[t]] ? per(d[SLOT[t]]).kcal : 0), 0), w = dt.getUTCDay();
@@ -681,6 +701,79 @@ function swapHtml(m){
   </div>`;
 }
 
+// ---- export: the week's recipes to the phone (share sheet, calendar, print)
+const dayLabel = i => { const dt = dayDate(i); return `${DAYS[dt.getUTCDay()]} ${dt.getUTCDate()}. ${MONTHS[dt.getUTCMonth()].slice(0, 3)}`; };
+const exportTypes = () => MEALTYPES.filter(t => state.types[t]);
+// Recipes in the order they're first eaten.
+function weekMeals(){
+  const seen = [];
+  plan().days.forEach(d => exportTypes().forEach(t => { const id = d[SLOT[t]]; if (id && !seen.includes(id)) seen.push(id); }));
+  return seen.map(id => MEALS[id]);
+}
+function recipeParts(m){
+  const n0 = plan().cook[m.id], f = n0 / m.base * SCALE, nr = Number.isInteger(n0) ? n0 : Math.round(n0 * 2) / 2;
+  const days = plan().days.map((d, i) => d[SLOT[m.type]] === m.id ? dayLabel(i) + (m.type === 'dinner' && d.left ? ' (leftovers)' : '') : null).filter(Boolean);
+  return { m, days,
+    meta: `${TYPES[m.type]} · ${days.join(', ')} · ${String(nr).replace('.', ',')} portion${nr > 1 ? 's' : ''} · ${per(m.id).kcal} kcal per portion`,
+    plates: state.members.map((mm, j) => `${PEOPLE() === 1 ? 'You' : nameOf(j)}: ${plate(m, j).map(plain).join(' · ')}`),
+    ings: ingOf(m.id).map(([k, g]) => `${plain(amount(k, g * f))} ${ING[k].n}`),
+    steps: m.steps };
+}
+function recipeText(m){
+  const r = recipeParts(m);
+  return [m.name, m.dk, r.meta, '', 'On the plate:', ...r.plates.map(x => `• ${x}`), '', 'Ingredients:', ...r.ings.map(x => `• ${x}`),
+    '', 'Method:', ...r.steps.map((x, i) => `${i + 1}. ${x}`), ...(m.tip ? ['', `Tip: ${m.tip}`] : [])].join('\n');
+}
+const weekTitle = () => `Tilbudskøkken · uge ${DATA.week} · ${dayLabel(0)} – ${dayLabel(6)} · ${plural(PEOPLE())}`;
+function weekText(){
+  const days = plan().days.map((d, i) => `${dayLabel(i)}: ${exportTypes().map(t => `${TYPES[t].toLowerCase()} ${d[SLOT[t]] ? MEALS[d[SLOT[t]]].name + (t === 'dinner' && d.left ? ' (leftovers)' : '') : 'out'}`).join(' · ')}`);
+  return [weekTitle(), '', ...days, '', ...weekMeals().map(m => `———\n${recipeText(m)}`)].join('\n');
+}
+function download(name, text, type){
+  const url = URL.createObjectURL(new Blob([text], { type })), a = document.createElement('a');
+  a.href = url; a.download = name; document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(url), 4000);
+}
+async function shareOut(title, text, file){
+  if (navigator.share) {
+    try { await navigator.share({ title, text }); return 'Sent.'; }
+    catch (e) { if (e.name === 'AbortError') return ''; }
+  }
+  download(file, text, 'text/plain;charset=utf-8');
+  try { await navigator.clipboard.writeText(text); return 'Saved as a text file, and copied so you can paste it into Notes.'; } catch (e) { return 'Saved as a text file.'; }
+}
+// Calendar: one event per meal at home, at the usual time of day, with the recipe in its notes.
+// Floating local times, so they land at 7:30 / 12:00 / 18:00 wherever the phone is.
+function icsWeek(){
+  const AT = { breakfast: ['0730', 30], lunch: ['1200', 30], dinner: ['1800', 45] };
+  const esc = x => x.replace(/\\/g, '\\\\').replace(/;/g, '\\;').replace(/,/g, '\\,').replace(/\r?\n/g, '\\n');
+  const enc = new TextEncoder();
+  const fold = line => { const out = []; let cur = '', n = 0;
+    for (const ch of line) { const b = enc.encode(ch).length; if (n + b > 73) { out.push(cur); cur = ' '; n = 1; } cur += ch; n += b; }
+    out.push(cur); return out.join('\r\n'); };
+  const stamp = new Date().toISOString().replace(/[-:]/g, '').replace(/\.\d+/, '');
+  const ev = [];
+  plan().days.forEach((d, i) => exportTypes().forEach(t => {
+    const id = d[SLOT[t]]; if (!id) return;
+    const m = MEALS[id], ymd = isoDay(dayDate(i)).replace(/-/g, ''), [hm, mins] = AT[t];
+    const end = new Date(Date.UTC(2000, 0, 1, +hm.slice(0, 2), +hm.slice(2) + mins)), endHm = `${String(end.getUTCHours()).padStart(2, '0')}${String(end.getUTCMinutes()).padStart(2, '0')}`;
+    const left = t === 'dinner' && d.left;
+    ev.push('BEGIN:VEVENT', `UID:${DATA.year}-${DATA.week}-${i}-${t}-${id}@tilbudskokken`, `DTSTAMP:${stamp}`, `DTSTART:${ymd}T${hm}00`, `DTEND:${ymd}T${endHm}00`,
+      fold(`SUMMARY:${esc(`${TYPES[t]}: ${m.name}${left ? ' (leftovers)' : ''}`)}`),
+      fold(`DESCRIPTION:${esc((left ? 'Leftovers from yesterday: just heat them up.\n\n' : '') + recipeText(m))}`), 'END:VEVENT');
+  }));
+  return ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//Tilbudskokken//Meal plan//EN', 'CALSCALE:GREGORIAN', 'METHOD:PUBLISH',
+    fold(`X-WR-CALNAME:${esc(`Tilbudskøkken uge ${DATA.week}`)}`), ...ev, 'END:VCALENDAR'].join('\r\n') + '\r\n';
+}
+function printWeek(){
+  const h = x => String(x).replace(/&/g, '&amp;').replace(/</g, '&lt;');
+  $('#printout').innerHTML = `<h1>${h(weekTitle())}</h1>` + weekMeals().map(m => { const r = recipeParts(m);
+    return `<section><h2>${h(m.name)}</h2><p class="dk">${h(m.dk)}</p><p class="meta">${h(r.meta)}</p>
+      <h3>On the plate</h3><ul>${r.plates.map(x => `<li>${h(x)}</li>`).join('')}</ul>
+      <h3>Ingredients</h3><ul>${r.ings.map(x => `<li>${h(x)}</li>`).join('')}</ul>
+      <h3>Method</h3><ol>${r.steps.map(x => `<li>${h(x)}</li>`).join('')}</ol>${m.tip ? `<p class="meta">${h(m.tip)}</p>` : ''}</section>`; }).join('');
+  window.print();
+}
+
 // Who a meal is for: everyone, or everyone minus those eating out on some of its days.
 function forWhom(m){
   const ds = plan().days.map((d, i) => d[SLOT[m.type]] === m.id ? weekdayOf(i) : null).filter(w => w !== null);
@@ -711,7 +804,7 @@ function mealCard(m){
       <div class="kcal"><b class="num">${s.kcal}</b><span>kcal / portion</span><span class="pr num">${s.p} g protein</span></div>
     </button>
     <div class="meal-body" id="b-${m.id}" ${open?'':'hidden'}>
-      <p class="cookfor">${when}</p>
+      <p class="cookfor">${when} <button class="mini" data-share="${m.id}" aria-label="Share the recipe for ${m.name}">share recipe</button></p>
       ${swapHtml(m)}
       ${platesHtml(m, s)}
       <div class="macro"><span>≈ <b class="num">${kr(s.cost)} kr</b> per portion, counting only what the meal uses</span></div>
@@ -992,6 +1085,12 @@ view.addEventListener('click', e => {
     const el = document.getElementById('m-' + id);
     if (el) el.scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'start' });
     return; }
+  if (e.target.id === 'exShare'){ shareOut(weekTitle(), weekText(), `tilbudskokken-uge-${DATA.week}.txt`).then(msg => { if (msg && $('#exMsg')) $('#exMsg').textContent = msg; }); return; }
+  if (e.target.id === 'exCal'){ download(`tilbudskokken-uge-${DATA.week}.ics`, icsWeek(), 'text/calendar;charset=utf-8');
+    $('#exMsg').textContent = 'Open the downloaded file and choose “Add all” to put the meals in your calendar.'; return; }
+  if (e.target.id === 'exPrint'){ printWeek(); return; }
+  const shr = e.target.closest('[data-share]');
+  if (shr){ const m = MEALS[shr.dataset.share]; shareOut(m.name, recipeText(m), `${m.id}.txt`); return; }
   const sg = e.target.closest('[data-swapgo]');
   if (sg){ const id = sg.dataset.swapgo; state.tab = MEALS[id].type; state.open[id] = true; state.swapOpen[id] = true; save(); render();
     const el = document.getElementById('m-' + id);
